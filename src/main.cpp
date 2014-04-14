@@ -10,7 +10,10 @@
 //
 
 #include <CoinDB/SynchedVault.h>
+#include <WebSocketServer/WebSocketServer.h>
 #include <logger/logger.h>
+
+#include "config.h"
 
 #include <iostream>
 #include <signal.h>
@@ -31,16 +34,8 @@ void finish(int sig)
 
 int main(int argc, char* argv[])
 {
-    if (argc != 4)
-    {
-        cout << "Usage: " << argv[0] << " [vault file] [p2p host] [p2p port]" << endl;
-        return 0;
-    }
-
-    string filename(argv[1]);
-    string host(argv[2]);
-    string port(argv[3]);
-        
+    CoinSocketConfig config(argc, argv)
+    
     INIT_LOGGER("coinsocket.log");
 
     signal(SIGINT, &finish);

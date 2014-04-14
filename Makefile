@@ -69,6 +69,7 @@ LIBS = \
     -lboost_regex$(BOOST_SUFFIX) \
     -lboost_thread$(BOOST_SUFFIX) \
     -lboost_serialization$(BOOST_SUFFIX) \
+    -lboost_program_options$(BOOST_SUFFIX) \
     -lcrypto \
     -lodb-sqlite \
     -lodb
