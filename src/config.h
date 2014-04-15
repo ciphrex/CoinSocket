@@ -44,7 +44,7 @@ private:
     std::string m_helpOptions;
 };
 
-inline CoinSocketConfig::init(int argc, char* argv[])
+inline void CoinSocketConfig::init(int argc, char* argv[])
 {
     namespace po = boost::program_options;
     po::options_description options("Options");
@@ -80,7 +80,7 @@ inline CoinSocketConfig::init(int argc, char* argv[])
 
     if (!vm.count("dbfile")) throw std::runtime_error("No dbfile specified.");
     if (!vm.count("peerhost"))  { m_peerHost = "localhost";     }
-    if (!vm.count("peerport"))  { m_peerport = "8333";          }
+    if (!vm.count("peerport"))  { m_peerPort = "8333";          }
     if (!vm.count("wsport"))    { m_webSocketPort = "12345";    }
 }
 

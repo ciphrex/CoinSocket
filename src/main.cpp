@@ -34,7 +34,23 @@ void finish(int sig)
 
 int main(int argc, char* argv[])
 {
-    CoinSocketConfig config(argc, argv)
+    CoinSocketConfig config;
+
+    try
+    {
+        config.init(argc, argv);
+    }
+    catch (const std::exception& e)
+    {
+        cerr << "Error: " << e.what() << endl;
+        return 1;
+    }
+
+    if (config.help())
+    {
+        cout << config.getHelpOptions() << endl;
+        return 0;
+    }
     
     INIT_LOGGER("coinsocket.log");
 
@@ -56,10 +72,10 @@ int main(int argc, char* argv[])
 
     try
     {
-        LOGGER(debug) << "Opening vault " << filename << endl;
-        synchedVault.openVault(filename);
-        LOGGER(debug) << "Attempting to sync with " << host << ":" << port << endl;
-        synchedVault.startSync(host, port);
+        LOGGER(debug) << "Opening vault " << config.getDatabaseFile() << endl;
+        synchedVault.openVault(config.getDatabaseFile());
+        LOGGER(debug) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+        synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
     }
     catch (const std::exception& e)
     {
