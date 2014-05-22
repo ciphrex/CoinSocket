@@ -63,6 +63,7 @@ else ifneq ($(MAKECMDGOALS), clean)
 endif
 
 LIBS = \
+    -lWebSocketServer \
     -lCoinDB \
     -lCoinQ \
     -lCoinCore \

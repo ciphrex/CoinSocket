@@ -24,12 +24,28 @@
 using namespace CoinDB;
 using namespace std;
 
+const string WS_PORT = "12345";
+
 bool g_bShutdown = false;
 
 void finish(int sig)
 {
     LOGGER(debug) << "Stopping..." << endl;
     g_bShutdown = true;
+}
+
+void openCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
+{
+    cout << "Client " << hdl.lock().get() << " connected." << endl;
+
+    JsonRpc::Response res;
+    res.setResult("connected");
+    server.send(hdl, res);
+}
+
+void closeCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
+{
+    cout << "Client " << hdl.lock().get() << " disconnected." << endl;
 }
 
 int main(int argc, char* argv[])
@@ -56,6 +72,22 @@ int main(int argc, char* argv[])
 
     signal(SIGINT, &finish);
 
+    WebSocket::Server wsServer(WS_PORT);
+    wsServer.setOpenCallback(&openCallback);
+    wsServer.setCloseCallback(&closeCallback);
+    try
+    {
+        cout << "Starting websocket server on port " << WS_PORT << "..." << flush;
+        wsServer.start();
+        cout << "done." << endl;
+    }
+    catch (const exception& e)
+    {
+        cout << endl;
+        cerr << "Error starting websocket server: " << e.what() << endl;
+        return 1;
+    }
+    
     SynchedVault synchedVault;
     synchedVault.subscribeTxInserted([](std::shared_ptr<Tx> tx)
     {
@@ -84,6 +116,10 @@ int main(int argc, char* argv[])
     }
 
     while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
+
+    cout << "Stopping websocket server..." << flush;
+    wsServer.stop();
+    cout << "done." << endl;
 
     return 0;
 }
