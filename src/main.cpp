@@ -48,6 +48,31 @@ void closeCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
     cout << "Client " << hdl.lock().get() << " disconnected." << endl;
 }
 
+void requestCallback(WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
+{
+    JsonRpc::Response response;
+
+    const string& method = req.second.getMethod();
+//    const json_spirit::Array& params = req.second.getParams();
+
+    try
+    {
+        if (method == "subscribe")
+        {
+        }
+        else
+        {
+            throw std::runtime_error("Invalid method.");
+        }
+    }
+    catch (const exception& e)
+    {
+        response.setError(e.what(), req.second.getId());
+    }
+
+    server.send(req.first, response);
+}
+
 int main(int argc, char* argv[])
 {
     CoinSocketConfig config;
@@ -75,6 +100,7 @@ int main(int argc, char* argv[])
     WebSocket::Server wsServer(WS_PORT);
     wsServer.setOpenCallback(&openCallback);
     wsServer.setCloseCallback(&closeCallback);
+    wsServer.setRequestCallback(&requestCallback);
     try
     {
         cout << "Starting websocket server on port " << WS_PORT << "..." << flush;
@@ -104,9 +130,9 @@ int main(int argc, char* argv[])
 
     try
     {
-        LOGGER(debug) << "Opening vault " << config.getDatabaseFile() << endl;
+        cout << "Opening vault " << config.getDatabaseFile() << endl;
         synchedVault.openVault(config.getDatabaseFile());
-        LOGGER(debug) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+        cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
         synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
     }
     catch (const std::exception& e)
