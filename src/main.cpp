@@ -48,7 +48,7 @@ void closeCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
     cout << "Client " << hdl.lock().get() << " disconnected." << endl;
 }
 
-void requestCallback(WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
+void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
 {
     JsonRpc::Response response;
 
@@ -57,7 +57,20 @@ void requestCallback(WebSocket::Server& server, const WebSocket::Server::client_
 
     try
     {
-        if (method == "subscribe")
+        if (method == "status")
+        {
+            json_spirit::Object result;
+            Vault* vault = synchedVault.getVault();
+            result.push_back(json_spirit::Pair("name", vault->getName()));
+            stringstream schema;
+            schema << vault->getSchemaVersion();
+            result.push_back(json_spirit::Pair("schema", schema.str()));
+            stringstream horizon;
+            horizon << vault->getHorizonTimestamp();
+            result.push_back(json_spirit::Pair("horizon", horizon.str()));
+            response.setResult(result);
+        }
+        else if (method == "subscribe")
         {
         }
         else
@@ -97,10 +110,16 @@ int main(int argc, char* argv[])
 
     signal(SIGINT, &finish);
 
+    SynchedVault synchedVault;
+
     WebSocket::Server wsServer(WS_PORT);
     wsServer.setOpenCallback(&openCallback);
     wsServer.setCloseCallback(&closeCallback);
-    wsServer.setRequestCallback(&requestCallback);
+    wsServer.setRequestCallback([&](WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
+    {
+        requestCallback(synchedVault, server, req);
+    });
+
     try
     {
         cout << "Starting websocket server on port " << WS_PORT << "..." << flush;
@@ -114,7 +133,6 @@ int main(int argc, char* argv[])
         return 1;
     }
     
-    SynchedVault synchedVault;
     synchedVault.subscribeTxInserted([](std::shared_ptr<Tx> tx)
     {
         cout << "Transaction inserted: " << uchar_vector(tx->hash()).getHex() << endl;
