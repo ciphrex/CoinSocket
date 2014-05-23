@@ -84,9 +84,15 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             {
                 Object accountObject;
                 accountObject.push_back(Pair("name", account.name()));
-                stringstream id;
-                id << account.id();
+
+                stringstream id; id << account.id();
                 accountObject.push_back(Pair("id", id.str()));
+
+                stringstream minsigs; minsigs << account.minsigs();
+                accountObject.push_back(Pair("minsigs", minsigs.str()));
+
+                accountObject.push_back(Pair("keychains", Array(account.keychain_names().begin(), account.keychain_names().end())));
+
                 accountObjects.push_back(accountObject);
             }
             Object result;
