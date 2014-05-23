@@ -17,6 +17,12 @@
 #include <stdexcept>
 #include <boost/program_options.hpp>
 
+
+const std::string DEFAULT_PEER_HOST = "localhost";
+const std::string DEFAULT_PEER_PORT = "8333";
+const std::string DEFAULT_WEBSOCKET_PORT = "12345";
+const std::string DEFAULT_ALLOWED_IPS = "^\\[(::1|::ffff:127\\.0\\.0\\.1)\\].*";
+
 class CoinSocketConfig
 {
 public:
@@ -29,6 +35,7 @@ public:
     const std::string& getPeerHost() const { return m_peerHost; }
     const std::string& getPeerPort() const { return m_peerPort; }
     const std::string& getWebSocketPort() const { return m_webSocketPort; }
+    const std::string& getAllowedIps() const { return m_allowedIps; }
 
     bool help() const { return m_bHelp; }
     const std::string& getHelpOptions() const { return m_helpOptions; }
@@ -38,7 +45,8 @@ private:
     std::string m_databaseFile;
     std::string m_peerHost;
     std::string m_peerPort;
-    std::string m_webSocketPort; 
+    std::string m_webSocketPort;
+    std::string m_allowedIps; 
 
     bool m_bHelp;
     std::string m_helpOptions;
@@ -55,6 +63,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("peerhost", po::value<std::string>(&m_peerHost), "peer hostname")
         ("peerport", po::value<std::string>(&m_peerPort), "peer port")
         ("wsport", po::value<std::string>(&m_webSocketPort), "port to listen for inbound websocket connections")
+        ("allowedips", po::value<std::string>(&m_allowedIps), "regular expression for allowed ip addresses")
     ;
 
     po::variables_map vm;
@@ -79,8 +88,9 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     }
 
     if (!vm.count("dbfile")) throw std::runtime_error("No dbfile specified.");
-    if (!vm.count("peerhost"))  { m_peerHost = "localhost";     }
-    if (!vm.count("peerport"))  { m_peerPort = "8333";          }
-    if (!vm.count("wsport"))    { m_webSocketPort = "12345";    }
+    if (!vm.count("peerhost"))      { m_peerHost = DEFAULT_PEER_HOST; }
+    if (!vm.count("peerport"))      { m_peerPort = DEFAULT_PEER_PORT; }
+    if (!vm.count("wsport"))        { m_webSocketPort = DEFAULT_WEBSOCKET_PORT; }
+    if (!vm.count("allowedips"))    { m_allowedIps = DEFAULT_ALLOWED_IPS; }
 }
 

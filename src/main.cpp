@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 
     SynchedVault synchedVault;
 
-    WebSocket::Server wsServer(WS_PORT);
+    WebSocket::Server wsServer(WS_PORT, config.getAllowedIps());
     wsServer.setOpenCallback(&openCallback);
     wsServer.setCloseCallback(&closeCallback);
     wsServer.setRequestCallback([&](WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
