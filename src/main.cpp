@@ -50,24 +50,47 @@ void closeCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
 
 void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
 {
+    using namespace json_spirit;
+
+    Vault* vault = synchedVault.getVault();
+
     JsonRpc::Response response;
 
     const string& method = req.second.getMethod();
-//    const json_spirit::Array& params = req.second.getParams();
+    const Array& params = req.second.getParams();
 
     try
     {
         if (method == "status")
         {
-            json_spirit::Object result;
-            Vault* vault = synchedVault.getVault();
-            result.push_back(json_spirit::Pair("name", vault->getName()));
+            Object result;
+            result.push_back(Pair("name", vault->getName()));
             stringstream schema;
             schema << vault->getSchemaVersion();
-            result.push_back(json_spirit::Pair("schema", schema.str()));
+            result.push_back(Pair("schema", schema.str()));
             stringstream horizon;
             horizon << vault->getHorizonTimestamp();
-            result.push_back(json_spirit::Pair("horizon", horizon.str()));
+            result.push_back(Pair("horizon", horizon.str()));
+            response.setResult(result);
+        }
+        else if (method == "listaccounts")
+        {
+            if (params.size() > 0)
+                throw std::runtime_error("Invalid parameters.");
+
+            vector<AccountInfo> accounts = vault->getAllAccountInfo();
+            vector<Object> accountObjects;
+            for (auto& account: accounts)
+            {
+                Object accountObject;
+                accountObject.push_back(Pair("name", account.name()));
+                stringstream id;
+                id << account.id();
+                accountObject.push_back(Pair("id", id.str()));
+                accountObjects.push_back(accountObject);
+            }
+            Object result;
+            result.push_back(Pair("accounts", Array(accountObjects.begin(), accountObjects.end())));
             response.setResult(result);
         }
         else if (method == "subscribe")
