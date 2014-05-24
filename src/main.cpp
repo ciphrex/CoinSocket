@@ -104,6 +104,34 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             keychainInfo.push_back(Pair("hash", uchar_vector(keychain->hash()).getHex()));
             response.setResult(keychainInfo);
         }
+        else if (method == "keychains")
+        {
+            if (params.size() > 2)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string accountName;
+            if (params.size() > 0) accountName = params[0].get_str();
+
+            bool showHidden = params.size() > 1 && params[1].get_bool();
+
+            vector<KeychainView> views = vault->getRootKeychainViews(accountName, showHidden);
+            vector<Object> keychainObjects;
+            for (auto& view: views)
+            {
+                Object obj;
+                obj.push_back(Pair("id", (uint64_t)view.id));
+                obj.push_back(Pair("name", view.name));
+                obj.push_back(Pair("private", view.is_private));
+                obj.push_back(Pair("encrypted", view.is_encrypted));
+                obj.push_back(Pair("locked", view.is_locked));
+                obj.push_back(Pair("hash", uchar_vector(view.hash).getHex()));
+                keychainObjects.push_back(obj);
+            }
+
+            Object result;
+            result.push_back(Pair("keychains", Array(keychainObjects.begin(), keychainObjects.end())));
+            response.setResult(result); 
+        }
         else if (method == "listaccounts")
         {
             if (params.size() > 0)
@@ -114,8 +142,8 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             for (auto& account: accounts)
             {
                 Object accountObject;
-                accountObject.push_back(Pair("name", account.name()));
                 accountObject.push_back(Pair("id", (uint64_t)account.id()));
+                accountObject.push_back(Pair("name", account.name()));
                 accountObject.push_back(Pair("minsigs", (int)account.minsigs()));
 
                 accountObject.push_back(Pair("keychains", Array(account.keychain_names().begin(), account.keychain_names().end())));
