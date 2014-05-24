@@ -30,13 +30,13 @@ bool g_bShutdown = false;
 
 void finish(int sig)
 {
-    LOGGER(debug) << "Stopping..." << endl;
+    LOGGER(info) << "Stopping..." << endl;
     g_bShutdown = true;
 }
 
 void openCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
 {
-    cout << "Client " << hdl.lock().get() << " connected." << endl;
+    LOGGER(info) << "Client " << hdl.lock().get() << " connected." << endl;
 
     JsonRpc::Response res;
     res.setResult("connected");
@@ -45,7 +45,7 @@ void openCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
 
 void closeCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
 {
-    cout << "Client " << hdl.lock().get() << " disconnected." << endl;
+    LOGGER(info) << "Client " << hdl.lock().get() << " disconnected." << endl;
 }
 
 void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
     signal(SIGINT, &finish);
 
-    SynchedVault synchedVault;
+    SynchedVault synchedVault("blocktree.dat");
 
     WebSocket::Server wsServer(WS_PORT, config.getAllowedIps());
     wsServer.setOpenCallback(&openCallback);
@@ -152,34 +152,39 @@ int main(int argc, char* argv[])
     try
     {
         cout << "Starting websocket server on port " << WS_PORT << "..." << flush;
+        LOGGER(info) << "Starting websocket server on port " << WS_PORT << "..." << flush;
         wsServer.start();
         cout << "done." << endl;
+        LOGGER(info) << "done." << endl;
     }
     catch (const exception& e)
     {
         cout << endl;
+        LOGGER(info) << endl;
         cerr << "Error starting websocket server: " << e.what() << endl;
         return 1;
     }
     
     synchedVault.subscribeTxInserted([](std::shared_ptr<Tx> tx)
     {
-        cout << "Transaction inserted: " << uchar_vector(tx->hash()).getHex() << endl;
+        LOGGER(debug) << "Transaction inserted: " << uchar_vector(tx->hash()).getHex() << endl;
     });
     synchedVault.subscribeTxStatusChanged([](std::shared_ptr<Tx> tx)
     {
-        cout << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
+        LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
     });
     synchedVault.subscribeMerkleBlockInserted([](std::shared_ptr<MerkleBlock> merkleblock)
     {
-        cout << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
+        LOGGER(debug) << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
     });
 
     try
     {
         cout << "Opening vault " << config.getDatabaseFile() << endl;
+        LOGGER(info) << "Opening vault " << config.getDatabaseFile() << endl;
         synchedVault.openVault(config.getDatabaseFile());
         cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+        LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
         synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
     }
     catch (const std::exception& e)
@@ -191,8 +196,10 @@ int main(int argc, char* argv[])
     while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
 
     cout << "Stopping websocket server..." << flush;
+    LOGGER(info) << "Stopping websocket server..." << flush;
     wsServer.stop();
     cout << "done." << endl;
+    LOGGER(info) << "done." << endl;
 
     return 0;
 }

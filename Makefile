@@ -78,17 +78,17 @@ LIBS = \
     -lodb-sqlite \
     -lodb
 
-all: build/coinsocket$(EXE_EXT)
+all: build/coinsocketd$(EXE_EXT)
 
-build/coinsocket$(EXE_EXT): src/main.cpp
+build/coinsocketd$(EXE_EXT): src/main.cpp
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) $< -o $@ $(LIBS) $(PLATFORM_LIBS)
 
 install:
 	-mkdir -p $(SYSROOT)/bin
-	-cp build/coinsocket$(EXE_EXT) $(SYSROOT)/bin/
+	-cp build/coinsocketd$(EXE_EXT) $(SYSROOT)/bin/
 
 remove:
-	-rm $(SYSROOT)/bin/coinsocket$(EXE_EXT)
+	-rm $(SYSROOT)/bin/coinsocketd$(EXE_EXT)
 
 clean:
-	-rm -f build/coinsocket$(EXE_EXT)
+	-rm -f build/coinsocketd$(EXE_EXT)
