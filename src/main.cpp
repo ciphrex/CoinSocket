@@ -161,6 +161,28 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             vault->renameAccount(oldName, newName);
             response.setResult("success");
         }
+        else if (method == "accountinfo")
+        {
+            if (params.size() != 1)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string accountName = params[0].get_str();
+            AccountInfo accountInfo = vault->getAccountInfo(accountName);
+            uint64_t balance = vault->getAccountBalance(accountName, 0);
+            uint64_t confirmedBalance = vault->getAccountBalance(accountName, 1);
+
+            Object result;
+            result.push_back(Pair("id", (uint64_t)accountInfo.id()));
+            result.push_back(Pair("name", accountInfo.name()));
+            result.push_back(Pair("minsigs", (int)accountInfo.minsigs()));
+            result.push_back(Pair("keychains", Array(accountInfo.keychain_names().begin(), accountInfo.keychain_names().end())));
+            result.push_back(Pair("unused_pool_size", (uint64_t)accountInfo.unused_pool_size()));
+            result.push_back(Pair("time_created", (uint64_t)accountInfo.time_created()));
+            result.push_back(Pair("bins", Array(accountInfo.bin_names().begin(), accountInfo.bin_names().end())));
+            result.push_back(Pair("balance", balance));
+            result.push_back(Pair("confirmed_balance", confirmedBalance));
+            response.setResult(result); 
+        }
         else if (method == "listaccounts")
         {
             if (params.size() > 0)
