@@ -10,6 +10,8 @@
 //
 
 #include <CoinDB/SynchedVault.h>
+#include <CoinQ/CoinQ_script.h>
+#include <CoinCore/Base58Check.h>
 #include <CoinCore/random.h>
 #include <WebSocketServer/WebSocketServer.h>
 #include <logger/logger.h>
@@ -24,6 +26,23 @@
 
 using namespace CoinDB;
 using namespace std;
+
+// TODO: Get this from a config file
+const unsigned char BITCOIN_BASE58_VERSIONS[] = { 0x00, 0x05 };
+
+// Data formatting
+std::string getAddressFromScript(const bytes_t& script, const unsigned char base58Versions[])
+{
+    using namespace CoinQ::Script;
+
+    payee_t payee = getScriptPubKeyPayee(script);
+    if (payee.first == SCRIPT_PUBKEY_PAY_TO_PUBKEY_HASH)
+        return toBase58Check(payee.second, base58Versions[0]);
+    else if (payee.first == SCRIPT_PUBKEY_PAY_TO_SCRIPT_HASH)
+        return toBase58Check(payee.second, base58Versions[1]);
+    else
+        return "N/A";
+}
 
 bool g_bShutdown = false;
 
@@ -205,8 +224,25 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("accounts", Array(accountObjects.begin(), accountObjects.end())));
             response.setResult(result);
         }
-        else if (method == "subscribe")
+        else if (method == "issuescript")
         {
+            if (params.size() < 1 || params.size() > 3)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string accountName = params[0].get_str();
+            std::string binName = params.size() > 1 ? params[1].get_str() : std::string(DEFAULT_BIN_NAME);
+            std::string label;
+            if (params.size() > 2) label = params[2].get_str();
+
+            std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label);
+
+            Object result;
+            result.push_back(Pair("account", accountName));
+            result.push_back(Pair("account_bin", binName));
+            result.push_back(Pair("label", label));
+            result.push_back(Pair("script", uchar_vector(script->txoutscript()).getHex()));
+            result.push_back(Pair("address", getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS)));
+            response.setResult(result);
         }
         else
         {
