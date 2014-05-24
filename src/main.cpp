@@ -96,6 +96,12 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             std::shared_ptr<Keychain> keychain = vault->getKeychain(keychainName);
             Object keychainInfo;
             keychainInfo.push_back(Pair("id", (uint64_t)keychain->id()));
+            keychainInfo.push_back(Pair("name", keychain->name()));
+            keychainInfo.push_back(Pair("depth", (int)keychain->depth()));
+            keychainInfo.push_back(Pair("parent_fp", (uint64_t)keychain->parent_fp()));
+            keychainInfo.push_back(Pair("child_num", (uint64_t)keychain->child_num()));
+            keychainInfo.push_back(Pair("pubkey", uchar_vector(keychain->pubkey()).getHex()));
+            keychainInfo.push_back(Pair("hash", uchar_vector(keychain->hash()).getHex()));
             response.setResult(keychainInfo);
         }
         else if (method == "listaccounts")
