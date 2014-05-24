@@ -134,12 +134,13 @@ int main(int argc, char* argv[])
         cout << config.getHelpOptions() << endl;
         return 0;
     }
-    
-    INIT_LOGGER("coinsocket.log");
+
+    std::string logFile = config.getDataDir() + "/coinsocket.log"; 
+    INIT_LOGGER(logFile.c_str());
 
     signal(SIGINT, &finish);
 
-    SynchedVault synchedVault("blocktree.dat");
+    SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
 
     WebSocket::Server wsServer(WS_PORT, config.getAllowedIps());
     wsServer.setOpenCallback(&openCallback);

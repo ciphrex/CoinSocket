@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <boost/program_options.hpp>
 
-
+const std::string DEFAULT_DATADIR = ".";
 const std::string DEFAULT_PEER_HOST = "localhost";
 const std::string DEFAULT_PEER_PORT = "8333";
 const std::string DEFAULT_WEBSOCKET_PORT = "12345";
@@ -32,6 +32,7 @@ public:
 
     const std::string& getConfigFile() const { return m_configFile; }
     const std::string& getDatabaseFile() const { return m_databaseFile; }
+    const std::string& getDataDir() const { return m_dataDir; }
     const std::string& getPeerHost() const { return m_peerHost; }
     const std::string& getPeerPort() const { return m_peerPort; }
     const std::string& getWebSocketPort() const { return m_webSocketPort; }
@@ -43,6 +44,7 @@ public:
 private:
     std::string m_configFile;
     std::string m_databaseFile;
+    std::string m_dataDir;
     std::string m_peerHost;
     std::string m_peerPort;
     std::string m_webSocketPort;
@@ -60,6 +62,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("help", "display help message")
         ("config", po::value<std::string>(&m_configFile), "name of the configuration file")
         ("dbfile", po::value<std::string>(&m_databaseFile), "coin database file")
+        ("datadir", po::value<std::string>(&m_dataDir), "data directory")
         ("peerhost", po::value<std::string>(&m_peerHost), "peer hostname")
         ("peerport", po::value<std::string>(&m_peerPort), "peer port")
         ("wsport", po::value<std::string>(&m_webSocketPort), "port to listen for inbound websocket connections")
@@ -88,6 +91,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     }
 
     if (!vm.count("dbfile")) throw std::runtime_error("No dbfile specified.");
+    if (!vm.count("datadir"))       { m_dataDir = DEFAULT_DATADIR; }
     if (!vm.count("peerhost"))      { m_peerHost = DEFAULT_PEER_HOST; }
     if (!vm.count("peerport"))      { m_peerPort = DEFAULT_PEER_PORT; }
     if (!vm.count("wsport"))        { m_webSocketPort = DEFAULT_WEBSOCKET_PORT; }
