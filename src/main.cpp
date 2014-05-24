@@ -64,12 +64,8 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
         {
             Object result;
             result.push_back(Pair("name", vault->getName()));
-            stringstream schema;
-            schema << vault->getSchemaVersion();
-            result.push_back(Pair("schema", schema.str()));
-            stringstream horizon;
-            horizon << vault->getHorizonTimestamp();
-            result.push_back(Pair("horizon", horizon.str()));
+            result.push_back(Pair("schema", (uint64_t)vault->getSchemaVersion()));
+            result.push_back(Pair("horizon", (uint64_t)vault->getHorizonTimestamp()));
             response.setResult(result);
         }
         else if (method == "newkeychain")
@@ -80,6 +76,27 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             std::string keychainName = params[0].get_str();
             vault->newKeychain(keychainName, random_bytes(32));
             response.setResult("success");
+        }
+        else if (method == "renamekeychain")
+        {
+            if (params.size() != 2)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string oldName = params[0].get_str();
+            std::string newName = params[1].get_str();
+            vault->renameKeychain(oldName, newName);
+            response.setResult("success"); 
+        }
+        else if (method == "keychaininfo")
+        {
+            if (params.size() != 1)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string keychainName = params[0].get_str();
+            std::shared_ptr<Keychain> keychain = vault->getKeychain(keychainName);
+            Object keychainInfo;
+            keychainInfo.push_back(Pair("id", (uint64_t)keychain->id()));
+            response.setResult(keychainInfo);
         }
         else if (method == "listaccounts")
         {
@@ -92,12 +109,8 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             {
                 Object accountObject;
                 accountObject.push_back(Pair("name", account.name()));
-
-                stringstream id; id << account.id();
-                accountObject.push_back(Pair("id", id.str()));
-
-                stringstream minsigs; minsigs << account.minsigs();
-                accountObject.push_back(Pair("minsigs", minsigs.str()));
+                accountObject.push_back(Pair("id", (uint64_t)account.id()));
+                accountObject.push_back(Pair("minsigs", (int)account.minsigs()));
 
                 accountObject.push_back(Pair("keychains", Array(account.keychain_names().begin(), account.keychain_names().end())));
 
