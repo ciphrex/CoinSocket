@@ -10,6 +10,7 @@
 //
 
 #include <CoinDB/SynchedVault.h>
+#include <CoinCore/random.h>
 #include <WebSocketServer/WebSocketServer.h>
 #include <logger/logger.h>
 
@@ -70,6 +71,15 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             horizon << vault->getHorizonTimestamp();
             result.push_back(Pair("horizon", horizon.str()));
             response.setResult(result);
+        }
+        else if (method == "newkeychain")
+        {
+            if (params.size() != 1)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string keychainName = params[0].get_str();
+            vault->newKeychain(keychainName, random_bytes(32));
+            response.setResult("success");
         }
         else if (method == "listaccounts")
         {
@@ -204,6 +214,12 @@ int main(int argc, char* argv[])
     }
 
     while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
+
+    cout << "Stopping vault sync..." << flush;
+    LOGGER(info) << "Stopping vault sync..." << flush;
+    synchedVault.stopSync();
+    cout << "done." << endl;
+    LOGGER(info) << "done." << endl;
 
     cout << "Stopping websocket server..." << flush;
     LOGGER(info) << "Stopping websocket server..." << flush;
