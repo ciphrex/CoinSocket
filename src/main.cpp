@@ -24,8 +24,6 @@
 using namespace CoinDB;
 using namespace std;
 
-const string WS_PORT = "12345";
-
 bool g_bShutdown = false;
 
 void finish(int sig)
@@ -142,7 +140,7 @@ int main(int argc, char* argv[])
 
     SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
 
-    WebSocket::Server wsServer(WS_PORT, config.getAllowedIps());
+    WebSocket::Server wsServer(config.getWebSocketPort(), config.getAllowedIps());
     wsServer.setOpenCallback(&openCallback);
     wsServer.setCloseCallback(&closeCallback);
     wsServer.setRequestCallback([&](WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
@@ -152,8 +150,8 @@ int main(int argc, char* argv[])
 
     try
     {
-        cout << "Starting websocket server on port " << WS_PORT << "..." << flush;
-        LOGGER(info) << "Starting websocket server on port " << WS_PORT << "..." << flush;
+        cout << "Starting websocket server on port " << config.getWebSocketPort() << "..." << flush;
+        LOGGER(info) << "Starting websocket server on port " << config.getWebSocketPort() << "..." << flush;
         wsServer.start();
         cout << "done." << endl;
         LOGGER(info) << "done." << endl;
@@ -166,15 +164,26 @@ int main(int argc, char* argv[])
         return 1;
     }
     
-    synchedVault.subscribeTxInserted([](std::shared_ptr<Tx> tx)
+    synchedVault.subscribeTxInserted([&](std::shared_ptr<Tx> tx)
     {
-        LOGGER(debug) << "Transaction inserted: " << uchar_vector(tx->hash()).getHex() << endl;
+        std::string hash = uchar_vector(tx->hash()).getHex();
+        LOGGER(debug) << "Transaction inserted: " << hash << endl;
+
+        using namespace json_spirit;
+        Object txObject;
+        txObject.push_back(Pair("hash", hash));
+
+        JsonRpc::Response response;
+        response.setResult(txObject);
+        wsServer.sendAll(response);
     });
-    synchedVault.subscribeTxStatusChanged([](std::shared_ptr<Tx> tx)
+
+    synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
     {
         LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
     });
-    synchedVault.subscribeMerkleBlockInserted([](std::shared_ptr<MerkleBlock> merkleblock)
+
+    synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
     {
         LOGGER(debug) << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
     });
