@@ -132,6 +132,25 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("keychains", Array(keychainObjects.begin(), keychainObjects.end())));
             response.setResult(result); 
         }
+        else if (method == "newaccount")
+        {
+            if (params.size() < 3 || params.size() > 18)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string accountName = params[0].get_str();
+            int minsigs = params[1].get_int();
+            if (minsigs > ((int)params.size() - 2))
+                throw std::runtime_error("Invalid parameters.");
+
+            std::vector<std::string> keychainNames;
+            for (size_t i = 2; i < params.size(); i++)
+                keychainNames.push_back(params[i].get_str());
+
+            vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes using passphrase
+            vault->newAccount(accountName, minsigs, keychainNames);
+            vault->lockChainCodes();
+            response.setResult("success");
+        }
         else if (method == "listaccounts")
         {
             if (params.size() > 0)
