@@ -151,6 +151,16 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             vault->lockChainCodes();
             response.setResult("success");
         }
+        else if (method == "renameaccount")
+        {
+            if (params.size() != 2)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string oldName = params[0].get_str();
+            std::string newName = params[1].get_str();
+            vault->renameAccount(oldName, newName);
+            response.setResult("success");
+        }
         else if (method == "listaccounts")
         {
             if (params.size() > 0)
