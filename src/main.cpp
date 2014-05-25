@@ -283,6 +283,7 @@ int main(int argc, char* argv[])
     INIT_LOGGER(logFile.c_str());
 
     signal(SIGINT, &finish);
+    signal(SIGTERM, &finish);
 
     SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
 
