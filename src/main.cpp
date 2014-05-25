@@ -230,7 +230,9 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
                 throw std::runtime_error("Invalid parameters.");
 
             std::string accountName = params[0].get_str();
-            std::string binName = params.size() > 1 ? params[1].get_str() : std::string(DEFAULT_BIN_NAME);
+            std::string binName;
+            if (params.size() > 1) binName = params[1].get_str();
+            if (binName.empty()) binName = DEFAULT_BIN_NAME;
             std::string label;
             if (params.size() > 2) label = params[2].get_str();
 
@@ -312,19 +314,17 @@ int main(int argc, char* argv[])
     {
         std::string hash = uchar_vector(tx->hash()).getHex();
         LOGGER(debug) << "Transaction inserted: " << hash << endl;
-
-        using namespace json_spirit;
-        Object txObject;
-        txObject.push_back(Pair("hash", hash));
-
-        JsonRpc::Response response;
-        response.setResult(txObject);
-        wsServer.sendAll(response);
+        std::stringstream msg;
+        msg << "{\"type\":\"tx_inserted\", \"tx\":" << tx->toJson() << "}";
+        wsServer.sendAll(msg.str());
     });
 
     synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
     {
         LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
+        std::stringstream msg;
+        msg << "{\"type\":\"tx_status_changed\", \"tx\":" << tx->toJson() << "}";
+        wsServer.sendAll(msg.str());
     });
 
     synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
