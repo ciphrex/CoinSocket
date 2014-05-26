@@ -246,6 +246,17 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("address", getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS)));
             response.setResult(result);
         }
+        else if (method == "bestblockinfo")
+        {
+            if (params.size() > 0)
+                throw std::runtime_error("Invalid parameters.");
+
+            uint64_t height = vault->getBestHeight();
+
+            Object result;
+            result.push_back(Pair("height", height));
+            response.setResult(result);
+        }
         else
         {
             throw std::runtime_error("Invalid method.");
