@@ -230,18 +230,18 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
                 throw std::runtime_error("Invalid parameters.");
 
             std::string accountName = params[0].get_str();
-            std::string binName;
-            if (params.size() > 1) binName = params[1].get_str();
-            if (binName.empty()) binName = DEFAULT_BIN_NAME;
             std::string label;
-            if (params.size() > 2) label = params[2].get_str();
+            if (params.size() > 1) label = params[1].get_str();
+            std::string binName;
+            if (params.size() > 2) binName = params[2].get_str();
+            if (binName.empty()) binName = DEFAULT_BIN_NAME;
 
             std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label);
 
             Object result;
             result.push_back(Pair("account", accountName));
-            result.push_back(Pair("account_bin", binName));
             result.push_back(Pair("label", label));
+            result.push_back(Pair("account_bin", binName));
             result.push_back(Pair("script", uchar_vector(script->txoutscript()).getHex()));
             result.push_back(Pair("address", getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS)));
             response.setResult(result);
