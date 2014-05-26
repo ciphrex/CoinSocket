@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>CoinQ WebSocket Client</title>
+</head>
+<body>
+<div>
+    Server: <input type="text" id="url" value="ws://test.ciphrex.com:12345" size="50" />
+    <input type="button" id="connectbutton" onclick="connect()" value="Connect" />
+</div>
+<div>
+    Request: <input type="text" id="request" value='{"method":"status"}' size="50" />
+    <input type="button" id="sendbutton" onclick="send()" value="Send" disabled  />
+</div>
+<div>
+    <textarea id="output" rows="30" cols="150"></textarea>
+</div>
+<div>
+    <tt><span id="status"></span></tt>
+</div>
+
+<script type="text/javascript">
+    var connectbutton; // = document.getElementById('connectbutton');
+    var sendbutton; // = document.getElementById('sendbutton');
+    var output; // = document.getElementById('output');
+
+    var urlinput; // = document.getElementById('url');
+
+    var requestinput; // = document.getElementById('request');
+    var url;
+
+    var ws = null;
+
+    var onopen = function () {
+        document.getElementById('status').innerHTML = "Connected to " + url + ".";
+        output.value += 'CONNECTED TO ' + url + '.\n\n';
+        document.getElementById('connectbutton').value = 'Disconnect';
+    };
+
+    var onclose = function () {
+        document.getElementById('status').innerHTML = "Connection closed.";
+        ws = null;
+        connectbutton.value = 'Connect';
+        output.value += 'DISCONNECTED FROM ' + url + '.\n';
+    };
+
+    var onmessage = function (e) {
+        output.value += e.data + "\n\n";
+    };
+
+    function connect() {
+        if (ws) {
+            document.getElementById('sendbutton').disabled = true;
+            ws.close();
+            return;
+        }
+
+        url = urlinput.value;
+        document.getElementById('status').innerHTML = "Connecting to " + url + "...";
+
+        ws = new WebSocket(urlinput.value);
+        ws.onopen = onopen;
+        ws.onclose = onclose;
+        ws.onmessage = onmessage;
+
+        document.getElementById('sendbutton').disabled = false;
+    }
+
+    function send() {
+        if (!ws) return;
+        request = requestinput.value;
+        document.getElementById('status').innerHTML = "Sending " + request + "...";
+        ws.send(request);
+        document.getElementById('status').innerHTML += "done.";
+    };
+
+    window.onload = function () {
+        connectbutton = document.getElementById('connectbutton');
+        output = document.getElementById('output');
+        urlinput = document.getElementById('url');
+        requestinput = document.getElementById('request');
+    };
+</script>
+</body>
+</html>
+
