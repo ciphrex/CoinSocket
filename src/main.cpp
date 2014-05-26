@@ -280,18 +280,6 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             uint32_t height = vault->getBestHeight();
             std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
             response.setResult(getBlockHeaderObject(header.get()));
-/*
-            Object result;
-            result.push_back(Pair("hash", uchar_vector(header->hash()).getHex()));
-            result.push_back(Pair("height", (uint64_t)header->height()));
-            result.push_back(Pair("version", (uint64_t)header->version()));
-            result.push_back(Pair("prevhash", uchar_vector(header->prevhash()).getHex()));
-            result.push_back(Pair("merkleroot", uchar_vector(header->merkleroot()).getHex()));
-            result.push_back(Pair("timestamp", (uint64_t)header->timestamp()));
-            result.push_back(Pair("bits", (uint64_t)header->bits()));
-            result.push_back(Pair("nonce", (uint64_t)header->nonce()));
-            response.setResult(result);
-*/
         }
         else
         {
@@ -363,21 +351,26 @@ int main(int argc, char* argv[])
         std::string hash = uchar_vector(tx->hash()).getHex();
         LOGGER(debug) << "Transaction inserted: " << hash << endl;
         std::stringstream msg;
-        msg << "{\"type\":\"tx_inserted\", \"tx\":" << tx->toJson() << "}";
+        msg << "{\"type\":\"txinserted\", \"tx\":" << tx->toJson() << "}";
         wsServer.sendAll(msg.str());
     });
 
     synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
     {
         LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
+
         std::stringstream msg;
-        msg << "{\"type\":\"tx_status_changed\", \"tx\":" << tx->toJson() << "}";
+        msg << "{\"type\":\"txstatuschanged\", \"tx\":" << tx->toJson() << "}";
         wsServer.sendAll(msg.str());
     });
 
     synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
     {
         LOGGER(debug) << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
+
+        std::stringstream msg;
+        msg << "{\"type\":\"merkleblockinserted\", \"merkleblock\":" << merkleblock->toJson() << "}";
+        wsServer.sendAll(msg.str());
     });
 
     try
