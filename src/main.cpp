@@ -251,10 +251,18 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             if (params.size() > 0)
                 throw std::runtime_error("Invalid parameters.");
 
-            uint64_t height = vault->getBestHeight();
+            uint32_t height = vault->getBestHeight();
+            std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
 
             Object result;
-            result.push_back(Pair("height", height));
+            result.push_back(Pair("hash", uchar_vector(header->hash()).getHex()));
+            result.push_back(Pair("height", (uint64_t)header->height()));
+            result.push_back(Pair("version", (uint64_t)header->version()));
+            result.push_back(Pair("prevhash", uchar_vector(header->prevhash()).getHex()));
+            result.push_back(Pair("merkleroot", uchar_vector(header->merkleroot()).getHex()));
+            result.push_back(Pair("timestamp", (uint64_t)header->timestamp()));
+            result.push_back(Pair("bits", (uint64_t)header->bits()));
+            result.push_back(Pair("nonce", (uint64_t)header->nonce()));
             response.setResult(result);
         }
         else
