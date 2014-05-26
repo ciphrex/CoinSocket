@@ -44,6 +44,23 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
         return "N/A";
 }
 
+
+json_spirit::Object getBlockHeaderObject(BlockHeader* header)
+{
+    using namespace json_spirit;
+
+    Object result;
+    result.push_back(Pair("hash", uchar_vector(header->hash()).getHex()));
+    result.push_back(Pair("height", (uint64_t)header->height()));
+    result.push_back(Pair("version", (uint64_t)header->version()));
+    result.push_back(Pair("prevhash", uchar_vector(header->prevhash()).getHex()));
+    result.push_back(Pair("merkleroot", uchar_vector(header->merkleroot()).getHex()));
+    result.push_back(Pair("timestamp", (uint64_t)header->timestamp()));
+    result.push_back(Pair("bits", (uint64_t)header->bits()));
+    result.push_back(Pair("nonce", (uint64_t)header->nonce()));
+    return result;
+}
+
 bool g_bShutdown = false;
 
 void finish(int sig)
@@ -246,14 +263,24 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("address", getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS)));
             response.setResult(result);
         }
-        else if (method == "bestblockinfo")
+        else if (method == "blockheader")
+        {
+            if (params.size() != 1)
+                throw std::runtime_error("Invalid parameters.");
+
+            uint32_t height = (uint32_t)params[0].get_uint64();
+            std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
+            response.setResult(getBlockHeaderObject(header.get()));
+        }
+        else if (method == "bestblockheader")
         {
             if (params.size() > 0)
                 throw std::runtime_error("Invalid parameters.");
 
             uint32_t height = vault->getBestHeight();
             std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
-
+            response.setResult(getBlockHeaderObject(header.get()));
+/*
             Object result;
             result.push_back(Pair("hash", uchar_vector(header->hash()).getHex()));
             result.push_back(Pair("height", (uint64_t)header->height()));
@@ -264,6 +291,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("bits", (uint64_t)header->bits()));
             result.push_back(Pair("nonce", (uint64_t)header->nonce()));
             response.setResult(result);
+*/
         }
         else
         {
