@@ -135,8 +135,8 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             keychainInfo.push_back(Pair("id", (uint64_t)keychain->id()));
             keychainInfo.push_back(Pair("name", keychain->name()));
             keychainInfo.push_back(Pair("depth", (int)keychain->depth()));
-            keychainInfo.push_back(Pair("parent_fp", (uint64_t)keychain->parent_fp()));
-            keychainInfo.push_back(Pair("child_num", (uint64_t)keychain->child_num()));
+            keychainInfo.push_back(Pair("parentfp", (uint64_t)keychain->parent_fp()));
+            keychainInfo.push_back(Pair("childnum", (uint64_t)keychain->child_num()));
             keychainInfo.push_back(Pair("pubkey", uchar_vector(keychain->pubkey()).getHex()));
             keychainInfo.push_back(Pair("hash", uchar_vector(keychain->hash()).getHex()));
             response.setResult(keychainInfo, id);
@@ -213,11 +213,11 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("name", accountInfo.name()));
             result.push_back(Pair("minsigs", (int)accountInfo.minsigs()));
             result.push_back(Pair("keychains", Array(accountInfo.keychain_names().begin(), accountInfo.keychain_names().end())));
-            result.push_back(Pair("unused_pool_size", (uint64_t)accountInfo.unused_pool_size()));
-            result.push_back(Pair("time_created", (uint64_t)accountInfo.time_created()));
+            result.push_back(Pair("unusedpoolsize", (uint64_t)accountInfo.unused_pool_size()));
+            result.push_back(Pair("timecreated", (uint64_t)accountInfo.time_created()));
             result.push_back(Pair("bins", Array(accountInfo.bin_names().begin(), accountInfo.bin_names().end())));
             result.push_back(Pair("balance", balance));
-            result.push_back(Pair("confirmed_balance", confirmedBalance));
+            result.push_back(Pair("confirmedbalance", confirmedBalance));
             response.setResult(result, id); 
         }
         else if (method == "listaccounts")
@@ -259,7 +259,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             Object result;
             result.push_back(Pair("account", accountName));
             result.push_back(Pair("label", label));
-            result.push_back(Pair("accound_bin", binName));
+            result.push_back(Pair("accountbin", binName));
             result.push_back(Pair("script", uchar_vector(script->txoutscript()).getHex()));
             result.push_back(Pair("address", getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS)));
             response.setResult(result, id);
