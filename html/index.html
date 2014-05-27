@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>CoinQ WebSocket Client</title>
+<title>CoinSocket Test Client</title>
 </head>
 <body>
 <div>
@@ -45,6 +45,7 @@
 
     var onmessage = function (e) {
         output.value += e.data + "\n\n";
+        output.scrollTop = output.scrollHeight;
     };
 
     function connect() {
