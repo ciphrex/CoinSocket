@@ -93,6 +93,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
 
     const string& method = req.second.getMethod();
     const Array& params = req.second.getParams();
+    const Value& id = req.second.getId();
 
     try
     {
@@ -102,7 +103,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("name", vault->getName()));
             result.push_back(Pair("schema", (uint64_t)vault->getSchemaVersion()));
             result.push_back(Pair("horizon", (uint64_t)vault->getHorizonTimestamp()));
-            response.setResult(result);
+            response.setResult(result, id);
         }
         else if (method == "newkeychain")
         {
@@ -111,7 +112,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
 
             std::string keychainName = params[0].get_str();
             vault->newKeychain(keychainName, random_bytes(32));
-            response.setResult("success");
+            response.setResult("success", id);
         }
         else if (method == "renamekeychain")
         {
@@ -121,7 +122,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             std::string oldName = params[0].get_str();
             std::string newName = params[1].get_str();
             vault->renameKeychain(oldName, newName);
-            response.setResult("success"); 
+            response.setResult("success", id); 
         }
         else if (method == "keychaininfo")
         {
@@ -138,7 +139,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             keychainInfo.push_back(Pair("child_num", (uint64_t)keychain->child_num()));
             keychainInfo.push_back(Pair("pubkey", uchar_vector(keychain->pubkey()).getHex()));
             keychainInfo.push_back(Pair("hash", uchar_vector(keychain->hash()).getHex()));
-            response.setResult(keychainInfo);
+            response.setResult(keychainInfo, id);
         }
         else if (method == "keychains")
         {
@@ -166,7 +167,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
 
             Object result;
             result.push_back(Pair("keychains", Array(keychainObjects.begin(), keychainObjects.end())));
-            response.setResult(result); 
+            response.setResult(result, id); 
         }
         else if (method == "newaccount")
         {
@@ -185,7 +186,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes using passphrase
             vault->newAccount(accountName, minsigs, keychainNames);
             vault->lockChainCodes();
-            response.setResult("success");
+            response.setResult("success", id);
         }
         else if (method == "renameaccount")
         {
@@ -195,7 +196,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             std::string oldName = params[0].get_str();
             std::string newName = params[1].get_str();
             vault->renameAccount(oldName, newName);
-            response.setResult("success");
+            response.setResult("success", id);
         }
         else if (method == "accountinfo")
         {
@@ -217,7 +218,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("bins", Array(accountInfo.bin_names().begin(), accountInfo.bin_names().end())));
             result.push_back(Pair("balance", balance));
             result.push_back(Pair("confirmed_balance", confirmedBalance));
-            response.setResult(result); 
+            response.setResult(result, id); 
         }
         else if (method == "listaccounts")
         {
@@ -239,7 +240,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             }
             Object result;
             result.push_back(Pair("accounts", Array(accountObjects.begin(), accountObjects.end())));
-            response.setResult(result);
+            response.setResult(result, id);
         }
         else if (method == "issuescript")
         {
@@ -258,10 +259,10 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             Object result;
             result.push_back(Pair("account", accountName));
             result.push_back(Pair("label", label));
-            result.push_back(Pair("account_bin", binName));
+            result.push_back(Pair("accound_bin", binName));
             result.push_back(Pair("script", uchar_vector(script->txoutscript()).getHex()));
             result.push_back(Pair("address", getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS)));
-            response.setResult(result);
+            response.setResult(result, id);
         }
         else if (method == "blockheader")
         {
@@ -270,7 +271,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
 
             uint32_t height = (uint32_t)params[0].get_uint64();
             std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
-            response.setResult(getBlockHeaderObject(header.get()));
+            response.setResult(getBlockHeaderObject(header.get()), id);
         }
         else if (method == "bestblockheader")
         {
@@ -279,7 +280,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
 
             uint32_t height = vault->getBestHeight();
             std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
-            response.setResult(getBlockHeaderObject(header.get()));
+            response.setResult(getBlockHeaderObject(header.get()), id);
         }
         else
         {
@@ -288,7 +289,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
     }
     catch (const exception& e)
     {
-        response.setError(e.what(), req.second.getId());
+        response.setError(e.what(), id);
     }
 
     server.send(req.first, response);
