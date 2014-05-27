@@ -15,6 +15,8 @@
     <textarea id="output" rows="30" cols="150"></textarea>
 </div>
 <div>
+    <input type="checkbox" id="autoscroll" checked />Autoscroll
+<div>
     <tt><span id="status"></span></tt>
 </div>
 
@@ -22,6 +24,7 @@
     var connectbutton; // = document.getElementById('connectbutton');
     var sendbutton; // = document.getElementById('sendbutton');
     var output; // = document.getElementById('output');
+    var autoscroll; // = document.getElementById('autoscroll');
 
     var urlinput; // = document.getElementById('url');
 
@@ -45,7 +48,8 @@
 
     var onmessage = function (e) {
         output.value += e.data + "\n\n";
-        output.scrollTop = output.scrollHeight;
+        if (autoscroll.checked)
+            output.scrollTop = output.scrollHeight;
     };
 
     function connect() {
@@ -77,6 +81,7 @@
     window.onload = function () {
         connectbutton = document.getElementById('connectbutton');
         output = document.getElementById('output');
+        autoscroll = document.getElementById('autoscroll');
         urlinput = document.getElementById('url');
         requestinput = document.getElementById('request');
     };
