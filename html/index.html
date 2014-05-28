@@ -79,7 +79,7 @@
         request = requestinput.value;
         document.getElementById('status').innerHTML = "Sending " + request + "...";
         ws.send(request);
-        document.getElementById('status').innerHTML += "done.";
+        document.getElementById('status').innerHTML = "Sent " + request;
     };
 
     window.onload = function () {
