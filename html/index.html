@@ -21,6 +21,7 @@
     <tt><span id="status"></span></tt>
 </div>
 
+<!--<script type="text/javascript" src="js/syntaxhighlight.js"></script>-->
 <script type="text/javascript">
     var connectbutton; // = document.getElementById('connectbutton');
     var sendbutton; // = document.getElementById('sendbutton');
@@ -48,6 +49,7 @@
     };
 
     var onmessage = function (e) {
+        console.log(e.data);
         var json = JSON.stringify(JSON.parse(e.data), undefined, 2);
         output.value += json + '\n';
         if (autoscroll.checked)
