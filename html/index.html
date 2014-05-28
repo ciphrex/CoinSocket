@@ -48,7 +48,8 @@
     };
 
     var onmessage = function (e) {
-        output.value += e.data + "\n\n";
+        var json = JSON.stringify(JSON.parse(e.data), undefined, 2);
+        output.value += json + '\n';
         if (autoscroll.checked)
             output.scrollTop = output.scrollHeight;
     };
