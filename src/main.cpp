@@ -169,6 +169,32 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("keychains", Array(keychainObjects.begin(), keychainObjects.end())));
             response.setResult(result, id); 
         }
+        else if (method == "exportbip32")
+        {
+            if (params.size() != 1)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string keychainName = params[0].get_str();
+
+            vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes
+            bytes_t extendedkey = vault->getKeychainExtendedKey(keychainName, false);
+
+            Object result;
+            result.push_back(Pair("extendedkey", toBase58Check(extendedkey)));
+            response.setResult(result, id);
+        }
+        else if (method == "importbip32")
+        {
+            if (params.size() != 2)
+                throw std::runtime_error("Invalid parameters.");
+
+            bytes_t extendedkey;
+            if (!fromBase58Check(params[1].get_str(), extendedkey))
+                throw std::runtime_error("Invalid extended key.");
+
+            vault->importKeychainExtendedKey(params[0].get_str(), extendedkey, false);
+            response.setResult("success", id);
+        }
         else if (method == "newaccount")
         {
             if (params.size() < 3 || params.size() > 18)
