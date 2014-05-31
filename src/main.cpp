@@ -282,12 +282,18 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
 
             std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label);
 
+            std::string address = getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS);
+            std::string uri = "bitcoin:";
+            uri += address;
+            if (!label.empty()) { uri += "?label="; uri += label; }
+
             Object result;
             result.push_back(Pair("account", accountName));
             result.push_back(Pair("label", label));
             result.push_back(Pair("accountbin", binName));
             result.push_back(Pair("script", uchar_vector(script->txoutscript()).getHex()));
-            result.push_back(Pair("address", getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS)));
+            result.push_back(Pair("address", address));
+            result.push_back(Pair("uri", uri)); 
             response.setResult(result, id);
         }
         else if (method == "blockheader")
