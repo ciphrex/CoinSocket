@@ -29,6 +29,8 @@
 <div>
     <tt><span id="status"></span></tt>
 </div>
+<div id="uridiv">
+</div>
 
 <!--<script type="text/javascript" src="js/syntaxhighlight.js"></script>-->
 <script type="text/javascript">
@@ -41,13 +43,15 @@
 
     var exampleselect; // = document.getElementById('examples');
     var requestinput; // = document.getElementById('request');
-    var url;
+    var serverurl;
+
+    var uridiv;
 
     var ws = null;
 
     var onopen = function () {
-        document.getElementById('status').innerHTML = "Connected to " + url + ".";
-        output.value += 'CONNECTED TO ' + url + '.\n\n';
+        document.getElementById('status').innerHTML = "Connected to " + serverurl + ".";
+        output.value += 'CONNECTED TO ' + serverurl + '.\n\n';
         document.getElementById('connectbutton').value = 'Disconnect';
     };
 
@@ -55,15 +59,24 @@
         document.getElementById('status').innerHTML = "Connection closed.";
         ws = null;
         connectbutton.value = 'Connect';
-        output.value += 'DISCONNECTED FROM ' + url + '.\n';
+        output.value += 'DISCONNECTED FROM ' + serverurl + '.\n';
     };
 
     var onmessage = function (e) {
         console.log(e.data);
-        var json = JSON.stringify(JSON.parse(e.data), undefined, 2);
+        var obj = JSON.parse(e.data);
+        var json = JSON.stringify(obj, undefined, 2);
         output.value += json + '\n';
         if (autoscroll.checked)
             output.scrollTop = output.scrollHeight;
+
+        // update uri
+        if (obj.hasOwnProperty('result') && obj.result.hasOwnProperty('uri')) {
+            uridiv.innerHTML = '<a href="' + obj.result.uri + '">Request from local wallet...</a>';
+        }
+        else {
+            uridiv.innerHTML = '';
+        }
     };
 
     function connect() {
@@ -73,10 +86,10 @@
             return;
         }
 
-        url = urlinput.value;
-        document.getElementById('status').innerHTML = "Connecting to " + url + "...";
+        serverurl = urlinput.value;
+        document.getElementById('status').innerHTML = "Connecting to " + serverurl + "...";
 
-        ws = new WebSocket(urlinput.value);
+        ws = new WebSocket(serverurl);
         ws.onopen = onopen;
         ws.onclose = onclose;
         ws.onmessage = onmessage;
@@ -99,6 +112,7 @@
         urlinput = document.getElementById('url');
         exampleselect = document.getElementById('examples');
         requestinput = document.getElementById('request');
+        uridiv = document.getElementById('uridiv');
     };
 
     function exampleSelected() {
