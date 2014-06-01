@@ -61,6 +61,24 @@ json_spirit::Object getBlockHeaderObject(BlockHeader* header)
     return result;
 }
 
+json_spirit::Object getTxViewObject(const TxView& txview)
+{
+    using namespace json_spirit;
+
+    bytes_t hash = txview.status == Tx::UNSIGNED
+        ? txview.unsigned_hash : txview.hash;
+
+    Object result;
+    result.push_back(Pair("id", (uint64_t)txview.id));
+    result.push_back(Pair("hash", uchar_vector(hash).getHex()));
+    result.push_back(Pair("status", Tx::getStatusString(txview.status, true)));
+    result.push_back(Pair("version", (uint64_t)txview.version));
+    result.push_back(Pair("locktime", (uint64_t)txview.locktime));
+    result.push_back(Pair("timestamp", (uint64_t)txview.timestamp));
+    result.push_back(Pair("height", (uint64_t)txview.height));
+    return result; 
+}
+
 bool g_bShutdown = false;
 
 void finish(int sig)
@@ -294,6 +312,24 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("script", uchar_vector(script->txoutscript()).getHex()));
             result.push_back(Pair("address", address));
             result.push_back(Pair("uri", uri)); 
+            response.setResult(result, id);
+        }
+        else if (method == "txs")
+        {
+            if (params.size() > 1)
+                throw std::runtime_error("Invalid parameters.");
+
+            uint32_t minheight = params.size() > 0 ? (uint32_t)params[0].get_uint64() : 0;
+            std::vector<TxView> txviews = vault->getTxViews(Tx::ALL, 0, -1, minheight);
+
+            std::vector<Object> txViewObjs; 
+            for (auto& txview: txviews)
+            {
+                txViewObjs.push_back(getTxViewObject(txview));
+            }
+
+            Object result;
+            result.push_back(Pair("txs", Array(txViewObjs.begin(), txViewObjs.end())));
             response.setResult(result, id);
         }
         else if (method == "blockheader")
