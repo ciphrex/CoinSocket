@@ -332,6 +332,30 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("txs", Array(txViewObjs.begin(), txViewObjs.end())));
             response.setResult(result, id);
         }
+        else if (method == "tx")
+        {
+            if (params.size() != 1)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::shared_ptr<Tx> tx;
+            if (params[0].type() == str_type)
+            {
+                uchar_vector hash(params[0].get_str());
+                tx = vault->getTx(hash); 
+            }
+            else
+            {
+                tx = vault->getTx((unsigned long)params[0].get_uint64());
+            }
+
+            Value txObj;
+            if (!read_string(tx->toJson(), txObj))
+                throw std::runtime_error("Internal error - invalid tx json.");
+
+            Object result;
+            result.push_back(Pair("tx", txObj));
+            response.setResult(result, id);
+        }
         else if (method == "blockheader")
         {
             if (params.size() != 1)
