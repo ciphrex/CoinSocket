@@ -426,15 +426,15 @@ int main(int argc, char* argv[])
     try
     {
         cout << "Starting websocket server on port " << config.getWebSocketPort() << "..." << flush;
-        LOGGER(info) << "Starting websocket server on port " << config.getWebSocketPort() << "..." << flush;
+        LOGGER(info) << "Starting websocket server on port " << config.getWebSocketPort() << "..." << endl;
         wsServer.start();
         cout << "done." << endl;
         LOGGER(info) << "done." << endl;
     }
     catch (const exception& e)
     {
+        LOGGER(error) << "Error starting websocket server: " << e.what() << endl;
         cout << endl;
-        LOGGER(info) << endl;
         cerr << "Error starting websocket server: " << e.what() << endl;
         return 1;
     }
