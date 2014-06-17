@@ -374,6 +374,44 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
             response.setResult(getBlockHeaderObject(header.get()), id);
         }
+        else if (method == "newtx")
+        {
+            if (params.size() < 3)
+                throw std::runtime_error("Invalid parameters.");
+
+            std::string account = params[0].get_str();
+
+            // Get outputs
+            size_t i = 1;
+            txouts_t txouts;
+            do
+            {
+                if (params[i].type() != str_type || params[i+1].type() != int_type)
+                    throw std::runtime_error("Invalid parameters.");
+
+                std::string address = params[i++].get_str();
+                uint64_t value = params[i++].get_uint64();
+                bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, BITCOIN_BASE58_VERSIONS);
+                std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
+                txouts.push_back(txout);
+                 
+            } while (i < (params.size() - 1) && (params[i].type() == str_type));
+
+            uint64_t fee = i < params.size() ? params[i++].get_uint64() : 0;
+            uint32_t version = i < params.size() ? (uint32_t)params[i++].get_uint64() : 1;
+            uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : 0;
+
+            std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
+
+            Value txObj;
+            if (!read_string(tx->toJson(), txObj))
+                throw std::runtime_error("Internal error - invalid tx json.");
+
+            Object result;
+            result.push_back(Pair("tx", txObj));
+            result.push_back(Pair("hex", uchar_vector(tx->raw()).getHex()));
+            response.setResult(result, id);
+        }
         else
         {
             throw std::runtime_error("Invalid method.");
