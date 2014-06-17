@@ -332,7 +332,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
             result.push_back(Pair("txs", Array(txViewObjs.begin(), txViewObjs.end())));
             response.setResult(result, id);
         }
-        else if (method == "tx")
+        else if (method == "gettx")
         {
             if (params.size() != 1)
                 throw std::runtime_error("Invalid parameters.");
