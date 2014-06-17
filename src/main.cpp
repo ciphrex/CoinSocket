@@ -354,6 +354,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
 
             Object result;
             result.push_back(Pair("tx", txObj));
+            result.push_back(Pair("hex", uchar_vector(tx->raw()).getHex()));
             response.setResult(result, id);
         }
         else if (method == "blockheader")
