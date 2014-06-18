@@ -56,7 +56,7 @@ void finish(int sig)
 
 void openCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
 {
-    LOGGER(info) << "Client " << hdl.lock().get() << " connected." << endl;
+    LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " connected as " << hdl.lock().get() << "." << endl;
 
     JsonRpc::Response res;
     res.setResult("connected");
@@ -65,7 +65,7 @@ void openCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
 
 void closeCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
 {
-    LOGGER(info) << "Client " << hdl.lock().get() << " disconnected." << endl;
+    LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " disconnected as " << hdl.lock().get() << "." << endl;
 }
 
 void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
