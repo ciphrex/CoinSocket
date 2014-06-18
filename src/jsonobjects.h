@@ -18,7 +18,7 @@
 #include <json_spirit/json_spirit_writer_template.h>
 #include <json_spirit/json_spirit_utils.h>
 
-json_spirit::Object getBlockHeaderObject(CoinDB::BlockHeader* header)
+inline json_spirit::Object getBlockHeaderObject(CoinDB::BlockHeader* header)
 {
     using namespace json_spirit;
 
@@ -34,7 +34,7 @@ json_spirit::Object getBlockHeaderObject(CoinDB::BlockHeader* header)
     return result;
 }
 
-json_spirit::Object getTxViewObject(const CoinDB::TxView& txview)
+inline json_spirit::Object getTxViewObject(const CoinDB::TxView& txview)
 {
     using namespace json_spirit;
 

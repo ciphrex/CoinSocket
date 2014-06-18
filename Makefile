@@ -78,10 +78,16 @@ LIBS = \
     -lodb-sqlite \
     -lodb
 
+OBJS = \
+    obj/commands.o
+
 all: build/coinsocketd$(EXE_EXT)
 
-build/coinsocketd$(EXE_EXT): src/main.cpp src/config.h src/jsonobjects.h
-	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) $< -o $@ $(LIBS) $(PLATFORM_LIBS)
+build/coinsocketd$(EXE_EXT): src/main.cpp src/config.h $(OBJS)
+	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) $< $(OBJS) -o $@ $(LIBS) $(PLATFORM_LIBS)
+
+obj/commands.o: src/commands.cpp src/commands.h src/jsonobjects.h
+	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
 
 install:
 	-mkdir -p $(SYSROOT)/bin
