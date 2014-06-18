@@ -45,6 +45,16 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
         return "N/A";
 }
 
+json_spirit::Value cmd_status(CoinDB::Vault* vault, const json_spirit::Array& params)
+{
+    using namespace json_spirit;
+
+    Object result;
+    result.push_back(Pair("name", vault->getName()));
+    result.push_back(Pair("schema", (uint64_t)vault->getSchemaVersion()));
+    result.push_back(Pair("horizon", (uint64_t)vault->getHorizonTimestamp()));
+    return result;
+}
 
 bool g_bShutdown = false;
 
@@ -84,10 +94,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
     {
         if (method == "status")
         {
-            Object result;
-            result.push_back(Pair("name", vault->getName()));
-            result.push_back(Pair("schema", (uint64_t)vault->getSchemaVersion()));
-            result.push_back(Pair("horizon", (uint64_t)vault->getHorizonTimestamp()));
+            Value result = cmd_status(vault, params);
             response.setResult(result, id);
         }
         else if (method == "newkeychain")
