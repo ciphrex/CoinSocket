@@ -8,6 +8,10 @@ else
     CXX_FLAGS += -O3
 endif
 
+ifdef USE_TLS
+    CXX_FLAGS += -DUSE_TLS=1
+endif
+
 ifndef SYSROOT
     SYSROOT = /usr/local
 endif
@@ -78,6 +82,10 @@ LIBS = \
     -lodb-sqlite \
     -lodb
 
+ifdef USE_TLS
+    LIBS += -lssl
+endif
+
 OBJS = \
     obj/commands.o
 
@@ -98,3 +106,6 @@ remove:
 
 clean:
 	-rm -f build/coinsocketd$(EXE_EXT)
+
+clean-all:
+	-rm -f build/coinsocketd$(EXE_EXT) obj/*.o

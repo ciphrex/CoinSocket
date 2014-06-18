@@ -13,7 +13,15 @@
 #include <CoinQ/CoinQ_script.h>
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/random.h>
-#include <WebSocketServer/WebSocketServer.h>
+
+#ifdef USE_TLS
+    #include <WebSocketServer/WebSocketServerTls.h>
+    typedef WebSocket::ServerTls WebSocketServer;
+#else
+    #include <WebSocketServer/WebSocketServer.h>
+    typedef WebSocket::Server WebSocketServer;
+#endif
+
 #include <logger/logger.h>
 
 #include "config.h"
@@ -39,7 +47,7 @@ void finish(int sig)
     g_bShutdown = true;
 }
 
-void openCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
+void openCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
 {
     LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " connected as " << hdl.lock().get() << "." << endl;
 
@@ -48,12 +56,12 @@ void openCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
     server.send(hdl, res);
 }
 
-void closeCallback(WebSocket::Server& server, websocketpp::connection_hdl hdl)
+void closeCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
 {
     LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " disconnected as " << hdl.lock().get() << "." << endl;
 }
 
-void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
+void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const WebSocketServer::client_request_t& req)
 {
     using namespace json_spirit;
 
@@ -114,10 +122,10 @@ int main(int argc, char* argv[])
     SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
 
     initCommandMap(g_command_map);
-    WebSocket::Server wsServer(config.getWebSocketPort(), config.getAllowedIps());
+    WebSocketServer wsServer(config.getWebSocketPort(), config.getAllowedIps());
     wsServer.setOpenCallback(&openCallback);
     wsServer.setCloseCallback(&closeCallback);
-    wsServer.setRequestCallback([&](WebSocket::Server& server, const WebSocket::Server::client_request_t& req)
+    wsServer.setRequestCallback([&](WebSocketServer& server, const WebSocketServer::client_request_t& req)
     {
         requestCallback(synchedVault, server, req);
     });
