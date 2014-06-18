@@ -37,6 +37,7 @@ public:
     const std::string& getPeerPort() const { return m_peerPort; }
     const std::string& getWebSocketPort() const { return m_webSocketPort; }
     const std::string& getAllowedIps() const { return m_allowedIps; }
+    const std::string& getTlsCertificateFile() const { return m_tlsCertificateFile; }
 
     bool help() const { return m_bHelp; }
     const std::string& getHelpOptions() const { return m_helpOptions; }
@@ -48,7 +49,8 @@ private:
     std::string m_peerHost;
     std::string m_peerPort;
     std::string m_webSocketPort;
-    std::string m_allowedIps; 
+    std::string m_allowedIps;
+    std::string m_tlsCertificateFile;
 
     bool m_bHelp;
     std::string m_helpOptions;
@@ -67,6 +69,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("peerport", po::value<std::string>(&m_peerPort), "peer port")
         ("wsport", po::value<std::string>(&m_webSocketPort), "port to listen for inbound websocket connections")
         ("allowedips", po::value<std::string>(&m_allowedIps), "regular expression for allowed ip addresses")
+        ("tlscertfile", po::value<std::string>(&m_tlsCertificateFile), "TLS certificate file")
     ;
 
     po::variables_map vm;

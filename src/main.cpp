@@ -61,6 +61,31 @@ void closeCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
     LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " disconnected as " << hdl.lock().get() << "." << endl;
 }
 
+#ifdef USE_TLS
+WebSocketServer::context_ptr tlsInit(const std::string& tlsCertificateFile, WebSocketServer& server, websocketpp::connection_hdl hdl)
+{
+    LOGGER(info) << "tlsInit called with hdl " << hdl.lock().get() << "." << endl;
+ 
+    WebSocketServer::context_ptr ctx(new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1));
+ 
+    try
+    {
+        ctx->set_options(boost::asio::ssl::context::default_workarounds |
+                         boost::asio::ssl::context::no_sslv2 |
+                         boost::asio::ssl::context::single_dh_use);
+        ctx->set_password_callback(bind([]() { return "test"; }));
+        ctx->use_certificate_chain_file(tlsCertificateFile);
+        ctx->use_private_key_file(tlsCertificateFile, boost::asio::ssl::context::pem);
+    }
+    catch (std::exception& e)
+    {
+        LOGGER(error) << e.what() << std::endl;
+    }
+ 
+    return ctx;
+}
+#endif
+
 void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const WebSocketServer::client_request_t& req)
 {
     using namespace json_spirit;
@@ -125,6 +150,12 @@ int main(int argc, char* argv[])
     WebSocketServer wsServer(config.getWebSocketPort(), config.getAllowedIps());
     wsServer.setOpenCallback(&openCallback);
     wsServer.setCloseCallback(&closeCallback);
+#ifdef USE_TLS
+    wsServer.setTlsInitCallback([&](WebSocketServer& server, websocketpp::connection_hdl hdl)
+    {
+        return tlsInit(config.getTlsCertificateFile(), server, hdl);
+    });
+#endif
     wsServer.setRequestCallback([&](WebSocketServer& server, const WebSocketServer::client_request_t& req)
     {
         requestCallback(synchedVault, server, req);
