@@ -19,6 +19,8 @@
 #include "config.h"
 #include "jsonobjects.h"
 
+#include <map>
+#include <functional>
 #include <iostream>
 #include <signal.h>
 
@@ -46,6 +48,26 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
 }
 
 // Server commands
+typedef std::function<json_spirit::Value(CoinDB::Vault*, const json_spirit::Array&)> cmd_t;
+
+class Command
+{
+public:
+    Command(cmd_t cmd) : m_cmd(cmd) { }
+
+    json_spirit::Value operator()(CoinDB::Vault* vault, const json_spirit::Array& params) const
+    {
+        return m_cmd(vault, params);
+    }
+
+private:
+    cmd_t m_cmd;
+};
+
+typedef std::pair<std::string, Command> cmd_pair;
+typedef std::map<std::string, Command>  command_map_t;
+command_map_t g_command_map;
+
 json_spirit::Value cmd_status(CoinDB::Vault* vault, const json_spirit::Array& params)
 {
     using namespace json_spirit;
@@ -402,6 +424,28 @@ json_spirit::Value cmd_newtx(CoinDB::Vault* vault, const json_spirit::Array& par
     return result;
 }
 
+void initCommandMap()
+{
+    g_command_map.clear();
+    g_command_map.insert(cmd_pair("status", Command(&cmd_status)));
+    g_command_map.insert(cmd_pair("newkeychain", Command(&cmd_newkeychain)));
+    g_command_map.insert(cmd_pair("renamekeychain", Command(&cmd_renamekeychain)));
+    g_command_map.insert(cmd_pair("keychaininfo", Command(&cmd_keychaininfo)));
+    g_command_map.insert(cmd_pair("keychains", Command(&cmd_keychains)));
+    g_command_map.insert(cmd_pair("exportbip32", Command(&cmd_exportbip32)));
+    g_command_map.insert(cmd_pair("importbip32", Command(&cmd_importbip32)));
+    g_command_map.insert(cmd_pair("newaccount", Command(&cmd_newaccount)));
+    g_command_map.insert(cmd_pair("renameaccount", Command(&cmd_renameaccount)));
+    g_command_map.insert(cmd_pair("accountinfo", Command(&cmd_accountinfo)));
+    g_command_map.insert(cmd_pair("listaccounts", Command(&cmd_listaccounts)));
+    g_command_map.insert(cmd_pair("issuescript", Command(&cmd_issuescript)));
+    g_command_map.insert(cmd_pair("txs", Command(&cmd_txs)));
+    g_command_map.insert(cmd_pair("gettx", Command(&cmd_gettx)));
+    g_command_map.insert(cmd_pair("blockheader", Command(&cmd_blockheader)));
+    g_command_map.insert(cmd_pair("bestblockheader", Command(&cmd_bestblockheader)));
+    g_command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
+}
+
 
 // Main program
 bool g_bShutdown = false;
@@ -442,43 +486,11 @@ void requestCallback(SynchedVault& synchedVault, WebSocket::Server& server, cons
 
     try
     {
-        if (method == "status")
-            result = cmd_status(vault, params);
-        else if (method == "newkeychain")
-            result = cmd_newkeychain(vault, params);
-        else if (method == "renamekeychain")
-            result = cmd_renamekeychain(vault, params);
-        else if (method == "keychaininfo")
-            result = cmd_keychaininfo(vault, params);
-        else if (method == "keychains")
-            result = cmd_keychains(vault, params);
-        else if (method == "exportbip32")
-            result = cmd_exportbip32(vault, params);
-        else if (method == "importbip32")
-            result = cmd_importbip32(vault, params);
-        else if (method == "newaccount")
-            result = cmd_newaccount(vault, params);
-        else if (method == "renameaccount")
-            result = cmd_renameaccount(vault, params);
-        else if (method == "accountinfo")
-            result = cmd_accountinfo(vault, params);
-        else if (method == "listaccounts")
-            result = cmd_listaccounts(vault, params);
-        else if (method == "issuescript")
-            result = cmd_issuescript(vault, params);
-        else if (method == "txs")
-            result = cmd_txs(vault, params);
-        else if (method == "gettx")
-            result = cmd_gettx(vault, params);
-        else if (method == "blockheader")
-            result = cmd_blockheader(vault, params);
-        else if (method == "bestblockheader")
-            result = cmd_bestblockheader(vault, params);
-        else if (method == "newtx")
-            result = cmd_newtx(vault, params);
-        else
+        auto it = g_command_map.find(method);
+        if (it == g_command_map.end())
             throw std::runtime_error("Invalid method.");
 
+        result = it->second(vault, params);
         response.setResult(result, id);
     }
     catch (const exception& e)
@@ -517,6 +529,7 @@ int main(int argc, char* argv[])
 
     SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
 
+    initCommandMap();
     WebSocket::Server wsServer(config.getWebSocketPort(), config.getAllowedIps());
     wsServer.setOpenCallback(&openCallback);
     wsServer.setCloseCallback(&closeCallback);
