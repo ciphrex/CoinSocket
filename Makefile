@@ -80,7 +80,7 @@ LIBS = \
 
 all: build/coinsocketd$(EXE_EXT)
 
-build/coinsocketd$(EXE_EXT): src/main.cpp
+build/coinsocketd$(EXE_EXT): src/main.cpp src/config.h src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) $< -o $@ $(LIBS) $(PLATFORM_LIBS)
 
 install:
