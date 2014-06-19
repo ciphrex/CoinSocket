@@ -20,7 +20,7 @@
 const std::string DEFAULT_DATADIR = ".";
 const std::string DEFAULT_PEER_HOST = "localhost";
 const std::string DEFAULT_PEER_PORT = "8333";
-const std::string DEFAULT_WEBSOCKET_PORT = "12345";
+const std::string DEFAULT_WEBSOCKET_PORT = "8080";
 const std::string DEFAULT_ALLOWED_IPS = "^\\[(::1|::ffff:127\\.0\\.0\\.1)\\].*";
 
 class CoinSocketConfig
