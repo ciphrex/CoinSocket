@@ -90,15 +90,15 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
 {
     using namespace json_spirit;
 
-    Vault* vault = synchedVault.getVault();
-
-    JsonRpc::Response response;
+    std::string remoteEndpoint = server.getRemoteEndpoint(req.first);
+    LOGGER(info) << "Client " << remoteEndpoint << " sent command " << req.second.getJson() << "." << std::endl;
 
     const string& method = req.second.getMethod();
     const Array& params = req.second.getParams();
     const Value& id = req.second.getId();
 
-    Value result;
+    Vault* vault = synchedVault.getVault();
+    JsonRpc::Response response;
 
     try
     {
@@ -106,7 +106,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
         if (it == g_command_map.end())
             throw std::runtime_error("Invalid method.");
 
-        result = it->second(vault, params);
+        Value result = it->second(vault, params);
         response.setResult(result, id);
     }
     catch (const exception& e)
