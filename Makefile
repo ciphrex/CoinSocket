@@ -8,7 +8,7 @@ else
     CXX_FLAGS += -O3
 endif
 
-ifndef NO_USE_TLS
+ifdef USE_TLS
     CXX_FLAGS += -DUSE_TLS=1
 endif
 
@@ -82,7 +82,7 @@ LIBS = \
     -lodb-sqlite \
     -lodb
 
-ifndef NO_USE_TLS
+ifdef USE_TLS
     LIBS += -lssl
 endif
 
