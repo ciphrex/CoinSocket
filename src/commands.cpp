@@ -38,7 +38,8 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
         return "N/A";
 }
 
-Value cmd_status(Vault* vault, const Array& params)
+// Global operations
+Value cmd_getvaultinfo(Vault* vault, const Array& params)
 {
     if (params.size() != 0)
         throw std::runtime_error("Invalid parameters.");
@@ -50,6 +51,7 @@ Value cmd_status(Vault* vault, const Array& params)
     return result;
 }
 
+// Keychain operations
 Value cmd_newkeychain(Vault* vault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
@@ -71,7 +73,7 @@ Value cmd_renamekeychain(Vault* vault, const Array& params)
     return Value("success");
 }
 
-Value cmd_keychaininfo(Vault* vault, const Array& params)
+Value cmd_getkeychaininfo(Vault* vault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
@@ -89,7 +91,7 @@ Value cmd_keychaininfo(Vault* vault, const Array& params)
     return keychainInfo;
 }
 
-Value cmd_keychains(Vault* vault, const Array& params)
+Value cmd_getkeychains(Vault* vault, const Array& params)
 {
     if (params.size() > 2)
         throw std::runtime_error("Invalid parameters.");
@@ -177,7 +179,7 @@ Value cmd_renameaccount(Vault* vault, const Array& params)
     return Value("success");
 }
 
-Value cmd_accountinfo(Vault* vault, const Array& params)
+Value cmd_getaccountinfo(Vault* vault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
@@ -200,7 +202,7 @@ Value cmd_accountinfo(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_listaccounts(Vault* vault, const Array& params)
+Value cmd_getaccounts(Vault* vault, const Array& params)
 {
     if (params.size() > 0)
         throw std::runtime_error("Invalid parameters.");
@@ -252,7 +254,8 @@ Value cmd_issuescript(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_txs(Vault* vault, const Array& params)
+// Tx operations
+Value cmd_gethistory(Vault* vault, const Array& params)
 {
     if (params.size() > 1)
         throw std::runtime_error("Invalid parameters.");
@@ -301,26 +304,6 @@ Value cmd_gettx(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_blockheader(Vault* vault, const Array& params)
-{
-    if (params.size() != 1)
-        throw std::runtime_error("Invalid parameters.");
-
-    uint32_t height = (uint32_t)params[0].get_uint64();
-    std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
-    return getBlockHeaderObject(header.get());
-}
-
-Value cmd_bestblockheader(Vault* vault, const Array& params)
-{
-    if (params.size() > 0)
-        throw std::runtime_error("Invalid parameters.");
-
-    uint32_t height = vault->getBestHeight();
-    std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
-    return getBlockHeaderObject(header.get());
-}
-
 Value cmd_newtx(Vault* vault, const Array& params)
 {
     if (params.size() < 3)
@@ -360,24 +343,56 @@ Value cmd_newtx(Vault* vault, const Array& params)
     return result;
 }
 
+// Blockchain operations
+Value cmd_getblockheader(Vault* vault, const Array& params)
+{
+    if (params.size() != 1)
+        throw std::runtime_error("Invalid parameters.");
+
+    uint32_t height = (uint32_t)params[0].get_uint64();
+    std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
+    return getBlockHeaderObject(header.get());
+}
+
+Value cmd_getchaintip(Vault* vault, const Array& params)
+{
+    if (params.size() > 0)
+        throw std::runtime_error("Invalid parameters.");
+
+    uint32_t height = vault->getBestHeight();
+    std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
+    return getBlockHeaderObject(header.get());
+}
+
+
 void initCommandMap(command_map_t& command_map)
 {
     command_map.clear();
-    command_map.insert(cmd_pair("status", Command(&cmd_status)));
+
+    // Global operations
+    command_map.insert(cmd_pair("getvaultinfo", Command(&cmd_getvaultinfo)));
+
+    // Keychain operations
     command_map.insert(cmd_pair("newkeychain", Command(&cmd_newkeychain)));
     command_map.insert(cmd_pair("renamekeychain", Command(&cmd_renamekeychain)));
-    command_map.insert(cmd_pair("keychaininfo", Command(&cmd_keychaininfo)));
-    command_map.insert(cmd_pair("keychains", Command(&cmd_keychains)));
+    command_map.insert(cmd_pair("getkeychaininfo", Command(&cmd_getkeychaininfo)));
+    command_map.insert(cmd_pair("getkeychains", Command(&cmd_getkeychains)));
     command_map.insert(cmd_pair("exportbip32", Command(&cmd_exportbip32)));
     command_map.insert(cmd_pair("importbip32", Command(&cmd_importbip32)));
+
+    // Account operations
     command_map.insert(cmd_pair("newaccount", Command(&cmd_newaccount)));
     command_map.insert(cmd_pair("renameaccount", Command(&cmd_renameaccount)));
-    command_map.insert(cmd_pair("accountinfo", Command(&cmd_accountinfo)));
-    command_map.insert(cmd_pair("listaccounts", Command(&cmd_listaccounts)));
+    command_map.insert(cmd_pair("getaccountinfo", Command(&cmd_getaccountinfo)));
+    command_map.insert(cmd_pair("getaccounts", Command(&cmd_getaccounts)));
     command_map.insert(cmd_pair("issuescript", Command(&cmd_issuescript)));
-    command_map.insert(cmd_pair("txs", Command(&cmd_txs)));
+
+    // Tx operations
+    command_map.insert(cmd_pair("gethistory", Command(&cmd_gethistory)));
     command_map.insert(cmd_pair("gettx", Command(&cmd_gettx)));
-    command_map.insert(cmd_pair("blockheader", Command(&cmd_blockheader)));
-    command_map.insert(cmd_pair("bestblockheader", Command(&cmd_bestblockheader)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
+
+    // Blockchain operations
+    command_map.insert(cmd_pair("getblockheader", Command(&cmd_getblockheader)));
+    command_map.insert(cmd_pair("getchaintip", Command(&cmd_getchaintip)));
 }

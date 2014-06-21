@@ -37,22 +37,31 @@ private:
 typedef std::pair<std::string, Command> cmd_pair;
 typedef std::map<std::string, Command>  command_map_t;
 
-json_spirit::Value cmd_status(CoinDB::Vault* vault, const json_spirit::Array& params);
+// Global operations
+json_spirit::Value cmd_getvaultinfo(CoinDB::Vault* vault, const json_spirit::Array& params);
+
+// Keychain operations
 json_spirit::Value cmd_newkeychain(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_renamekeychain(CoinDB::Vault* vault, const json_spirit::Array& params);
-json_spirit::Value cmd_keychaininfo(CoinDB::Vault* vault, const json_spirit::Array& params);
-json_spirit::Value cmd_keychains(CoinDB::Vault* vault, const json_spirit::Array& params);
+json_spirit::Value cmd_getkeychaininfo(CoinDB::Vault* vault, const json_spirit::Array& params);
+json_spirit::Value cmd_getkeychains(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_exportbip32(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_importbip32(CoinDB::Vault* vault, const json_spirit::Array& params);
+
+// Account operations
 json_spirit::Value cmd_newaccount(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_renameaccount(CoinDB::Vault* vault, const json_spirit::Array& params);
-json_spirit::Value cmd_accountinfo(CoinDB::Vault* vault, const json_spirit::Array& params);
-json_spirit::Value cmd_listaccounts(CoinDB::Vault* vault, const json_spirit::Array& params);
+json_spirit::Value cmd_getaccountinfo(CoinDB::Vault* vault, const json_spirit::Array& params);
+json_spirit::Value cmd_getaccounts(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_issuescript(CoinDB::Vault* vault, const json_spirit::Array& params);
-json_spirit::Value cmd_txs(CoinDB::Vault* vault, const json_spirit::Array& params);
+
+// Tx operations
+json_spirit::Value cmd_gethistory(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_gettx(CoinDB::Vault* vault, const json_spirit::Array& params);
-json_spirit::Value cmd_blockheader(CoinDB::Vault* vault, const json_spirit::Array& params);
-json_spirit::Value cmd_bestblockheader(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_newtx(CoinDB::Vault* vault, const json_spirit::Array& params);
+
+// Blockchain operations
+json_spirit::Value cmd_getblockheader(CoinDB::Vault* vault, const json_spirit::Array& params);
+json_spirit::Value cmd_getchaintip(CoinDB::Vault* vault, const json_spirit::Array& params);
 
 void initCommandMap(command_map_t& command_map);
