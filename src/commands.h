@@ -61,6 +61,7 @@ json_spirit::Value cmd_gettx(CoinDB::Vault* vault, const json_spirit::Array& par
 json_spirit::Value cmd_newtx(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_getsigningrequest(CoinDB::Vault* vault, const json_spirit::Array& params);
 json_spirit::Value cmd_signtx(CoinDB::Vault* vault, const json_spirit::Array& params);
+json_spirit::Value cmd_insertrawtx(CoinDB::Vault* vault, const json_spirit::Array& params);
 
 // Blockchain operations
 json_spirit::Value cmd_getblockheader(CoinDB::Vault* vault, const json_spirit::Array& params);

@@ -423,6 +423,28 @@ Value cmd_signtx(Vault* vault, const Array& params)
     return Value("success");
 }
 
+Value cmd_insertrawtx(Vault* vault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw std::runtime_error("Invalid parameters.");
+
+    uchar_vector rawtx(params[0].get_str());
+    std::shared_ptr<Tx> tx(new Tx());
+    tx->set(rawtx);
+    tx = vault->insertTx(tx);
+    if (!tx)
+        throw std::runtime_error("Transaction does not belong to vault.");
+
+    Value txObj;
+    if (!read_string(tx->toJson(), txObj))
+        throw std::runtime_error("Internal error - invalid tx json.");
+
+    Object result;
+    result.push_back(Pair("tx", txObj));
+    result.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
+    return result;
+}
+
 // Blockchain operations
 Value cmd_getblockheader(Vault* vault, const Array& params)
 {
@@ -473,6 +495,7 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
     command_map.insert(cmd_pair("getsigningrequest", Command(&cmd_getsigningrequest)));
     command_map.insert(cmd_pair("signtx", Command(&cmd_signtx)));
+    command_map.insert(cmd_pair("insertrawtx", Command(&cmd_insertrawtx)));
 
     // Blockchain operations
     command_map.insert(cmd_pair("getblockheader", Command(&cmd_getblockheader)));
