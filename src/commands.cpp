@@ -433,7 +433,7 @@ Value cmd_insertrawtx(Vault* vault, const Array& params)
     tx->set(rawtx);
     tx = vault->insertTx(tx);
     if (!tx)
-        throw std::runtime_error("Transaction does not belong to vault.");
+        throw std::runtime_error("Transaction not inserted.");
 
     Value txObj;
     if (!read_string(tx->toJson(), txObj))
