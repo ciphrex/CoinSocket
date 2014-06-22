@@ -300,7 +300,7 @@ Value cmd_gettx(Vault* vault, const Array& params)
 
     Object result;
     result.push_back(Pair("tx", txObj));
-    result.push_back(Pair("hex", uchar_vector(tx->raw()).getHex()));
+    result.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
     return result;
 }
 
@@ -339,8 +339,88 @@ Value cmd_newtx(Vault* vault, const Array& params)
 
     Object result;
     result.push_back(Pair("tx", txObj));
-    result.push_back(Pair("hex", uchar_vector(tx->raw()).getHex()));
+    result.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
     return result;
+}
+
+Value cmd_getsigningrequest(Vault* vault, const Array& params)
+{
+    if (params.size() != 1)
+        throw std::runtime_error("Invalid parameters.");
+
+    SigningRequest req;
+    if (params[0].type() == str_type)
+    {
+        req = vault->getSigningRequest(uchar_vector(params[0].get_str()), true);
+    }
+    else if (params[0].type() == int_type)
+    {
+        req = vault->getSigningRequest(params[0].get_uint64(), true);
+    }
+    else
+    {
+        throw std::runtime_error("Invalid parameters.");
+    }
+
+    std::vector<std::string> keychain_names;
+    std::vector<std::string> keychain_hashes;
+    for (auto& keychain_pair: req.keychain_info())
+    {
+        keychain_names.push_back(keychain_pair.first);
+        keychain_hashes.push_back(uchar_vector(keychain_pair.second).getHex()); 
+    }
+    std::string hash = uchar_vector(req.hash()).getHex();
+    std::string rawtx = uchar_vector(req.rawtx()).getHex();
+
+    Object result;
+    result.push_back(Pair("hash", hash));
+    result.push_back(Pair("sigsneeded", (uint64_t)req.sigs_needed()));
+    result.push_back(Pair("keychains", Array(keychain_names.begin(), keychain_names.end())));
+    result.push_back(Pair("keychainhashes", Array(keychain_hashes.begin(), keychain_hashes.end())));
+    result.push_back(Pair("rawtx", rawtx));
+    return result;
+}
+
+// TODO: Mutex to prevent multiple clients from simultaneously unlocking and locking keychains
+Value cmd_signtx(Vault* vault, const Array& params)
+{
+    if (params.size() != 3 || params[1].type() != str_type || params[2].type() != str_type)
+        throw std::runtime_error("Invalid parameters.");
+
+    std::string keychain = params[1].get_str();
+    std::vector<std::string> keychains;
+    keychains.push_back(keychain);
+
+    try
+    {
+        std::shared_ptr<Tx> tx;
+        if (params[0].type() == str_type)
+        {
+            vault->unlockChainCodes(uchar_vector("1234"));
+            vault->unlockKeychain(keychain, secure_bytes_t());
+            tx = vault->signTx(uchar_vector(params[0].get_str()), keychains, true);
+        }
+        else if (params[0].type() == int_type)
+        {
+            vault->unlockChainCodes(uchar_vector("1234"));
+            vault->unlockKeychain(keychain, secure_bytes_t());
+            tx = vault->signTx(params[0].get_uint64(), keychains, true);
+        }
+        else
+        {
+            throw std::runtime_error("Invalid parameters.");
+        }
+    }
+    catch (const std::runtime_error& e)
+    {
+        vault->lockAllKeychains();
+        vault->lockChainCodes();
+        throw e;
+    }
+
+    vault->lockAllKeychains();
+    vault->lockChainCodes();
+    return Value("success");
 }
 
 // Blockchain operations
@@ -391,6 +471,8 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("gethistory", Command(&cmd_gethistory)));
     command_map.insert(cmd_pair("gettx", Command(&cmd_gettx)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
+    command_map.insert(cmd_pair("getsigningrequest", Command(&cmd_getsigningrequest)));
+    command_map.insert(cmd_pair("signtx", Command(&cmd_signtx)));
 
     // Blockchain operations
     command_map.insert(cmd_pair("getblockheader", Command(&cmd_getblockheader)));
