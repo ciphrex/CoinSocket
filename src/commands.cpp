@@ -395,23 +395,7 @@ Value cmd_getsigningrequest(SynchedVault& synchedVault, const Array& params)
         throw std::runtime_error("Invalid parameters.");
     }
 
-    std::vector<std::string> keychain_names;
-    std::vector<std::string> keychain_hashes;
-    for (auto& keychain_pair: req.keychain_info())
-    {
-        keychain_names.push_back(keychain_pair.first);
-        keychain_hashes.push_back(uchar_vector(keychain_pair.second).getHex()); 
-    }
-    std::string hash = uchar_vector(req.hash()).getHex();
-    std::string rawtx = uchar_vector(req.rawtx()).getHex();
-
-    Object result;
-    result.push_back(Pair("hash", hash));
-    result.push_back(Pair("sigsneeded", (uint64_t)req.sigs_needed()));
-    result.push_back(Pair("keychains", Array(keychain_names.begin(), keychain_names.end())));
-    result.push_back(Pair("keychainhashes", Array(keychain_hashes.begin(), keychain_hashes.end())));
-    result.push_back(Pair("rawtx", rawtx));
-    return result;
+    return getSigningRequestObject(req);
 }
 
 // TODO: Mutex to prevent multiple clients from simultaneously unlocking and locking keychains
@@ -426,9 +410,9 @@ Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
     std::vector<std::string> keychains;
     keychains.push_back(keychain);
 
+    std::shared_ptr<Tx> tx;
     try
     {
-        std::shared_ptr<Tx> tx;
         if (params[0].type() == str_type)
         {
             vault->unlockChainCodes(uchar_vector("1234"));
@@ -455,7 +439,7 @@ Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
 
     vault->lockAllKeychains();
     vault->lockChainCodes();
-    return Value("success");
+    return getSigningRequestObject(vault->getSigningRequest(tx->id(), true));
 }
 
 Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)

@@ -12,6 +12,7 @@
 #pragma once
 
 #include <CoinDB/Schema.h>
+#include <CoinDB/SigningRequest.h>
 #include <stdutils/uchar_vector.h>
 
 #include <json_spirit/json_spirit_reader_template.h>
@@ -49,5 +50,28 @@ inline json_spirit::Object getTxViewObject(const CoinDB::TxView& txview)
     result.push_back(Pair("locktime", (uint64_t)txview.locktime));
     result.push_back(Pair("timestamp", (uint64_t)txview.timestamp));
     result.push_back(Pair("height", (uint64_t)txview.height));
+    return result;
+}
+
+inline json_spirit::Object getSigningRequestObject(const CoinDB::SigningRequest& req)
+{
+    using namespace json_spirit;
+
+    std::vector<std::string> keychain_names;
+    std::vector<std::string> keychain_hashes;
+    for (auto& keychain_pair: req.keychain_info())
+    {
+        keychain_names.push_back(keychain_pair.first);
+        keychain_hashes.push_back(uchar_vector(keychain_pair.second).getHex());
+    }
+    std::string hash = uchar_vector(req.hash()).getHex();
+    std::string rawtx = uchar_vector(req.rawtx()).getHex();
+
+    Object result;
+    result.push_back(Pair("hash", hash));
+    result.push_back(Pair("sigsneeded", (uint64_t)req.sigs_needed()));
+    result.push_back(Pair("keychains", Array(keychain_names.begin(), keychain_names.end())));
+    result.push_back(Pair("keychainhashes", Array(keychain_hashes.begin(), keychain_hashes.end())));
+    result.push_back(Pair("rawtx", rawtx));
     return result;
 }
