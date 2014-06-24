@@ -143,94 +143,96 @@ int main(int argc, char* argv[])
     signal(SIGINT, &finish);
     signal(SIGTERM, &finish);
 
-    SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
+    {
+        SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
 
-    initCommandMap(g_command_map);
-    WebSocketServer wsServer(config.getWebSocketPort(), config.getAllowedIps());
-    wsServer.setOpenCallback(&openCallback);
-    wsServer.setCloseCallback(&closeCallback);
+        initCommandMap(g_command_map);
+        WebSocketServer wsServer(config.getWebSocketPort(), config.getAllowedIps());
+        wsServer.setOpenCallback(&openCallback);
+        wsServer.setCloseCallback(&closeCallback);
 #ifdef USE_TLS
-    wsServer.setTlsInitCallback([&](WebSocketServer& server, websocketpp::connection_hdl hdl)
-    {
-        return tlsInit(config.getTlsCertificateFile(), server, hdl);
-    });
+        wsServer.setTlsInitCallback([&](WebSocketServer& server, websocketpp::connection_hdl hdl)
+        {
+            return tlsInit(config.getTlsCertificateFile(), server, hdl);
+        });
 #endif
-    wsServer.setRequestCallback([&](WebSocketServer& server, const WebSocketServer::client_request_t& req)
-    {
-        requestCallback(synchedVault, server, req);
-    });
+        wsServer.setRequestCallback([&](WebSocketServer& server, const WebSocketServer::client_request_t& req)
+        {
+            requestCallback(synchedVault, server, req);
+        });
 
-    try
-    {
-        cout << "Starting websocket server on port " << config.getWebSocketPort() << "..." << flush;
-        LOGGER(info) << "Starting websocket server on port " << config.getWebSocketPort() << "..." << endl;
-        wsServer.start();
+        try
+        {
+            cout << "Starting websocket server on port " << config.getWebSocketPort() << "..." << flush;
+            LOGGER(info) << "Starting websocket server on port " << config.getWebSocketPort() << "..." << endl;
+            wsServer.start();
+            cout << "done." << endl;
+            LOGGER(info) << "done." << endl;
+        }
+        catch (const exception& e)
+        {
+            LOGGER(error) << "Error starting websocket server: " << e.what() << endl;
+            cout << endl;
+            cerr << "Error starting websocket server: " << e.what() << endl;
+            return 1;
+        }
+        
+        synchedVault.subscribeTxInserted([&](std::shared_ptr<Tx> tx)
+        {
+            std::string hash = uchar_vector(tx->hash()).getHex();
+            LOGGER(debug) << "Transaction inserted: " << hash << endl;
+            std::stringstream msg;
+            msg << "{\"type\":\"txinserted\", \"tx\":" << tx->toJson() << "}";
+            wsServer.sendAll(msg.str());
+        });
+
+        synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
+        {
+            LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
+
+            std::stringstream msg;
+            msg << "{\"type\":\"txstatuschanged\", \"tx\":" << tx->toJson() << "}";
+            wsServer.sendAll(msg.str());
+        });
+
+        synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
+        {
+            LOGGER(debug) << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
+
+            std::stringstream msg;
+            msg << "{\"type\":\"merkleblockinserted\", \"merkleblock\":" << merkleblock->toJson() << "}";
+            wsServer.sendAll(msg.str());
+        });
+
+        try
+        {
+            cout << "Opening vault " << config.getDatabaseFile() << endl;
+            LOGGER(info) << "Opening vault " << config.getDatabaseFile() << endl;
+            synchedVault.openVault(config.getDatabaseFile());
+            cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+            LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+            synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
+        }
+        catch (const std::exception& e)
+        {
+            cerr << "Error: " << e.what() << endl;
+            return 1;
+        }
+
+        while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
+
+        cout << "Stopping vault sync..." << flush;
+        LOGGER(info) << "Stopping vault sync..." << flush;
+        synchedVault.stopSync();
+        cout << "done." << endl;
+        LOGGER(info) << "done." << endl;
+
+        cout << "Stopping websocket server..." << flush;
+        LOGGER(info) << "Stopping websocket server..." << flush;
+        wsServer.stop();
         cout << "done." << endl;
         LOGGER(info) << "done." << endl;
     }
-    catch (const exception& e)
-    {
-        LOGGER(error) << "Error starting websocket server: " << e.what() << endl;
-        cout << endl;
-        cerr << "Error starting websocket server: " << e.what() << endl;
-        return 1;
-    }
-    
-    synchedVault.subscribeTxInserted([&](std::shared_ptr<Tx> tx)
-    {
-        std::string hash = uchar_vector(tx->hash()).getHex();
-        LOGGER(debug) << "Transaction inserted: " << hash << endl;
-        std::stringstream msg;
-        msg << "{\"type\":\"txinserted\", \"tx\":" << tx->toJson() << "}";
-        wsServer.sendAll(msg.str());
-    });
-
-    synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
-    {
-        LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
-
-        std::stringstream msg;
-        msg << "{\"type\":\"txstatuschanged\", \"tx\":" << tx->toJson() << "}";
-        wsServer.sendAll(msg.str());
-    });
-
-    synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
-    {
-        LOGGER(debug) << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
-
-        std::stringstream msg;
-        msg << "{\"type\":\"merkleblockinserted\", \"merkleblock\":" << merkleblock->toJson() << "}";
-        wsServer.sendAll(msg.str());
-    });
-
-    try
-    {
-        cout << "Opening vault " << config.getDatabaseFile() << endl;
-        LOGGER(info) << "Opening vault " << config.getDatabaseFile() << endl;
-        synchedVault.openVault(config.getDatabaseFile());
-        cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
-        LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
-        synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
-    }
-    catch (const std::exception& e)
-    {
-        cerr << "Error: " << e.what() << endl;
-        return 1;
-    }
-
-    while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
-
-    cout << "Stopping vault sync..." << flush;
-    LOGGER(info) << "Stopping vault sync..." << flush;
-    synchedVault.stopSync();
-    cout << "done." << endl;
-    LOGGER(info) << "done." << endl;
-
-    cout << "Stopping websocket server..." << flush;
-    LOGGER(info) << "Stopping websocket server..." << flush;
-    wsServer.stop();
-    cout << "done." << endl;
-    LOGGER(info) << "done." << endl;
 
     LOGGER(info) << "exiting." << endl << endl;
     return 0;
