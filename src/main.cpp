@@ -232,5 +232,6 @@ int main(int argc, char* argv[])
     cout << "done." << endl;
     LOGGER(info) << "done." << endl;
 
+    LOGGER(info) << "exiting." << endl << endl;
     return 0;
 }
