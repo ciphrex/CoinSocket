@@ -97,7 +97,6 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
     const Array& params = req.second.getParams();
     const Value& id = req.second.getId();
 
-    Vault* vault = synchedVault.getVault();
     JsonRpc::Response response;
 
     try
@@ -106,7 +105,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
         if (it == g_command_map.end())
             throw std::runtime_error("Invalid method.");
 
-        Value result = it->second(vault, params);
+        Value result = it->second(synchedVault, params);
         response.setResult(result, id);
     }
     catch (const exception& e)

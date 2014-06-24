@@ -39,10 +39,12 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
 }
 
 // Global operations
-Value cmd_getvaultinfo(Vault* vault, const Array& params)
+Value cmd_getvaultinfo(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 0)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     Object result;
     result.push_back(Pair("name", vault->getName()));
@@ -52,20 +54,24 @@ Value cmd_getvaultinfo(Vault* vault, const Array& params)
 }
 
 // Keychain operations
-Value cmd_newkeychain(Vault* vault, const Array& params)
+Value cmd_newkeychain(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::string keychainName = params[0].get_str();
     vault->newKeychain(keychainName, random_bytes(32));
     return Value("success");
 }
 
-Value cmd_renamekeychain(Vault* vault, const Array& params)
+Value cmd_renamekeychain(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2 || params[0].type() != str_type || params[0].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::string oldName = params[0].get_str();
     std::string newName = params[1].get_str();
@@ -73,10 +79,12 @@ Value cmd_renamekeychain(Vault* vault, const Array& params)
     return Value("success");
 }
 
-Value cmd_getkeychaininfo(Vault* vault, const Array& params)
+Value cmd_getkeychaininfo(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::string keychainName = params[0].get_str();
     std::shared_ptr<Keychain> keychain = vault->getKeychain(keychainName);
@@ -91,7 +99,7 @@ Value cmd_getkeychaininfo(Vault* vault, const Array& params)
     return keychainInfo;
 }
 
-Value cmd_getkeychains(Vault* vault, const Array& params)
+Value cmd_getkeychains(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 2)
         throw std::runtime_error("Invalid parameters.");
@@ -100,6 +108,8 @@ Value cmd_getkeychains(Vault* vault, const Array& params)
     if (params.size() > 0) accountName = params[0].get_str();
 
     bool showHidden = params.size() > 1 && params[1].get_bool();
+
+    Vault* vault = synchedVault.getVault();
 
     vector<KeychainView> views = vault->getRootKeychainViews(accountName, showHidden);
     vector<Object> keychainObjects;
@@ -120,12 +130,14 @@ Value cmd_getkeychains(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_exportbip32(Vault* vault, const Array& params)
+Value cmd_exportbip32(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw std::runtime_error("Invalid parameters.");
 
     std::string keychainName = params[0].get_str();
+
+    Vault* vault = synchedVault.getVault();
 
     vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes
     bytes_t extendedkey = vault->getKeychainExtendedKey(keychainName, false);
@@ -135,7 +147,7 @@ Value cmd_exportbip32(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_importbip32(Vault* vault, const Array& params)
+Value cmd_importbip32(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2)
         throw std::runtime_error("Invalid parameters.");
@@ -144,11 +156,13 @@ Value cmd_importbip32(Vault* vault, const Array& params)
     if (!fromBase58Check(params[1].get_str(), extendedkey))
         throw std::runtime_error("Invalid extended key.");
 
+    Vault* vault = synchedVault.getVault();
+
     vault->importKeychainExtendedKey(params[0].get_str(), extendedkey, false);
     return Value("success");
 }
 
-Value cmd_newaccount(Vault* vault, const Array& params)
+Value cmd_newaccount(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 3 || params.size() > 18)
         throw std::runtime_error("Invalid parameters.");
@@ -162,16 +176,20 @@ Value cmd_newaccount(Vault* vault, const Array& params)
     for (size_t i = 2; i < params.size(); i++)
         keychainNames.push_back(params[i].get_str());
 
+    Vault* vault = synchedVault.getVault();
+
     vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes using passphrase
     vault->newAccount(accountName, minsigs, keychainNames);
     vault->lockChainCodes();
     return Value("success");
 }
 
-Value cmd_renameaccount(Vault* vault, const Array& params)
+Value cmd_renameaccount(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2 || params[0].type() != str_type || params[1].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::string oldName = params[0].get_str();
     std::string newName = params[1].get_str();
@@ -179,10 +197,12 @@ Value cmd_renameaccount(Vault* vault, const Array& params)
     return Value("success");
 }
 
-Value cmd_getaccountinfo(Vault* vault, const Array& params)
+Value cmd_getaccountinfo(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::string accountName = params[0].get_str();
     AccountInfo accountInfo = vault->getAccountInfo(accountName);
@@ -202,10 +222,12 @@ Value cmd_getaccountinfo(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_getaccounts(Vault* vault, const Array& params)
+Value cmd_getaccounts(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 0)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     vector<AccountInfo> accounts = vault->getAllAccountInfo();
     vector<Object> accountObjects;
@@ -225,10 +247,12 @@ Value cmd_getaccounts(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_issuescript(Vault* vault, const Array& params)
+Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 1 || params.size() > 3)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::string accountName = params[0].get_str();
     std::string label;
@@ -238,6 +262,7 @@ Value cmd_issuescript(Vault* vault, const Array& params)
     if (binName.empty()) binName = DEFAULT_BIN_NAME;
 
     std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label);
+    synchedVault.updateBloomFilter();
 
     std::string address = getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS);
     std::string uri = "bitcoin:";
@@ -255,10 +280,12 @@ Value cmd_issuescript(Vault* vault, const Array& params)
 }
 
 // Tx operations
-Value cmd_gethistory(Vault* vault, const Array& params)
+Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 1)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     uint32_t minheight = params.size() > 0 ? (uint32_t)params[0].get_uint64() : 0;
     std::vector<TxView> txviews = vault->getTxViews(Tx::ALL, 0, -1, minheight);
@@ -274,10 +301,12 @@ Value cmd_gethistory(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_gettx(Vault* vault, const Array& params)
+Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::shared_ptr<Tx> tx;
     if (params[0].type() == str_type)
@@ -304,10 +333,12 @@ Value cmd_gettx(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_newtx(Vault* vault, const Array& params)
+Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 3)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::string account = params[0].get_str();
 
@@ -343,10 +374,12 @@ Value cmd_newtx(Vault* vault, const Array& params)
     return result;
 }
 
-Value cmd_getsigningrequest(Vault* vault, const Array& params)
+Value cmd_getsigningrequest(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     SigningRequest req;
     if (params[0].type() == str_type)
@@ -382,10 +415,12 @@ Value cmd_getsigningrequest(Vault* vault, const Array& params)
 }
 
 // TODO: Mutex to prevent multiple clients from simultaneously unlocking and locking keychains
-Value cmd_signtx(Vault* vault, const Array& params)
+Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 3 || params[1].type() != str_type || params[2].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     std::string keychain = params[1].get_str();
     std::vector<std::string> keychains;
@@ -423,10 +458,12 @@ Value cmd_signtx(Vault* vault, const Array& params)
     return Value("success");
 }
 
-Value cmd_insertrawtx(Vault* vault, const Array& params)
+Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     uchar_vector rawtx(params[0].get_str());
     std::shared_ptr<Tx> tx(new Tx());
@@ -446,21 +483,24 @@ Value cmd_insertrawtx(Vault* vault, const Array& params)
 }
 
 // Blockchain operations
-Value cmd_getblockheader(Vault* vault, const Array& params)
+Value cmd_getblockheader(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw std::runtime_error("Invalid parameters.");
+
+    Vault* vault = synchedVault.getVault();
 
     uint32_t height = (uint32_t)params[0].get_uint64();
     std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
     return getBlockHeaderObject(header.get());
 }
 
-Value cmd_getchaintip(Vault* vault, const Array& params)
+Value cmd_getchaintip(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 0)
         throw std::runtime_error("Invalid parameters.");
 
+    Vault* vault = synchedVault.getVault();
     uint32_t height = vault->getBestHeight();
     std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
     return getBlockHeaderObject(header.get());
