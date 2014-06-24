@@ -466,6 +466,32 @@ Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
+Value cmd_sendtx(SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1)
+        throw std::runtime_error("Invalid parameters.");
+
+    std::shared_ptr<Tx> tx;
+    if (params[0].type() == str_type)
+    {
+        uchar_vector hash(params[0].get_str());
+        tx = synchedVault.sendTx(hash); 
+    }
+    else if (params[0].type() == int_type)
+    {
+        tx = synchedVault.sendTx((unsigned long)params[0].get_uint64());
+    }
+    else
+    {
+        throw std::runtime_error("Invalid parameters.");
+    }
+
+    Object result;
+    result.push_back(Pair("hash", uchar_vector(tx->hash()).getHex()));
+    result.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
+    return result;
+}
+
 // Blockchain operations
 Value cmd_getblockheader(SynchedVault& synchedVault, const Array& params)
 {
@@ -520,6 +546,7 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("getsigningrequest", Command(&cmd_getsigningrequest)));
     command_map.insert(cmd_pair("signtx", Command(&cmd_signtx)));
     command_map.insert(cmd_pair("insertrawtx", Command(&cmd_insertrawtx)));
+    command_map.insert(cmd_pair("sendtx", Command(&cmd_sendtx)));
 
     // Blockchain operations
     command_map.insert(cmd_pair("getblockheader", Command(&cmd_getblockheader)));
