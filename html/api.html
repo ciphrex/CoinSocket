@@ -1,0 +1,50 @@
+<html>
+<head>
+<title>CoinSocket API</title>
+<!--<link rel="stylesheet" type="text/css" href="css/tables.css" />-->
+<style>
+.command {
+    padding:6px;
+    color: black;
+    background-color: white;
+    border: black 2px solid;
+}
+</style>
+</head>
+<body>
+<p><span style="float:left;width:20em;">CoinSocket API</span></p>
+<div style="width: 100%; overflow: hidden;">
+    <div style="float: left; width: 35%; height: 100%; overflow: scroll;">
+        <h3>Commands</h3>
+        <div class="command">
+            <p>getvaultinfo</p>
+            <table>
+                <tr><td></td><td></td>
+                    <td>
+                        <input type="button" value="Submit" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="command">
+            <p>getblockheader</p>
+            <table>
+                <tr><td>integer</td><td>height</td>
+                    <td>
+                        <input type="text" />
+                    </td>
+                </tr>
+                <tr><td></td><td></td>
+                    <td>
+                        <input type="button" value="Submit" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div style="float: left; width: 60%; height: 100%; overflow: scroll;">
+        <h3>Output</h3>
+    </div>
+</div>
+</body>
+</html>
