@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>CoinSocket API</title>
-<!--<link rel="stylesheet" type="text/css" href="css/tables.css" />-->
+<link rel="stylesheet" type="text/css" href="css/tables.css" />
 <style>
 .command {
     padding:6px;
@@ -24,30 +24,54 @@
 <div style="width: 100%; overflow: hidden;">
     <div style="float: left; width: 35%; height: 100%; overflow: scroll;">
         <h3>Commands</h3>
-        <div class="command">
-            <p>getvaultinfo</p>
-            <table>
-                <tr><td></td><td></td>
-                    <td>
-                        <input type="button" onclick="getvaultinfo()" value="Submit" />
-                    </td>
-                </tr>
-            </table>
+        <div>
+            <h4>Global Operations</h4>
+            <div class="command">
+                <p>getvaultinfo</p>
+                <table class="gridtable">
+                    <tr><td></td><td></td>
+                        <td>
+                            <input type="button" onclick="getvaultinfo()" value="Submit" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
-        <div class="command">
-            <p>getblockheader</p>
-            <table>
-                <tr><td>integer</td><td>height</td>
-                    <td>
-                        <input type="text" id="getblockheader_int_height" />
-                    </td>
-                </tr>
-                <tr><td></td><td></td>
-                    <td>
-                        <input type="button" onclick="getblockheader_int()" value="Submit" />
-                    </td>
-                </tr>
-            </table>
+        <div>
+            <h4>Keychain Operations</h4>
+            <div class="command">
+                <p>newkeychain</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>name</td>
+                        <td>
+                            <input type="text" id="newkeychain_name" />
+                        </td>
+                    </tr>
+                    <tr><td></td><td></td>
+                        <td>
+                            <input type="button" onclick="newkeychain()" value="Submit" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div>
+            <h4>Blockchain Operations</h4>
+            <div class="command">
+                <p>getblockheader</p>
+                <table class="gridtable">
+                    <tr><td>integer</td><td>height</td>
+                        <td>
+                            <input type="text" id="getblockheader_int_height" />
+                        </td>
+                    </tr>
+                    <tr><td></td><td></td>
+                        <td>
+                            <input type="button" onclick="getblockheader_int()" value="Submit" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
     <div style="float: left; width: 60%; height: 100%; overflow: scroll;">
@@ -155,16 +179,28 @@
         uridiv = document.getElementById('uridiv');
     };
 
-    // Commands
+    // COMMANDS
+
+    // Global Operations
     function getvaultinfo() {
         if (!ws) return;
-
         var req = '{"method": "getvaultinfo", "id": ' + requestid + '}';
         requestid++;
         sendrequest(req);
     }
 
+    // Keychain Operations
+    function newkeychain() {
+        if (!ws) return;
+        var keychainname = document.getElementById('newkeychain_name').value;
+        var req = '{"method": "newkeychain", "params":["' + keychainname + '"], "id": ' + requestid + '}';
+        requestid++;
+        sendrequest(req);
+    }
+
+    // Blockchain Operations
     function getblockheader_int() {
+        if (!ws) return;
         var height = document.getElementById('getblockheader_int_height').value;
         var req = '{"method": "getblockheader", "params":[' + height + '], "id": ' + requestid + '}';
         requestid++;
