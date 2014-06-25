@@ -1,5 +1,5 @@
 ODB_DB = \
-    -DDATABASE_SQLITE
+    -DDATABASE_MYSQL
 
 CXX_FLAGS += -Wall
 ifdef DEBUG
@@ -79,7 +79,7 @@ LIBS = \
     -lboost_serialization$(BOOST_SUFFIX) \
     -lboost_program_options$(BOOST_SUFFIX) \
     -lcrypto \
-    -lodb-sqlite \
+    -lodb-mysql \
     -lodb
 
 ifdef USE_TLS
