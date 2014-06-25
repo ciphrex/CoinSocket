@@ -129,6 +129,14 @@ function renamekeychain() {
     sendrequest(req);
 }
 
+// Account Operations
+function getaccounts() {
+    if (!ws) return;
+    var req = '{"method": "getaccounts", "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 // Blockchain Operations
 function getchaintip() {
     if (!ws) return;
