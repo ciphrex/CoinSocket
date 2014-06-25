@@ -9,10 +9,18 @@
     background-color: white;
     border: black 2px solid;
 }
+#output {
+    width: 100%;
+    height: 90%;
+}
 </style>
 </head>
 <body>
-<p><span style="float:left;width:20em;">CoinSocket API</span></p>
+<p><span>CoinSocket API</span></p>
+<div>
+    Server: <input type="text" id="url" value="ws://test.ciphrex.com:8080" size="50" />
+    <input type="button" id="connectbutton" onclick="connect()" value="Connect" />
+</div>
 <div style="width: 100%; overflow: hidden;">
     <div style="float: left; width: 35%; height: 100%; overflow: scroll;">
         <h3>Commands</h3>
@@ -44,7 +52,86 @@
     </div>
     <div style="float: left; width: 60%; height: 100%; overflow: scroll;">
         <h3>Output</h3>
+        <div>
+            <textarea id="output"></textarea>
+        </div>
+        <div>
+            <input type="checkbox" id="autoscroll" checked />Autoscroll
+        </div>
+        <div>
+            <tt><span id="status"></span></tt>
+        </div>
+        <div id="uridiv">
+        </div>
     </div>
 </div>
+<script type="text/javascript">
+    var connectbutton; // = document.getElementById('connectbutton');
+    var output; // = document.getElementById('output');
+    var autoscroll; // = document.getElementById('autoscroll');
+ 
+    var urlinput; // = document.getElementById('url');
+    var serverurl;
+ 
+    var uridiv;
+ 
+    var ws = null;
+ 
+    var onopen = function () {
+        document.getElementById('status').innerHTML = "Connected to " + serverurl + ".";
+        output.value += 'CONNECTED TO ' + serverurl + '.\n\n';
+        document.getElementById('connectbutton').value = 'Disconnect';
+    };
+ 
+    var onclose = function () {
+        document.getElementById('status').innerHTML = "Connection closed.";
+        ws = null;
+        connectbutton.value = 'Connect';
+        output.value += 'DISCONNECTED FROM ' + serverurl + '.\n\n';
+    };
+
+    var onmessage = function (e) {
+        console.log(e.data);
+        var obj = JSON.parse(e.data);
+        var json = JSON.stringify(obj, undefined, 2);
+        output.value += json + '\n\n';
+        if (autoscroll.checked)
+            output.scrollTop = output.scrollHeight;
+ 
+        // update uri
+        if (obj.hasOwnProperty('result') && obj.result.hasOwnProperty('uri')) {
+            uridiv.innerHTML = '<a href="' + obj.result.uri + '">Request from local wallet...</a>';
+        }
+        else {
+            uridiv.innerHTML = '';
+        }
+    };
+ 
+    function connect() {
+        if (ws) {
+//            document.getElementById('sendbutton').disabled = true;
+            ws.close();
+            return;
+        }
+ 
+        serverurl = urlinput.value;
+        document.getElementById('status').innerHTML = "Connecting to " + serverurl + "...";
+ 
+        ws = new WebSocket(serverurl);
+        ws.onopen = onopen;
+        ws.onclose = onclose;
+        ws.onmessage = onmessage;
+ 
+//        document.getElementById('sendbutton').disabled = false;
+    }
+
+    window.onload = function () {
+        connectbutton = document.getElementById('connectbutton');
+        output = document.getElementById('output');
+        autoscroll = document.getElementById('autoscroll');
+        urlinput = document.getElementById('url');
+        uridiv = document.getElementById('uridiv');
+    };
+</script>
 </body>
 </html>
