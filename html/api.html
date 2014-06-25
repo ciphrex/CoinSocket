@@ -54,6 +54,26 @@
                     </tr>
                 </table>
             </div>
+            <div class="command">
+                <p>renamekeychain</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>oldname</td>
+                        <td>
+                            <input type="text" id="renamekeychain_oldname" />
+                        </td>
+                    </tr>
+                    <tr><td>string</td><td>newname</td>
+                        <td>
+                            <input type="text" id="renamekeychain_newname" />
+                        </td>
+                    </tr>
+                    <tr><td></td><td></td>
+                        <td>
+                            <input type="button" onclick="renamekeychain()" value="Submit" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
         <div>
             <h4>Blockchain Operations</h4>
@@ -194,6 +214,15 @@
         if (!ws) return;
         var keychainname = document.getElementById('newkeychain_name').value;
         var req = '{"method": "newkeychain", "params":["' + keychainname + '"], "id": ' + requestid + '}';
+        requestid++;
+        sendrequest(req);
+    }
+
+    function renamekeychain() {
+        if (!ws) return;
+        var oldname = document.getElementById('renamekeychain_oldname').value;
+        var newname = document.getElementById('renamekeychain_newname').value;
+        var req = '{"method": "renamekeychain", "params":["' + oldname + '", "' + newname + '"], "id": ' + requestid + '}';
         requestid++;
         sendrequest(req);
     }
