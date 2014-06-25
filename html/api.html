@@ -93,6 +93,17 @@
                 </table>
                 <input type="button" onclick="getblockheader_int()" value="Submit" />
             </div>
+            <div class="command">
+                <p>getblockheader</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>hash</td>
+                        <td>
+                            <input type="text" id="getblockheader_string_hash" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="getblockheader_string()" value="Submit" />
+            </div>
         </div>
     </div>
     <div style="float: left; width: 60%; height: 100%; overflow: scroll;">
@@ -255,6 +266,14 @@
         if (!ws) return;
         var height = document.getElementById('getblockheader_int_height').value;
         var req = '{"method": "getblockheader", "params":[' + height + '], "id": ' + requestid + '}';
+        requestid++;
+        sendrequest(req);
+    }
+
+    function getblockheader_string() {
+        if (!ws) return;
+        var hash = document.getElementById('getblockheader_string_hash').value;
+        var req = '{"method": "getblockheader", "params":["' + hash + '"], "id": ' + requestid + '}';
         requestid++;
         sendrequest(req);
     }
