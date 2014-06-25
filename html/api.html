@@ -40,6 +40,31 @@
         <div>
             <h4>Keychain Operations</h4>
             <div class="command">
+                <p>getkeychains</p>
+                <table class="gridtable">
+                    <tr><td></td><td></td>
+                        <td>
+                            <input type="button" onclick="getkeychains()" value="Submit" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="command">
+                <p>getkeychaininfo</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>name</td>
+                        <td>
+                            <input type="text" id="getkeychaininfo_name" />
+                        </td>
+                    </tr>
+                    <tr><td></td><td></td>
+                        <td>
+                            <input type="button" onclick="getkeychaininfo()" value="Submit" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="command">
                 <p>newkeychain</p>
                 <table class="gridtable">
                     <tr><td>string</td><td>name</td>
@@ -70,21 +95,6 @@
                     <tr><td></td><td></td>
                         <td>
                             <input type="button" onclick="renamekeychain()" value="Submit" />
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div class="command">
-                <p>getkeychaininfo</p>
-                <table class="gridtable">
-                    <tr><td>string</td><td>name</td>
-                        <td>
-                            <input type="text" id="getkeychaininfo_name" />
-                        </td>
-                    </tr>
-                    <tr><td></td><td></td>
-                        <td>
-                            <input type="button" onclick="getkeychaininfo()" value="Submit" />
                         </td>
                     </tr>
                 </table>
@@ -225,6 +235,21 @@
     }
 
     // Keychain Operations
+    function getkeychains() {
+        if (!ws) return;
+        var req = '{"method": "getkeychains", "id": ' + requestid + '}';
+        requestid++;
+        sendrequest(req);
+    }
+
+    function getkeychaininfo() {
+        if (!ws) return;
+        var keychainname = document.getElementById('getkeychaininfo_name').value;
+        var req = '{"method": "getkeychaininfo", "params":["' + keychainname + '"], "id": ' + requestid + '}';
+        requestid++;
+        sendrequest(req);
+    }
+
     function newkeychain() {
         if (!ws) return;
         var keychainname = document.getElementById('newkeychain_name').value;
@@ -238,14 +263,6 @@
         var oldname = document.getElementById('renamekeychain_oldname').value;
         var newname = document.getElementById('renamekeychain_newname').value;
         var req = '{"method": "renamekeychain", "params":["' + oldname + '", "' + newname + '"], "id": ' + requestid + '}';
-        requestid++;
-        sendrequest(req);
-    }
-
-    function getkeychaininfo() {
-        if (!ws) return;
-        var keychainname = document.getElementById('getkeychaininfo_name').value;
-        var req = '{"method": "getkeychaininfo", "params":["' + keychainname + '"], "id": ' + requestid + '}';
         requestid++;
         sendrequest(req);
     }
