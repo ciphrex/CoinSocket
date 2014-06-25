@@ -39,12 +39,12 @@
             <table>
                 <tr><td>integer</td><td>height</td>
                     <td>
-                        <input type="text" />
+                        <input type="text" id="getblockheader_int_height" />
                     </td>
                 </tr>
                 <tr><td></td><td></td>
                     <td>
-                        <input type="button" value="Submit" />
+                        <input type="button" onclick="getblockheader_int()" value="Submit" />
                     </td>
                 </tr>
             </table>
@@ -160,6 +160,13 @@
         if (!ws) return;
 
         var req = '{"method": "getvaultinfo", "id": ' + requestid + '}';
+        requestid++;
+        sendrequest(req);
+    }
+
+    function getblockheader_int() {
+        var height = document.getElementById('getblockheader_int_height').value;
+        var req = '{"method": "getblockheader", "params":[' + height + '], "id": ' + requestid + '}';
         requestid++;
         sendrequest(req);
     }
