@@ -5,6 +5,7 @@ table.gridtable {
     border-width: 1px;
     border-color: #666666;
     border-collapse: collapse;
+    width: 95%;
 }
 table.gridtable th {
     border-width: 1px;
