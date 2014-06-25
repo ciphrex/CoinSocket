@@ -500,8 +500,22 @@ Value cmd_getblockheader(SynchedVault& synchedVault, const Array& params)
 
     Vault* vault = synchedVault.getVault();
 
-    uint32_t height = (uint32_t)params[0].get_uint64();
-    std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
+    std::shared_ptr<BlockHeader> header;
+    if (params[0].type() == str_type)
+    {
+        uchar_vector hash(params[0].get_str());
+        header = vault->getBlockHeader(hash);
+    }
+    else if (params[0].type() == int_type)
+    {
+        uint32_t height = (uint32_t)params[0].get_uint64();
+        header = vault->getBlockHeader(height);
+    }
+    else
+    {
+        throw std::runtime_error("Invalid parameters.");
+    }
+
     return getBlockHeaderObject(header.get());
 }
 
