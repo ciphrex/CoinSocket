@@ -29,7 +29,7 @@
             <table>
                 <tr><td></td><td></td>
                     <td>
-                        <input type="button" value="Submit" />
+                        <input type="button" onclick="getvaultinfo()" value="Submit" />
                     </td>
                 </tr>
             </table>
@@ -59,7 +59,7 @@
             <input type="checkbox" id="autoscroll" checked />Autoscroll
         </div>
         <div>
-            <tt><span id="status"></span></tt>
+            <tt><span id="statusbar"></span></tt>
         </div>
         <div id="uridiv">
         </div>
@@ -69,6 +69,7 @@
     var connectbutton; // = document.getElementById('connectbutton');
     var output; // = document.getElementById('output');
     var autoscroll; // = document.getElementById('autoscroll');
+    var statusbar; // = document.getElementById('statusbar');
  
     var urlinput; // = document.getElementById('url');
     var serverurl;
@@ -76,18 +77,20 @@
     var uridiv;
  
     var ws = null;
+
+    var requestid = 0;
  
     var onopen = function () {
-        document.getElementById('status').innerHTML = "Connected to " + serverurl + ".";
-        output.value += 'CONNECTED TO ' + serverurl + '.\n\n';
-        document.getElementById('connectbutton').value = 'Disconnect';
+        setstatus('Connected to ' + serverurl + '.');
+        appendoutput('CONNECTED TO ' + serverurl + '.');
+        connectbutton.value = 'Disconnect';
     };
  
     var onclose = function () {
-        document.getElementById('status').innerHTML = "Connection closed.";
         ws = null;
+        setstatus('Connection closed.');
+        appendoutput('DISCONNECTED FROM ' + serverurl + '.');
         connectbutton.value = 'Connect';
-        output.value += 'DISCONNECTED FROM ' + serverurl + '.\n\n';
     };
 
     var onmessage = function (e) {
@@ -115,7 +118,7 @@
         }
  
         serverurl = urlinput.value;
-        document.getElementById('status').innerHTML = "Connecting to " + serverurl + "...";
+        setstatus('Connecting to ' + serverurl + '...');
  
         ws = new WebSocket(serverurl);
         ws.onopen = onopen;
@@ -125,13 +128,41 @@
 //        document.getElementById('sendbutton').disabled = false;
     }
 
+    function sendrequest(req) {
+        if (!ws) return;
+
+        appendoutput('Sending ' + req  + ' ...');
+        if (autoscroll.checked)
+            output.scrollTop = output.scrollHeight;
+
+        ws.send(req);
+    }
+
+    function appendoutput(o) {
+        output.value += o + '\n\n';
+    }
+
+    function setstatus(s) {
+        statusbar.innerHTML = s;
+    }
+
     window.onload = function () {
         connectbutton = document.getElementById('connectbutton');
         output = document.getElementById('output');
         autoscroll = document.getElementById('autoscroll');
+        statusbar = document.getElementById('statusbar');
         urlinput = document.getElementById('url');
         uridiv = document.getElementById('uridiv');
     };
+
+    // Commands
+    function getvaultinfo() {
+        if (!ws) return;
+
+        var req = '{"method": "getvaultinfo", "id": ' + requestid + '}';
+        requestid++;
+        sendrequest(req);
+    }
 </script>
 </body>
 </html>
