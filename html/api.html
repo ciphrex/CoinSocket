@@ -79,6 +79,10 @@
         <div>
             <h4>Blockchain Operations</h4>
             <div class="command">
+                <p>getchaintip</p>
+                <input type="button" onclick="getchaintip()" value="Submit" />
+            </div>
+            <div class="command">
                 <p>getblockheader</p>
                 <table class="gridtable">
                     <tr><td>integer</td><td>height</td>
@@ -240,6 +244,13 @@
     }
 
     // Blockchain Operations
+    function getchaintip() {
+        if (!ws) return;
+        var req = '{"method": "getchaintip", "id": ' + requestid + '}';
+        requestid++;
+        sendrequest(req);
+    }
+
     function getblockheader_int() {
         if (!ws) return;
         var height = document.getElementById('getblockheader_int_height').value;
