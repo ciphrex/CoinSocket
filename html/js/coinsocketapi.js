@@ -137,6 +137,14 @@ function getaccounts() {
     sendrequest(req);
 }
 
+function getaccountinfo() {
+    if (!ws) return;
+    var accountname = document.getElementById('getaccountinfo_name').value;
+    var req = '{"method": "getaccountinfo", "params": ["' + accountname + '"], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 // Blockchain Operations
 function getchaintip() {
     if (!ws) return;
