@@ -160,6 +160,15 @@ function newaccount() {
     sendrequest(req);
 }
 
+function renameaccount() {
+    if (!ws) return;
+    var oldname = document.getElementById('renameaccount_oldname').value;
+    var newname = document.getElementById('renameaccount_newname').value;
+    var req = '{"method": "renameaccount", "params":["' + oldname + '", "' + newname + '"], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 // Blockchain Operations
 function getchaintip() {
     if (!ws) return;
