@@ -206,9 +206,9 @@ int main(int argc, char* argv[])
 
         try
         {
-            cout << "Opening vault " << config.getDatabaseFile() << endl;
-            LOGGER(info) << "Opening vault " << config.getDatabaseFile() << endl;
-            synchedVault.openVault(config.getDatabaseFile());
+            cout << "Opening vault " << config.getDatabaseName() << endl;
+            LOGGER(info) << "Opening vault " << config.getDatabaseName() << endl;
+            synchedVault.openVault(config.getDatabaseUser(), config.getDatabasePassword(), config.getDatabaseName());
             cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
             LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
             synchedVault.startSync(config.getPeerHost(), config.getPeerPort());

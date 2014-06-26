@@ -31,7 +31,9 @@ public:
     void init(int argc, char* argv[]);
 
     const std::string& getConfigFile() const { return m_configFile; }
-    const std::string& getDatabaseFile() const { return m_databaseFile; }
+    const std::string& getDatabaseUser() const { return m_databaseUser; }
+    const std::string& getDatabasePassword() const { return m_databasePassword; }
+    const std::string& getDatabaseName() const { return m_databaseName; }
     const std::string& getDataDir() const { return m_dataDir; }
     const std::string& getPeerHost() const { return m_peerHost; }
     const std::string& getPeerPort() const { return m_peerPort; }
@@ -44,7 +46,9 @@ public:
 
 private:
     std::string m_configFile;
-    std::string m_databaseFile;
+    std::string m_databaseUser;
+    std::string m_databasePassword;
+    std::string m_databaseName;
     std::string m_dataDir;
     std::string m_peerHost;
     std::string m_peerPort;
@@ -63,7 +67,9 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     options.add_options()
         ("help", "display help message")
         ("config", po::value<std::string>(&m_configFile), "name of the configuration file")
-        ("dbfile", po::value<std::string>(&m_databaseFile), "coin database file")
+        ("dbuser", po::value<std::string>(&m_databaseUser), "vault database user")
+        ("dbpasswd", po::value<std::string>(&m_databasePassword), "vault database password")
+        ("dbname", po::value<std::string>(&m_databaseName), "vault database name")
         ("datadir", po::value<std::string>(&m_dataDir), "data directory")
         ("peerhost", po::value<std::string>(&m_peerHost), "peer hostname")
         ("peerport", po::value<std::string>(&m_peerPort), "peer port")
@@ -93,7 +99,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         po::notify(vm);     
     }
 
-    if (!vm.count("dbfile")) throw std::runtime_error("No dbfile specified.");
+    if (!vm.count("dbname")) throw std::runtime_error("No dbname specified.");
     if (!vm.count("datadir"))       { m_dataDir = DEFAULT_DATADIR; }
     if (!vm.count("peerhost"))      { m_peerHost = DEFAULT_PEER_HOST; }
     if (!vm.count("peerport"))      { m_peerPort = DEFAULT_PEER_PORT; }
