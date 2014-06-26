@@ -178,6 +178,22 @@ function gethistory() {
     sendrequest(req);
 }
 
+function gettx_int() {
+    if (!ws) return;
+    var txid = document.getElementById('gettx_int_id').value;
+    var req = '{"method": "gettx", "params": [' + txid + '], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
+function gettx_string() {
+    if (!ws) return;
+    var hash = document.getElementById('gettx_string_hash').value;
+    var req = '{"method": "gettx", "params": ["' + hash + '"], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 // Blockchain Operations
 function getchaintip() {
     if (!ws) return;
