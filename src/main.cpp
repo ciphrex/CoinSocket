@@ -222,18 +222,19 @@ int main(int argc, char* argv[])
         while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
 
         cout << "Stopping vault sync..." << flush;
-        LOGGER(info) << "Stopping vault sync..." << flush;
+        LOGGER(info) << "Stopping vault sync..." << endl;
         synchedVault.stopSync();
         cout << "done." << endl;
         LOGGER(info) << "done." << endl;
 
         cout << "Stopping websocket server..." << flush;
-        LOGGER(info) << "Stopping websocket server..." << flush;
+        LOGGER(info) << "Stopping websocket server..." << endl;
         wsServer.stop();
         cout << "done." << endl;
         LOGGER(info) << "done." << endl;
     }
 
+    cout << "exiting." << endl << endl;
     LOGGER(info) << "exiting." << endl << endl;
     return 0;
 }
