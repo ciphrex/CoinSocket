@@ -169,6 +169,15 @@ function renameaccount() {
     sendrequest(req);
 }
 
+function issuescript() {
+    if (!ws) return;
+    var account = document.getElementById('issuescript_account').value;
+    var label = document.getElementById('issuescript_label').value;
+    var req = '{"method": "issuescript", "params":["' + account + '", "' + label + '"], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 // Transaction Operations
 function gethistory() {
     if (!ws) return;
