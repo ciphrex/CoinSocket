@@ -96,6 +96,27 @@
                 </table>
                 <input type="button" onclick="getaccountinfo()" value="Submit" />
             </div>
+            <div class="command">
+                <p>newaccount</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>name</td>
+                        <td>
+                            <input type="text" id="newaccount_name" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>integer</td><td>minsigs</td>
+                        <td>
+                            <input type="text" id="newaccount_minsigs" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>string list</td><td>keychains</td>
+                        <td>
+                            <input type="text" id="newaccount_keychains" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="newaccount()" value="Submit" />
+            </div>
         </div>
         <div>
             <h4>Blockchain Operations</h4>

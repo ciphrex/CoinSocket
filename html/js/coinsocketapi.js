@@ -145,6 +145,21 @@ function getaccountinfo() {
     sendrequest(req);
 }
 
+function newaccount() {
+    if (!ws) return;
+    var accountname = document.getElementById('newaccount_name').value;
+    var minsigs = document.getElementById('newaccount_minsigs').value;
+    var keychains = document.getElementById('newaccount_keychains').value;
+    var keychainlist = keychains.split(',');
+    var params = '"' + accountname + '", ' + minsigs;
+    for (i in keychainlist) {
+        params += ', "' + keychainlist[i].trim() + '"';
+    }
+    var req = '{"method": "newaccount", "params": [' + params + '], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 // Blockchain Operations
 function getchaintip() {
     if (!ws) return;
