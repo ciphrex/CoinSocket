@@ -87,12 +87,16 @@ ifdef USE_TLS
 endif
 
 OBJS = \
+    obj/jsonobjects.o \
     obj/commands.o
 
 all: build/coinsocketd$(EXE_EXT)
 
 build/coinsocketd$(EXE_EXT): src/main.cpp src/config.h $(OBJS)
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) $< $(OBJS) -o $@ $(LIBS) $(PLATFORM_LIBS)
+
+obj/jsonobjects.o: src/jsonobjects.cpp src/jsonobjects.h
+	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
 
 obj/commands.o: src/commands.cpp src/commands.h src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
