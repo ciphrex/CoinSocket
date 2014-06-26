@@ -1,5 +1,15 @@
-ODB_DB = \
-    -DDATABASE_MYSQL
+# Use MySQL by default
+ifndef DB
+    DB = mysql
+endif
+
+ifeq ($(DB), mysql)
+    ODB_DB = -DDATABASE_MYSQL
+else ifeq ($(DB), sqlite)
+    ODB_DB = -DDATABASE_SQLITE
+else
+    $(error DB must be set to mysql or sqlite)
+endif
 
 CXX_FLAGS += -Wall
 ifdef DEBUG
@@ -79,7 +89,7 @@ LIBS = \
     -lboost_serialization$(BOOST_SUFFIX) \
     -lboost_program_options$(BOOST_SUFFIX) \
     -lcrypto \
-    -lodb-mysql \
+    -lodb-$(DB) \
     -lodb
 
 ifdef USE_TLS
@@ -96,10 +106,10 @@ build/coinsocketd$(EXE_EXT): src/main.cpp src/config.h $(OBJS)
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) $< $(OBJS) -o $@ $(LIBS) $(PLATFORM_LIBS)
 
 obj/jsonobjects.o: src/jsonobjects.cpp src/jsonobjects.h
-	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 obj/commands.o: src/commands.cpp src/commands.h src/jsonobjects.h
-	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 install:
 	-mkdir -p $(SYSROOT)/bin
