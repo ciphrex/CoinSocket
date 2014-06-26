@@ -62,8 +62,8 @@ Value cmd_newkeychain(SynchedVault& synchedVault, const Array& params)
     Vault* vault = synchedVault.getVault();
 
     std::string keychainName = params[0].get_str();
-    vault->newKeychain(keychainName, random_bytes(32));
-    return Value("success");
+    std::shared_ptr<Keychain> keychain = vault->newKeychain(keychainName, random_bytes(32));
+    return getKeychainObject(keychain.get());
 }
 
 Value cmd_renamekeychain(SynchedVault& synchedVault, const Array& params)
@@ -88,15 +88,7 @@ Value cmd_getkeychaininfo(SynchedVault& synchedVault, const Array& params)
 
     std::string keychainName = params[0].get_str();
     std::shared_ptr<Keychain> keychain = vault->getKeychain(keychainName);
-    Object keychainInfo;
-    keychainInfo.push_back(Pair("id", (uint64_t)keychain->id()));
-    keychainInfo.push_back(Pair("name", keychain->name()));
-    keychainInfo.push_back(Pair("depth", (int)keychain->depth()));
-    keychainInfo.push_back(Pair("parentfp", (uint64_t)keychain->parent_fp()));
-    keychainInfo.push_back(Pair("childnum", (uint64_t)keychain->child_num()));
-    keychainInfo.push_back(Pair("pubkey", uchar_vector(keychain->pubkey()).getHex()));
-    keychainInfo.push_back(Pair("hash", uchar_vector(keychain->hash()).getHex()));
-    return keychainInfo;
+    return getKeychainObject(keychain.get());
 }
 
 Value cmd_getkeychains(SynchedVault& synchedVault, const Array& params)

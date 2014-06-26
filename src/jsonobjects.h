@@ -35,6 +35,21 @@ inline json_spirit::Object getBlockHeaderObject(CoinDB::BlockHeader* header)
     return result;
 }
 
+inline json_spirit::Object getKeychainObject(CoinDB::Keychain* keychain)
+{
+    using namespace json_spirit;
+
+    Object result;
+    result.push_back(Pair("id", (uint64_t)keychain->id()));
+    result.push_back(Pair("name", keychain->name()));
+    result.push_back(Pair("depth", (int)keychain->depth()));
+    result.push_back(Pair("parentfp", (uint64_t)keychain->parent_fp()));
+    result.push_back(Pair("childnum", (uint64_t)keychain->child_num()));
+    result.push_back(Pair("pubkey", uchar_vector(keychain->pubkey()).getHex()));
+    result.push_back(Pair("hash", uchar_vector(keychain->hash()).getHex()));
+    return result;
+}
+
 inline json_spirit::Object getTxViewObject(const CoinDB::TxView& txview)
 {
     using namespace json_spirit;
