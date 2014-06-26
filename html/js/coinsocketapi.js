@@ -169,6 +169,15 @@ function renameaccount() {
     sendrequest(req);
 }
 
+// Transaction Operations
+function gethistory() {
+    if (!ws) return;
+    var startheight = document.getElementById('gethistory_startheight').value;
+    var req = '{"method": "gethistory", "params": [' + startheight + '], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 // Blockchain Operations
 function getchaintip() {
     if (!ws) return;
