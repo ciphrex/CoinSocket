@@ -173,7 +173,8 @@ Value cmd_newaccount(SynchedVault& synchedVault, const Array& params)
     vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes using passphrase
     vault->newAccount(accountName, minsigs, keychainNames);
     vault->lockChainCodes();
-    return Value("success");
+    AccountInfo accountInfo = vault->getAccountInfo(accountName);
+    return getAccountInfoObject(accountInfo);
 }
 
 Value cmd_renameaccount(SynchedVault& synchedVault, const Array& params)
@@ -201,14 +202,7 @@ Value cmd_getaccountinfo(SynchedVault& synchedVault, const Array& params)
     uint64_t balance = vault->getAccountBalance(accountName, 0);
     uint64_t confirmedBalance = vault->getAccountBalance(accountName, 1);
 
-    Object result;
-    result.push_back(Pair("id", (uint64_t)accountInfo.id()));
-    result.push_back(Pair("name", accountInfo.name()));
-    result.push_back(Pair("minsigs", (int)accountInfo.minsigs()));
-    result.push_back(Pair("keychains", Array(accountInfo.keychain_names().begin(), accountInfo.keychain_names().end())));
-    result.push_back(Pair("unusedpoolsize", (uint64_t)accountInfo.unused_pool_size()));
-    result.push_back(Pair("timecreated", (uint64_t)accountInfo.time_created()));
-    result.push_back(Pair("bins", Array(accountInfo.bin_names().begin(), accountInfo.bin_names().end())));
+    Object result = getAccountInfoObject(accountInfo);
     result.push_back(Pair("balance", balance));
     result.push_back(Pair("confirmedbalance", confirmedBalance));
     return result;

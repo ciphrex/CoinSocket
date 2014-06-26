@@ -43,6 +43,19 @@ Object getKeychainObject(Keychain* keychain)
     return result;
 }
 
+Object getAccountInfoObject(const AccountInfo& accountInfo)
+{
+    Object result;
+    result.push_back(Pair("id", (uint64_t)accountInfo.id()));
+    result.push_back(Pair("name", accountInfo.name()));
+    result.push_back(Pair("minsigs", (int)accountInfo.minsigs()));
+    result.push_back(Pair("keychains", Array(accountInfo.keychain_names().begin(), accountInfo.keychain_names().end())));
+    result.push_back(Pair("unusedpoolsize", (uint64_t)accountInfo.unused_pool_size()));
+    result.push_back(Pair("timecreated", (uint64_t)accountInfo.time_created()));
+    result.push_back(Pair("bins", Array(accountInfo.bin_names().begin(), accountInfo.bin_names().end())));
+    return result;
+}
+
 Object getTxViewObject(const TxView& txview)
 {
     bytes_t hash = txview.status == CoinDB::Tx::UNSIGNED

@@ -20,5 +20,6 @@
 
 json_spirit::Object getBlockHeaderObject(CoinDB::BlockHeader* header);
 json_spirit::Object getKeychainObject(CoinDB::Keychain* keychain);
+json_spirit::Object getAccountInfoObject(const CoinDB::AccountInfo& accountInfo);
 json_spirit::Object getTxViewObject(const CoinDB::TxView& txview);
 json_spirit::Object getSigningRequestObject(const CoinDB::SigningRequest& req);
