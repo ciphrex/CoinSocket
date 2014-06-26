@@ -268,7 +268,7 @@ Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
 // Tx operations
 Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
 {
-    if (params.size() > 1)
+    if (params.size() > 1 || (params.size() == 1 && params[0].type() != int_type))
         throw std::runtime_error("Invalid parameters.");
 
     Vault* vault = synchedVault.getVault();
