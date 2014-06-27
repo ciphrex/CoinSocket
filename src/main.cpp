@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
             std::string hash = uchar_vector(tx->hash()).getHex();
             LOGGER(debug) << "Transaction inserted: " << hash << endl;
             std::stringstream msg;
-            msg << "{\"type\":\"txinserted\", \"tx\":" << tx->toJson() << "}";
+            msg << "{\"event\":\"txinserted\", \"data\":" << tx->toJson() << "}";
             wsServer.sendAll(msg.str());
         });
 
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
             LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
 
             std::stringstream msg;
-            msg << "{\"type\":\"txstatuschanged\", \"tx\":" << tx->toJson() << "}";
+            msg << "{\"event\":\"txstatuschanged\", \"data\":" << tx->toJson() << "}";
             wsServer.sendAll(msg.str());
         });
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
             LOGGER(debug) << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
 
             std::stringstream msg;
-            msg << "{\"type\":\"merkleblockinserted\", \"merkleblock\":" << merkleblock->toJson() << "}";
+            msg << "{\"event\":\"merkleblockinserted\", \"data\":" << merkleblock->toJson() << "}";
             wsServer.sendAll(msg.str());
         });
 
