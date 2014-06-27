@@ -3,6 +3,8 @@ var output; // = document.getElementById('output');
 var autoscroll; // = document.getElementById('autoscroll');
 var statusbar; // = document.getElementById('statusbar');
 
+var commandinput; // = document.getElementById('commandinput');
+
 var urlinput; // = document.getElementById('url');
 var serverurl;
 
@@ -62,6 +64,7 @@ function connect() {
 function sendrequest(req) {
     if (!ws) return;
 
+    commandinput.value = req;
     appendoutput('Sending ' + req  + ' ...');
     if (autoscroll.checked)
         output.scrollTop = output.scrollHeight;
@@ -82,11 +85,17 @@ window.onload = function () {
     output = document.getElementById('output');
     autoscroll = document.getElementById('autoscroll');
     statusbar = document.getElementById('statusbar');
+    commandinput = document.getElementById('commandinput');
     urlinput = document.getElementById('url');
     uridiv = document.getElementById('uridiv');
 };
 
 // COMMANDS
+function customcommand() {
+    if (!ws) return;
+    var req = commandinput.value;
+    sendrequest(req);
+}
 
 // Global Operations
 function getvaultinfo() {
