@@ -17,6 +17,9 @@
 
 #include "jsonobjects.h"
 
+#include "CoinSocketExceptions.h"
+
+using namespace CoinSocket;
 using namespace json_spirit;
 using namespace CoinDB;
 using namespace std;
@@ -42,7 +45,7 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
 Value cmd_getvaultinfo(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 0)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -57,7 +60,7 @@ Value cmd_getvaultinfo(SynchedVault& synchedVault, const Array& params)
 Value cmd_newkeychain(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -69,7 +72,7 @@ Value cmd_newkeychain(SynchedVault& synchedVault, const Array& params)
 Value cmd_renamekeychain(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2 || params[0].type() != str_type || params[0].type() != str_type)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -82,7 +85,7 @@ Value cmd_renamekeychain(SynchedVault& synchedVault, const Array& params)
 Value cmd_getkeychaininfo(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -94,7 +97,7 @@ Value cmd_getkeychaininfo(SynchedVault& synchedVault, const Array& params)
 Value cmd_getkeychains(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 2)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     std::string accountName;
     if (params.size() > 0) accountName = params[0].get_str();
@@ -125,7 +128,7 @@ Value cmd_getkeychains(SynchedVault& synchedVault, const Array& params)
 Value cmd_exportbip32(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     std::string keychainName = params[0].get_str();
 
@@ -142,11 +145,11 @@ Value cmd_exportbip32(SynchedVault& synchedVault, const Array& params)
 Value cmd_importbip32(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     bytes_t extendedkey;
     if (!fromBase58Check(params[1].get_str(), extendedkey))
-        throw std::runtime_error("Invalid extended key.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -157,12 +160,12 @@ Value cmd_importbip32(SynchedVault& synchedVault, const Array& params)
 Value cmd_newaccount(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 3 || params.size() > 18)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     std::string accountName = params[0].get_str();
     int minsigs = params[1].get_int();
     if (minsigs > ((int)params.size() - 2))
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     std::vector<std::string> keychainNames;
     for (size_t i = 2; i < params.size(); i++)
@@ -180,7 +183,7 @@ Value cmd_newaccount(SynchedVault& synchedVault, const Array& params)
 Value cmd_renameaccount(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2 || params[0].type() != str_type || params[1].type() != str_type)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -193,7 +196,7 @@ Value cmd_renameaccount(SynchedVault& synchedVault, const Array& params)
 Value cmd_getaccountinfo(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -211,7 +214,7 @@ Value cmd_getaccountinfo(SynchedVault& synchedVault, const Array& params)
 Value cmd_getaccounts(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 0)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -236,7 +239,7 @@ Value cmd_getaccounts(SynchedVault& synchedVault, const Array& params)
 Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 1 || params.size() > 3)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -269,7 +272,7 @@ Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
 Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 1 || (params.size() == 1 && params[0].type() != int_type))
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -290,7 +293,7 @@ Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
 Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -306,12 +309,12 @@ Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
     }
     else
     {
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
     }
 
     Value txObj;
     if (!read_string(tx->toJson(), txObj))
-        throw std::runtime_error("Internal error - invalid tx json.");
+        throw InternalTxJsonInvalidException(); 
 
     Object result;
     result.push_back(Pair("tx", txObj));
@@ -322,7 +325,7 @@ Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
 Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 3)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -334,7 +337,7 @@ Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
     do
     {
         if (params[i].type() != str_type || params[i+1].type() != int_type)
-            throw std::runtime_error("Invalid parameters.");
+            throw CommandInvalidParametersException();
 
         std::string address = params[i++].get_str();
         uint64_t value = params[i++].get_uint64();
@@ -352,7 +355,7 @@ Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
 
     Value txObj;
     if (!read_string(tx->toJson(), txObj))
-        throw std::runtime_error("Internal error - invalid tx json.");
+        throw InternalTxJsonInvalidException(); 
 
     Object result;
     result.push_back(Pair("tx", txObj));
@@ -363,7 +366,7 @@ Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
 Value cmd_getsigningrequest(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -378,7 +381,7 @@ Value cmd_getsigningrequest(SynchedVault& synchedVault, const Array& params)
     }
     else
     {
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
     }
 
     return getSigningRequestObject(req);
@@ -388,7 +391,7 @@ Value cmd_getsigningrequest(SynchedVault& synchedVault, const Array& params)
 Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 3 || params[1].type() != str_type || params[2].type() != str_type)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -413,7 +416,7 @@ Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
         }
         else
         {
-            throw std::runtime_error("Invalid parameters.");
+            throw CommandInvalidParametersException();
         }
     }
     catch (const std::runtime_error& e)
@@ -431,7 +434,7 @@ Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
 Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -440,11 +443,11 @@ Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
     tx->set(rawtx);
     tx = vault->insertTx(tx);
     if (!tx)
-        throw std::runtime_error("Transaction not inserted.");
+        throw OperationTransactionNotInsertedException();
 
     Value txObj;
     if (!read_string(tx->toJson(), txObj))
-        throw std::runtime_error("Internal error - invalid tx json.");
+        throw InternalTxJsonInvalidException();
 
     Object result;
     result.push_back(Pair("tx", txObj));
@@ -455,7 +458,7 @@ Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
 Value cmd_sendtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     std::shared_ptr<Tx> tx;
     if (params[0].type() == str_type)
@@ -469,7 +472,7 @@ Value cmd_sendtx(SynchedVault& synchedVault, const Array& params)
     }
     else
     {
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
     }
 
     Object result;
@@ -482,7 +485,7 @@ Value cmd_sendtx(SynchedVault& synchedVault, const Array& params)
 Value cmd_getblockheader(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -499,7 +502,7 @@ Value cmd_getblockheader(SynchedVault& synchedVault, const Array& params)
     }
     else
     {
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
     }
 
     return getBlockHeaderObject(header.get());
@@ -508,7 +511,7 @@ Value cmd_getblockheader(SynchedVault& synchedVault, const Array& params)
 Value cmd_getchaintip(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 0)
-        throw std::runtime_error("Invalid parameters.");
+        throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
     uint32_t height = vault->getBestHeight();

@@ -9,6 +9,8 @@
 // All Rights Reserved.
 //
 
+#include "CoinSocketExceptions.h"
+
 #include <CoinDB/SynchedVault.h>
 #include <CoinQ/CoinQ_script.h>
 #include <CoinCore/Base58Check.h>
@@ -33,6 +35,7 @@
 #include <thread>
 #include <chrono>
 
+using namespace CoinSocket;
 using namespace CoinDB;
 using namespace std;
 
@@ -103,7 +106,7 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
     {
         auto it = g_command_map.find(method);
         if (it == g_command_map.end())
-            throw std::runtime_error("Invalid method.");
+            throw CommandInvalidMethodException();
 
         Value result = it->second(synchedVault, params);
         response.setResult(result, id);

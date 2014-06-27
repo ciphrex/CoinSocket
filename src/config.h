@@ -11,10 +11,10 @@
 
 #pragma once
 
+#include "CoinSocketExceptions.h"
 #include <string>
 #include <sstream>
 #include <fstream>
-#include <stdexcept>
 #include <boost/program_options.hpp>
 
 const std::string DEFAULT_DATADIR = ".";
@@ -99,7 +99,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         po::notify(vm);     
     }
 
-    if (!vm.count("dbname")) throw std::runtime_error("No dbname specified.");
+    if (!vm.count("dbname")) throw CoinSocket::ConfigMissingDBNameException(); 
     if (!vm.count("datadir"))       { m_dataDir = DEFAULT_DATADIR; }
     if (!vm.count("peerhost"))      { m_peerHost = DEFAULT_PEER_HOST; }
     if (!vm.count("peerport"))      { m_peerPort = DEFAULT_PEER_PORT; }
