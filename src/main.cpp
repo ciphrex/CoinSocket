@@ -108,9 +108,13 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
         Value result = it->second(synchedVault, params);
         response.setResult(result, id);
     }
+    catch (const stdutils::custom_error& e)
+    {
+        response.setError(e, id);
+    }
     catch (const exception& e)
     {
-        response.setError(e.what(), id);
+        response.setError(e, id);
     }
 
     server.send(req.first, response);
