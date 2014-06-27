@@ -1,0 +1,126 @@
+<html>
+<head>
+<title>CoinSocket Test Client</title>
+</head>
+<body>
+<div>
+    Server: <input type="text" id="url" value="ws://test.ciphrex.com:8080" size="50" />
+    <input type="button" id="connectbutton" onclick="connect()" value="Connect" />
+</div>
+<div>
+    Examples:
+    <select id="examples" onchange="exampleSelected();">
+        <option value='{"method":"getvaultinfo"}'>{"method":"getvaultinfo"}</option>
+        <option value='{"method":"gethistory","params":[0]}'>{"method":"gethistory","params":[0]}</option>
+        <option value='{"method":"gettx","params":["fb12c7d5441e20d6e0fe9db956cf63469843b38111f7513a7c25f33482acbe7d"]}'>{"method":"gettx","params":["fb12c7d5441e20d6e0fe9db956cf63469843b38111f7513a7c25f33482acbe7d"]}</option>
+        <option value='{"method":"getkeychains"}'>{"method":"getkeychains"}</option>
+        <option value='{"method":"getaccounts"}'>{"method":"getaccounts"}'</option>
+        <option value='{"method":"getchaintip"}'>{"method":"getchaintip"}'</option>
+        <option value='{"method":"issuescript","params":["abc1","foo"]}'>{"method":"issuescript","params":["abc1","foo"]}</option>
+    </select>
+<div>
+    Request: <input type="text" id="request" value='{"method":"getvaultinfo"}' size="50" />
+    <input type="button" id="sendbutton" onclick="send()" value="Send" disabled  />
+</div>
+<div>
+    <textarea id="output" rows="30" cols="150"></textarea>
+</div>
+<div>
+    <input type="checkbox" id="autoscroll" checked />Autoscroll
+</div>
+<div>
+    <tt><span id="status"></span></tt>
+</div>
+<div id="uridiv">
+</div>
+
+<!--<script type="text/javascript" src="js/syntaxhighlight.js"></script>-->
+<script type="text/javascript">
+    var connectbutton; // = document.getElementById('connectbutton');
+    var sendbutton; // = document.getElementById('sendbutton');
+    var output; // = document.getElementById('output');
+    var autoscroll; // = document.getElementById('autoscroll');
+
+    var urlinput; // = document.getElementById('url');
+
+    var exampleselect; // = document.getElementById('examples');
+    var requestinput; // = document.getElementById('request');
+    var serverurl;
+
+    var uridiv;
+
+    var ws = null;
+
+    var onopen = function () {
+        document.getElementById('status').innerHTML = "Connected to " + serverurl + ".";
+        output.value += 'CONNECTED TO ' + serverurl + '.\n\n';
+        document.getElementById('connectbutton').value = 'Disconnect';
+    };
+
+    var onclose = function () {
+        document.getElementById('status').innerHTML = "Connection closed.";
+        ws = null;
+        connectbutton.value = 'Connect';
+        output.value += 'DISCONNECTED FROM ' + serverurl + '.\n';
+    };
+
+    var onmessage = function (e) {
+        console.log(e.data);
+        var obj = JSON.parse(e.data);
+        var json = JSON.stringify(obj, undefined, 2);
+        output.value += json + '\n';
+        if (autoscroll.checked)
+            output.scrollTop = output.scrollHeight;
+
+        // update uri
+        if (obj.hasOwnProperty('result') && obj.result.hasOwnProperty('uri')) {
+            uridiv.innerHTML = '<a href="' + obj.result.uri + '">Request from local wallet...</a>';
+        }
+        else {
+            uridiv.innerHTML = '';
+        }
+    };
+
+    function connect() {
+        if (ws) {
+            document.getElementById('sendbutton').disabled = true;
+            ws.close();
+            return;
+        }
+
+        serverurl = urlinput.value;
+        document.getElementById('status').innerHTML = "Connecting to " + serverurl + "...";
+
+        ws = new WebSocket(serverurl);
+        ws.onopen = onopen;
+        ws.onclose = onclose;
+        ws.onmessage = onmessage;
+
+        document.getElementById('sendbutton').disabled = false;
+    }
+
+    function send() {
+        if (!ws) return;
+        request = requestinput.value;
+        document.getElementById('status').innerHTML = "Sending " + request + "...";
+        ws.send(request);
+        document.getElementById('status').innerHTML = "Sent " + request;
+    };
+
+    window.onload = function () {
+        connectbutton = document.getElementById('connectbutton');
+        output = document.getElementById('output');
+        autoscroll = document.getElementById('autoscroll');
+        urlinput = document.getElementById('url');
+        exampleselect = document.getElementById('examples');
+        requestinput = document.getElementById('request');
+        uridiv = document.getElementById('uridiv');
+    };
+
+    function exampleSelected() {
+        requestinput.value = exampleselect.options[exampleselect.selectedIndex].value;
+    }
+</script>
+</body>
+</html>
+

@@ -1,126 +1,243 @@
 <html>
 <head>
-<title>CoinSocket Test Client</title>
+<title>CoinSocket API</title>
+<link rel="stylesheet" type="text/css" href="css/tables.css" />
+<style>
+.command {
+    padding:6px;
+    color: black;
+    background-color: white;
+    border: black 2px solid;
+}
+.fullwidth {
+    width: 100%;
+}
+#output {
+    width: 100%;
+    height: 90%;
+}
+</style>
 </head>
 <body>
+<p><h2>CoinSocket API</h2></p>
 <div>
     Server: <input type="text" id="url" value="ws://test.ciphrex.com:8080" size="50" />
     <input type="button" id="connectbutton" onclick="connect()" value="Connect" />
 </div>
-<div>
-    Examples:
-    <select id="examples" onchange="exampleSelected();">
-        <option value='{"method":"getvaultinfo"}'>{"method":"getvaultinfo"}</option>
-        <option value='{"method":"gethistory","params":[0]}'>{"method":"gethistory","params":[0]}</option>
-        <option value='{"method":"gettx","params":["fb12c7d5441e20d6e0fe9db956cf63469843b38111f7513a7c25f33482acbe7d"]}'>{"method":"gettx","params":["fb12c7d5441e20d6e0fe9db956cf63469843b38111f7513a7c25f33482acbe7d"]}</option>
-        <option value='{"method":"getkeychains"}'>{"method":"getkeychains"}</option>
-        <option value='{"method":"getaccounts"}'>{"method":"getaccounts"}'</option>
-        <option value='{"method":"getchaintip"}'>{"method":"getchaintip"}'</option>
-        <option value='{"method":"issuescript","params":["abc1","foo"]}'>{"method":"issuescript","params":["abc1","foo"]}</option>
-    </select>
-<div>
-    Request: <input type="text" id="request" value='{"method":"getvaultinfo"}' size="50" />
-    <input type="button" id="sendbutton" onclick="send()" value="Send" disabled  />
+<div style="width: 100%; overflow: hidden;">
+    <div style="float: left; width: 35%; height: 100%; overflow: scroll;">
+        <h3>Commands</h3>
+        <div>
+            <div class="command">
+                <p>Custom Command<p>
+                <input type="text" id="commandinput" class="fullwidth" />
+                <input type="button" onclick="customcommand()" value="Submit" />
+            </div>
+        </div>
+        <div>
+            <h4>Global Operations</h4>
+            <div class="command">
+                <p>getvaultinfo</p>
+                <input type="button" onclick="getvaultinfo()" value="Submit" />
+            </div>
+        </div>
+        <div>
+            <h4>Keychain Operations</h4>
+            <div class="command">
+                <p>getkeychains</p>
+                <input type="button" onclick="getkeychains()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>getkeychaininfo</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>name</td>
+                        <td>
+                            <input type="text" id="getkeychaininfo_name" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="getkeychaininfo()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>newkeychain</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>name</td>
+                        <td>
+                            <input type="text" id="newkeychain_name" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="newkeychain()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>renamekeychain</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>oldname</td>
+                        <td>
+                            <input type="text" id="renamekeychain_oldname" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>string</td><td>newname</td>
+                        <td>
+                            <input type="text" id="renamekeychain_newname" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="renamekeychain()" value="Submit" />
+            </div>
+        </div>
+        <div>
+            <h4>Account Operations</h4>
+            <div class="command">
+                <p>getaccounts</p>
+                <input type="button" onclick="getaccounts()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>getaccountinfo</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>name</td>
+                        <td>
+                            <input type="text" id="getaccountinfo_name" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="getaccountinfo()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>newaccount</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>name</td>
+                        <td>
+                            <input type="text" id="newaccount_name" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>integer</td><td>minsigs</td>
+                        <td>
+                            <input type="text" id="newaccount_minsigs" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>string list</td><td>keychains</td>
+                        <td>
+                            <input type="text" id="newaccount_keychains" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="newaccount()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>renameaccount</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>oldname</td>
+                        <td>
+                            <input type="text" id="renameaccount_oldname" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>string</td><td>newname</td>
+                        <td>
+                            <input type="text" id="renameaccount_newname" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="renameaccount()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>issuescript</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>account</td>
+                        <td>
+                            <input type="text" id="issuescript_account" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>string</td><td>label</td>
+                        <td>
+                            <input type="text" id="issuescript_label" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="issuescript()" value="Submit" />
+            </div>
+        </div>
+        <div>
+            <h4>Transaction Operations</h4>
+            <div class="command">
+                <p>gethistory</p>
+                <table class="gridtable">
+                    <tr><td>integer</td><td>startheight</td>
+                        <td>
+                            <input type="text" id="gethistory_startheight" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="gethistory()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>gettx</p>
+                <table class="gridtable">
+                    <tr><td>integer</td><td>id</td>
+                        <td>
+                            <input type="text" id="gettx_int_id" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="gettx_int()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>gettx</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>hash</td>
+                        <td>
+                            <input type="text" id="gettx_string_hash" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="gettx_string()" value="Submit" />
+            </div>
+        </div>
+        <div>
+            <h4>Blockchain Operations</h4>
+            <div class="command">
+                <p>getchaintip</p>
+                <input type="button" onclick="getchaintip()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>getblockheader</p>
+                <table class="gridtable">
+                    <tr><td>integer</td><td>height</td>
+                        <td>
+                            <input type="text" id="getblockheader_int_height" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="getblockheader_int()" value="Submit" />
+            </div>
+            <div class="command">
+                <p>getblockheader</p>
+                <table class="gridtable">
+                    <tr><td>string</td><td>hash</td>
+                        <td>
+                            <input type="text" id="getblockheader_string_hash" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="getblockheader_string()" value="Submit" />
+            </div>
+        </div>
+    </div>
+    <div style="float: left; width: 60%; height: 75%; overflow: scroll;">
+        <h3>Output</h3>
+        <div>
+            <textarea id="output"></textarea>
+        </div>
+        <div>
+            <input type="checkbox" id="autoscroll" checked />Autoscroll
+        </div>
+        <div>
+            <tt><span id="statusbar"></span></tt>
+        </div>
+        <div id="uridiv">
+        </div>
+    </div>
 </div>
-<div>
-    <textarea id="output" rows="30" cols="150"></textarea>
-</div>
-<div>
-    <input type="checkbox" id="autoscroll" checked />Autoscroll
-</div>
-<div>
-    <tt><span id="status"></span></tt>
-</div>
-<div id="uridiv">
-</div>
-
-<!--<script type="text/javascript" src="js/syntaxhighlight.js"></script>-->
-<script type="text/javascript">
-    var connectbutton; // = document.getElementById('connectbutton');
-    var sendbutton; // = document.getElementById('sendbutton');
-    var output; // = document.getElementById('output');
-    var autoscroll; // = document.getElementById('autoscroll');
-
-    var urlinput; // = document.getElementById('url');
-
-    var exampleselect; // = document.getElementById('examples');
-    var requestinput; // = document.getElementById('request');
-    var serverurl;
-
-    var uridiv;
-
-    var ws = null;
-
-    var onopen = function () {
-        document.getElementById('status').innerHTML = "Connected to " + serverurl + ".";
-        output.value += 'CONNECTED TO ' + serverurl + '.\n\n';
-        document.getElementById('connectbutton').value = 'Disconnect';
-    };
-
-    var onclose = function () {
-        document.getElementById('status').innerHTML = "Connection closed.";
-        ws = null;
-        connectbutton.value = 'Connect';
-        output.value += 'DISCONNECTED FROM ' + serverurl + '.\n';
-    };
-
-    var onmessage = function (e) {
-        console.log(e.data);
-        var obj = JSON.parse(e.data);
-        var json = JSON.stringify(obj, undefined, 2);
-        output.value += json + '\n';
-        if (autoscroll.checked)
-            output.scrollTop = output.scrollHeight;
-
-        // update uri
-        if (obj.hasOwnProperty('result') && obj.result.hasOwnProperty('uri')) {
-            uridiv.innerHTML = '<a href="' + obj.result.uri + '">Request from local wallet...</a>';
-        }
-        else {
-            uridiv.innerHTML = '';
-        }
-    };
-
-    function connect() {
-        if (ws) {
-            document.getElementById('sendbutton').disabled = true;
-            ws.close();
-            return;
-        }
-
-        serverurl = urlinput.value;
-        document.getElementById('status').innerHTML = "Connecting to " + serverurl + "...";
-
-        ws = new WebSocket(serverurl);
-        ws.onopen = onopen;
-        ws.onclose = onclose;
-        ws.onmessage = onmessage;
-
-        document.getElementById('sendbutton').disabled = false;
-    }
-
-    function send() {
-        if (!ws) return;
-        request = requestinput.value;
-        document.getElementById('status').innerHTML = "Sending " + request + "...";
-        ws.send(request);
-        document.getElementById('status').innerHTML = "Sent " + request;
-    };
-
-    window.onload = function () {
-        connectbutton = document.getElementById('connectbutton');
-        output = document.getElementById('output');
-        autoscroll = document.getElementById('autoscroll');
-        urlinput = document.getElementById('url');
-        exampleselect = document.getElementById('examples');
-        requestinput = document.getElementById('request');
-        uridiv = document.getElementById('uridiv');
-    };
-
-    function exampleSelected() {
-        requestinput.value = exampleselect.options[exampleselect.selectedIndex].value;
-    }
-</script>
+<script type="text/javascript" src="js/coinsocketapi.js"></script>
 </body>
 </html>
-
