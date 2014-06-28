@@ -1,22 +1,6 @@
 <html>
 <head>
 <title>CoinSocket API</title>
-<link rel="stylesheet" type="text/css" href="css/tables.css" />
-<style>
-.command {
-    padding:6px;
-    color: black;
-    background-color: white;
-    border: black 2px solid;
-}
-.fullwidth {
-    width: 100%;
-}
-#output {
-    width: 100%;
-    height: 75%;
-}
-</style>
 <script type="text/javascript" src="/jquery/jquery.min.js"></script>
 <link rel="stylesheet" type="text/css" href="/jquery/jquery-ui-themes/themes/smoothness/jquery-ui.min.css" />
 <script type="text/javascript" src="/jquery/jquery-ui/jquery-ui.min.js"></script>
@@ -28,6 +12,25 @@
         });
     });
 </script>
+<link rel="stylesheet" type="text/css" href="css/tables.css" />
+<style>
+.command {
+    padding:6px;
+    color: black;
+    background-color: white;
+    border: black 2px solid;
+}
+.fullwidth {
+    width: 100%;
+}
+.ui-accordion-content {
+    font-size: 75%;
+}
+#output {
+    width: 100%;
+    height: 75%;
+}
+</style>
 </head>
 <body>
 <p><h2>CoinSocket API</h2></p>
@@ -50,7 +53,7 @@
             <div class="command">
                 <div class="accordion">
                     <p><b>getvaultinfo</b></p>
-                    <div>Retrieves database information for currently open vault.</div>
+                    <div><p>Retrieves database information for currently open vault.</p></div>
                 </div>
                 <input type="button" onclick="getvaultinfo()" value="Submit" />
             </div>
@@ -60,14 +63,14 @@
             <div class="command">
                 <div class="accordion">
                     <p><b>getkeychains</b></p>
-                    <div>Retrieves list of all keychains in currently open vault.</div>
+                    <div><p>Retrieves list of all keychains in currently open vault.</p></div>
                 </div>
                 <input type="button" onclick="getkeychains()" value="Submit" />
             </div>
             <div class="command">
                 <div class="accordion">
                     <p><b>getkeychaininfo</b></p>
-                    <div>Retrieves information about a specific keychain by name.</div>
+                    <div><p>Retrieves information about a specific keychain by name.</p></div>
                 </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>name</td>
