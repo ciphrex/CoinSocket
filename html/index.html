@@ -14,8 +14,21 @@
 </script>
 <link rel="stylesheet" type="text/css" href="css/tables.css" />
 <style>
+#toptitle {
+    font-size: 230%;
+    text-align: center;
+}
+.columnheader {
+    font-size: 175%;
+    text-align: center;
+}
+.opgroupheader {
+    font-size: 150%;
+    text-align: center;
+    padding-top: 20px;
+}
 .command {
-    padding:6px;
+    padding: 6px;
     color: black;
     background-color: white;
     border: black 2px solid;
@@ -33,23 +46,25 @@
 </style>
 </head>
 <body>
-<p><h2>CoinSocket API</h2></p>
+<div id="toptitle"><p>CoinSocket API</p></div>
 <div>
-    Server: <input type="text" id="url" value="ws://test.ciphrex.com:8080" size="50" />
+    Server:
+    <input type="text" id="url" class="fullwidth" value="ws://test.ciphrex.com:8080" />
     <input type="button" id="connectbutton" onclick="connect()" value="Connect" />
 </div>
+<hr />
+<div>
+    Custom Command:
+    <input type="text" id="commandinput" class="fullwidth" />
+    <input type="button" onclick="customcommand()" value="Submit" />
+</div>
+<hr />
 <div style="width: 100%; overflow: hidden;">
-    <div style="float: left; width: 35%; height: 100%; overflow: scroll;">
-        <h3>Commands</h3>
+    <div style="float: left; width: 35%; height: 100%;">
+        <div class="columnheader">Commands</div>
+        <div style="height: 80%; overflow: scroll;">
         <div>
-            <div class="command">
-                <p>Custom Command<p>
-                <input type="text" id="commandinput" class="fullwidth" />
-                <input type="button" onclick="customcommand()" value="Submit" />
-            </div>
-        </div>
-        <div>
-            <h4>Global Operations</h4>
+            <div class="opgroupheader">Global Operations</div>
             <div class="command">
                 <div class="accordion">
                     <p><b>getvaultinfo</b></p>
@@ -59,7 +74,7 @@
             </div>
         </div>
         <div>
-            <h4>Keychain Operations</h4>
+            <div class="opgroupheader">Keychain Operations</div>
             <div class="command">
                 <div class="accordion">
                     <p><b>getkeychains</b></p>
@@ -116,7 +131,7 @@
             </div>
         </div>
         <div>
-            <h4>Account Operations</h4>
+            <div class="opgroupheader">Account Operations</div>
             <div class="command">
                 <div class="accordion">
                     <p><b>getaccounts</b></p>
@@ -202,7 +217,7 @@
             </div>
         </div>
         <div>
-            <h4>Transaction Operations</h4>
+            <div class="opgroupheader">Transaction Operations</div>
             <div class="command">
                 <div class="accordion">
                     <p><b>gethistory</b></p>
@@ -247,7 +262,7 @@
             </div>
         </div>
         <div>
-            <h4>Blockchain Operations</h4>
+            <div class="opgroupheader">Blockchain Operations</div>
             <div class="command">
                 <div class="accordion">
                     <p><b>getchaintip</b></p>
@@ -284,9 +299,10 @@
                 <input type="button" onclick="getblockheader_string()" value="Submit" />
             </div>
         </div>
+        </div>
     </div>
     <div style="float: left; width: 60%; height: 100%; overflow: scroll;">
-        <h3>Output</h3>
+        <div class="columnheader">Output</div>
         <div>
             <textarea id="output"></textarea>
         </div>
