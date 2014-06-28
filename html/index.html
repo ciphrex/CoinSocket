@@ -53,7 +53,7 @@
             <div class="command">
                 <div class="accordion">
                     <p><b>getvaultinfo</b></p>
-                    <div><p>Retrieves database information for currently open vault.</p></div>
+                    <div><p>Returns database information for currently open vault.</p></div>
                 </div>
                 <input type="button" onclick="getvaultinfo()" value="Submit" />
             </div>
@@ -63,14 +63,14 @@
             <div class="command">
                 <div class="accordion">
                     <p><b>getkeychains</b></p>
-                    <div><p>Retrieves list of all keychains in currently open vault.</p></div>
+                    <div><p>Returns list of all keychains in currently open vault.</p></div>
                 </div>
                 <input type="button" onclick="getkeychains()" value="Submit" />
             </div>
             <div class="command">
                 <div class="accordion">
                     <p><b>getkeychaininfo</b></p>
-                    <div><p>Retrieves information about a specific keychain by name.</p></div>
+                    <div><p>Returns information about a specific keychain by name.</p></div>
                 </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>name</td>
@@ -82,7 +82,10 @@
                 <input type="button" onclick="getkeychaininfo()" value="Submit" />
             </div>
             <div class="command">
-                <p>newkeychain</p>
+                <div class="accordion">
+                    <p><b>newkeychain</b></p>
+                    <div><p>Creates a new keychain and returns the keychain information.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>name</td>
                         <td>
@@ -93,7 +96,10 @@
                 <input type="button" onclick="newkeychain()" value="Submit" />
             </div>
             <div class="command">
-                <p>renamekeychain</p>
+                <div class="accordion">
+                    <p><b>renamekeychain</b></p>
+                    <div><p>Renames an existing keychain.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>oldname</td>
                         <td>
@@ -112,11 +118,17 @@
         <div>
             <h4>Account Operations</h4>
             <div class="command">
-                <p>getaccounts</p>
+                <div class="accordion">
+                    <p><b>getaccounts</b></p>
+                    <div><p>Returns a list of all accounts in vault.</p></div>
+                </div>
                 <input type="button" onclick="getaccounts()" value="Submit" />
             </div>
             <div class="command">
-                <p>getaccountinfo</p>
+                <div class="accordion">
+                    <p><b>getaccountinfo</b></p>
+                    <div><p>Returns information about a specific account by name.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>name</td>
                         <td>
@@ -127,7 +139,10 @@
                 <input type="button" onclick="getaccountinfo()" value="Submit" />
             </div>
             <div class="command">
-                <p>newaccount</p>
+                <div class="accordion">
+                    <p><b>newaccount</b></p>
+                    <div><p>Creates a new m-of-n multisignature account.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>name</td>
                         <td>
@@ -148,7 +163,10 @@
                 <input type="button" onclick="newaccount()" value="Submit" />
             </div>
             <div class="command">
-                <p>renameaccount</p>
+                <div class="accordion">
+                    <p><b>renameaccount</b></p>
+                    <div><p>Renames an existing account in vault.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>oldname</td>
                         <td>
@@ -164,7 +182,10 @@
                 <input type="button" onclick="renameaccount()" value="Submit" />
             </div>
             <div class="command">
-                <p>issuescript</p>
+                <div class="accordion">
+                    <p><b>issuescript</b></p>
+                    <div><p>Issues a new signing script for requesting payments to a particular account and returns the script information including the address.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>account</td>
                         <td>
@@ -183,7 +204,10 @@
         <div>
             <h4>Transaction Operations</h4>
             <div class="command">
-                <p>gethistory</p>
+                <div class="accordion">
+                    <p><b>gethistory</b></p>
+                    <div><p>Returns a list of all confirmed transactions since a particular block height as well as any unsigned or unconfirmed transactions.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>integer</td><td>startheight</td>
                         <td>
@@ -194,7 +218,10 @@
                 <input type="button" onclick="gethistory()" value="Submit" />
             </div>
             <div class="command">
-                <p>gettx</p>
+                <div class="accordion">
+                    <p><b>gettx</b></p>
+                    <div><p>Returns information about a specific transaction by database id.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>integer</td><td>id</td>
                         <td>
@@ -205,7 +232,10 @@
                 <input type="button" onclick="gettx_int()" value="Submit" />
             </div>
             <div class="command">
-                <p>gettx</p>
+                <div class="accordion">
+                    <p><b>gettx</b></p>
+                    <div><p>Returns information about a specific transaction by hash. It will search by signed hash and unsigned hash.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>hash</td>
                         <td>
@@ -219,11 +249,17 @@
         <div>
             <h4>Blockchain Operations</h4>
             <div class="command">
-                <p>getchaintip</p>
+                <div class="accordion">
+                    <p><b>getchaintip</b></p>
+                    <div><p>Returns block header for most recent block.</p></div>
+                </div>
                 <input type="button" onclick="getchaintip()" value="Submit" />
             </div>
             <div class="command">
-                <p>getblockheader</p>
+                <div class="accordion">
+                    <p><b>getblockheader</b></p>
+                    <div><p>Returns specific block header by height.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>integer</td><td>height</td>
                         <td>
@@ -234,7 +270,10 @@
                 <input type="button" onclick="getblockheader_int()" value="Submit" />
             </div>
             <div class="command">
-                <p>getblockheader</p>
+                <div class="accordion">
+                    <p><b>getblockheader</b></p>
+                    <div><p>Returns specific block header by hash.</p></div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>hash</td>
                         <td>
