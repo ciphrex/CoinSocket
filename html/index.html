@@ -17,6 +17,17 @@
     height: 75%;
 }
 </style>
+<script type="text/javascript" src="/jquery/jquery.js"></script>
+<link rel="stylesheet" type="text/css" href="/jquery/jquery-ui-themes/themes/smoothness/jquery-ui.css" />
+<script type="text/javascript" src="/jquery/jquery-ui/jquery-ui.js"></script>
+<script type="text/javascript">
+    $(function() {
+        $(".accordion").accordion({
+            collapsible: true,
+            active: false
+        });
+    });
+</script>
 </head>
 <body>
 <p><h2>CoinSocket API</h2></p>
@@ -37,7 +48,12 @@
         <div>
             <h4>Global Operations</h4>
             <div class="command">
-                <p>getvaultinfo</p>
+                <div class="accordion">
+                    <p><b>getvaultinfo</b></p>
+                    <div>
+                        blah
+                    </div>
+                </div>
                 <input type="button" onclick="getvaultinfo()" value="Submit" />
             </div>
         </div>
