@@ -50,9 +50,7 @@
             <div class="command">
                 <div class="accordion">
                     <p><b>getvaultinfo</b></p>
-                    <div>
-                        blah
-                    </div>
+                    <div>Retrieves database information for currently open vault.</div>
                 </div>
                 <input type="button" onclick="getvaultinfo()" value="Submit" />
             </div>
@@ -60,11 +58,17 @@
         <div>
             <h4>Keychain Operations</h4>
             <div class="command">
-                <p>getkeychains</p>
+                <div class="accordion">
+                    <p><b>getkeychains</b></p>
+                    <div>Retrieves list of all keychains in currently open vault.</div>
+                </div>
                 <input type="button" onclick="getkeychains()" value="Submit" />
             </div>
             <div class="command">
-                <p>getkeychaininfo</p>
+                <div class="accordion">
+                    <p><b>getkeychaininfo</b></p>
+                    <div>Retrieves information about a specific keychain by name.</div>
+                </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>name</td>
                         <td>
