@@ -150,8 +150,13 @@ int main(int argc, char* argv[])
     signal(SIGINT, &finish);
     signal(SIGTERM, &finish);
 
+    try
     {
         SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
+
+        cout << "Opening vault " << config.getDatabaseName() << endl;
+        LOGGER(info) << "Opening vault " << config.getDatabaseName() << endl;
+        synchedVault.openVault(config.getDatabaseUser(), config.getDatabasePassword(), config.getDatabaseName());
 
         initCommandMap(g_command_map);
         WebSocketServer wsServer(config.getWebSocketPort(), config.getAllowedIps());
@@ -211,20 +216,9 @@ int main(int argc, char* argv[])
             wsServer.sendAll(msg.str());
         });
 
-        try
-        {
-            cout << "Opening vault " << config.getDatabaseName() << endl;
-            LOGGER(info) << "Opening vault " << config.getDatabaseName() << endl;
-            synchedVault.openVault(config.getDatabaseUser(), config.getDatabasePassword(), config.getDatabaseName());
-            cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
-            LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
-            synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
-        }
-        catch (const std::exception& e)
-        {
-            cerr << "Error: " << e.what() << endl;
-            return 1;
-        }
+        cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+        LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+        synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
 
         while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
 
@@ -239,6 +233,26 @@ int main(int argc, char* argv[])
         wsServer.stop();
         cout << "done." << endl;
         LOGGER(info) << "done." << endl;
+    }
+    catch (const stdutils::custom_error& e)
+    {
+        cerr << "Error: " << e.what() << endl;
+        LOGGER(error) << e.what() << endl;
+
+        cout << "exiting." << endl << endl;
+        LOGGER(info) << "exiting." << endl << endl;
+
+        return e.has_code() ? e.code() : -1;
+    }
+    catch (const std::exception& e)
+    {
+        cerr << "Error: " << e.what() << endl;
+        LOGGER(error) << e.what() << endl;
+
+        cout << "exiting." << endl << endl;
+        LOGGER(info) << "exiting." << endl << endl;
+
+        return -1;
     }
 
     cout << "exiting." << endl << endl;
