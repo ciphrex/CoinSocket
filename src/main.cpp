@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        SynchedVault synchedVault(config.getDataDir() + "/blocktree.dat");
+        SynchedVault synchedVault;
 
         cout << "Opening vault " << config.getDatabaseName() << endl;
         LOGGER(info) << "Opening vault " << config.getDatabaseName() << endl;
@@ -215,6 +215,12 @@ int main(int argc, char* argv[])
             msg << "{\"event\":\"merkleblockinserted\", \"data\":" << merkleblock->toJson() << "}";
             wsServer.sendAll(msg.str());
         });
+
+
+        std::string blockTreeFile = config.getDataDir() + "/blocktree.dat"; 
+        cout << "Loading block tree " << blockTreeFile << endl;
+        LOGGER(info) << "Loading block tree " << blockTreeFile << endl;
+        synchedVault.loadBlockTree(blockTreeFile);
 
         cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
         LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
