@@ -50,6 +50,13 @@ void finish(int sig)
     g_bShutdown = true;
 }
 
+bool validateCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
+{
+    LOGGER(info) << "Validating client " << server.getRemoteEndpoint(hdl) << " - key: " << server.getResource(hdl) << endl;
+
+    return true;
+}
+
 void openCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
 {
     LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " connected as " << hdl.lock().get() << "." << endl;
@@ -160,6 +167,7 @@ int main(int argc, char* argv[])
 
         initCommandMap(g_command_map);
         WebSocketServer wsServer(config.getWebSocketPort(), config.getAllowedIps());
+        wsServer.setValidateCallback(&validateCallback);
         wsServer.setOpenCallback(&openCallback);
         wsServer.setCloseCallback(&closeCallback);
 #ifdef USE_TLS
