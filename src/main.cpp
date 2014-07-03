@@ -43,6 +43,8 @@ using namespace std;
 command_map_t g_command_map;
 bool g_bShutdown = false;
 
+std::string g_connectKey;
+
 // Callbacks
 void finish(int sig)
 {
@@ -52,9 +54,20 @@ void finish(int sig)
 
 bool validateCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
 {
-    LOGGER(info) << "Validating client " << server.getRemoteEndpoint(hdl) << " - key: " << server.getResource(hdl) << endl;
+    string endpoint = server.getRemoteEndpoint(hdl);
+    string key = server.getResource(hdl);
+    LOGGER(info) << "Validating client " << endpoint << "..." << endl;
 
-    return true;
+    if (key == g_connectKey)
+    {
+        LOGGER(info) << "Client " << endpoint << " validation successful." << endl;
+        return true;
+    }
+    else
+    {
+        LOGGER(info) << "Client " << endpoint << " validation failed." << endl;
+        return false;
+    }
 }
 
 void openCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
@@ -151,6 +164,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    g_connectKey = string("/") + config.getConnectKey();
     std::string logFile = config.getDataDir() + "/coinsocket.log"; 
     INIT_LOGGER(logFile.c_str());
 
