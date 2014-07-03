@@ -12,39 +12,8 @@
         });
     });
 </script>
+<link rel="stylesheet" type="text/css" href="css/layout.css" />
 <link rel="stylesheet" type="text/css" href="css/tables.css" />
-<style>
-#toptitle {
-    font-size: 230%;
-    text-align: center;
-}
-.columnheader {
-    font-size: 175%;
-    text-align: center;
-}
-.opgroupheader {
-    font-size: 150%;
-    text-align: center;
-    padding-top: 20px;
-}
-.command {
-    padding: 6px;
-    margin-bottom: 10px;
-    color: black;
-    background-color: white;
-    border: black 2px solid;
-}
-.fullwidth {
-    width: 100%;
-}
-.ui-accordion-content {
-    font-size: 75%;
-}
-#output {
-    width: 100%;
-    height: 60%;
-}
-</style>
 </head>
 <body>
 <div id="toptitle"><p>CoinSocket API</p></div>
@@ -58,10 +27,10 @@
     <input type="text" id="commandinput" class="fullwidth" />
     <input type="button" onclick="customcommand()" value="Submit" />
 </div>
-<div style="width: 100%; overflow: hidden;">
-    <div style="float: left; width: 35%; height: 100%;">
+<div class="splitcolumnview">
+    <div id="commandscolumn">
         <div class="columnheader">Commands</div>
-        <div style="height: 70%; overflow: scroll;">
+        <div id="commandscrollarea">
         <div>
             <div class="opgroupheader">Global Operations</div>
             <div class="command">
@@ -300,7 +269,7 @@
         </div>
         </div>
     </div>
-    <div style="float: left; margin-left: 20px; width: 60%; height: 100%; overflow: scroll;">
+    <div id="outputcolumn">
         <div class="columnheader">Output</div>
         <div>
             <textarea id="output"></textarea>

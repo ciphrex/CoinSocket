@@ -1,0 +1,50 @@
+#toptitle {
+    font-size: 230%;
+    text-align: center;
+}
+.splitcolumnview {
+    width: 100%;
+    overflow: hidden;
+}
+.columnheader {
+    font-size: 175%;
+    text-align: center;
+}
+#commandscolumn {
+    float: left;
+    width: 35%;
+    height: 100%;
+}
+#commandscrollarea {
+    height: 70%;
+    overflow: scroll;
+}
+#outputcolumn {
+    float: left;
+    margin-left: 20px;
+    width: 60%;
+    height: 100%;
+    overflow: scroll;
+}
+.opgroupheader {
+    font-size: 150%;
+    text-align: center;
+    padding-top: 20px;
+}
+.command {
+    padding: 6px;
+    margin-bottom: 10px;
+    color: black;
+    background-color: white;
+    border: black 2px solid;
+}
+.fullwidth {
+    width: 100%;
+}
+.ui-accordion-content {
+    font-size: 75%;
+}
+#output {
+    width: 100%;
+    height: 60%;
+}
