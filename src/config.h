@@ -16,8 +16,11 @@
 #include <sstream>
 #include <fstream>
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
+#include <sysutils/filesystem.h>
 
-const std::string DEFAULT_DATADIR = ".";
+const std::string DEFAULT_DATADIR = "CoinSocket";
+const std::string DEFAULT_CONFIG_FILE = "coinsocket.conf";
 const std::string DEFAULT_PEER_HOST = "localhost";
 const std::string DEFAULT_PEER_PORT = "8333";
 const std::string DEFAULT_WEBSOCKET_PORT = "8080";
@@ -94,7 +97,12 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         return;
     }
 
-    if (vm.count("config"))
+    if (!vm.count("datadir"))       { m_dataDir = getDefaultDataDir(DEFAULT_DATADIR); }
+    if (!vm.count("config"))        { m_configFile =  m_dataDir + "/" + DEFAULT_CONFIG_FILE; }
+
+    namespace fs = boost::filesystem;
+    fs::path p(m_configFile);
+    if (fs::exists(p))
     {
         std::ifstream config(m_configFile);
         po::store(po::parse_config_file(config, options), vm);
@@ -103,7 +111,6 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     }
 
     if (!vm.count("dbname")) throw CoinSocket::ConfigMissingDBNameException(); 
-    if (!vm.count("datadir"))       { m_dataDir = DEFAULT_DATADIR; }
     if (!vm.count("peerhost"))      { m_peerHost = DEFAULT_PEER_HOST; }
     if (!vm.count("peerport"))      { m_peerPort = DEFAULT_PEER_PORT; }
     if (!vm.count("wsport"))        { m_webSocketPort = DEFAULT_WEBSOCKET_PORT; }

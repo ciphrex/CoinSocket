@@ -82,6 +82,7 @@ LIBS = \
     -lCoinQ \
     -lCoinCore \
     -llogger \
+    -lsysutils \
     -lboost_system$(BOOST_SUFFIX) \
     -lboost_filesystem$(BOOST_SUFFIX) \
     -lboost_regex$(BOOST_SUFFIX) \
