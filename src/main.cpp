@@ -16,11 +16,10 @@
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/random.h>
 
+#include <WebSocketServer/WebSocketServer.h>
 #ifdef USE_TLS
-    #include <WebSocketServer/WebSocketServerTls.h>
     typedef WebSocket::ServerTls WebSocketServer;
 #else
-    #include <WebSocketServer/WebSocketServer.h>
     typedef WebSocket::Server WebSocketServer;
 #endif
 
