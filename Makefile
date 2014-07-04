@@ -103,7 +103,7 @@ OBJS = \
 
 all: build/coinsocketd$(EXE_EXT)
 
-build/coinsocketd$(EXE_EXT): src/main.cpp src/config.h $(OBJS)
+build/coinsocketd$(EXE_EXT): src/CoinSocket.cpp src/config.h $(OBJS)
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) $< $(OBJS) -o $@ $(LIBS) $(PLATFORM_LIBS)
 
 obj/jsonobjects.o: src/jsonobjects.cpp src/jsonobjects.h
