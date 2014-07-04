@@ -41,6 +41,10 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
         return "N/A";
 }
 
+static string g_documentDir;
+void setDocumentDir(const string& documentDir) { g_documentDir = documentDir; }
+const string& getDocumentDir() { return g_documentDir; }
+
 // Global operations
 Value cmd_getvaultinfo(SynchedVault& synchedVault, const Array& params)
 {
@@ -54,6 +58,41 @@ Value cmd_getvaultinfo(SynchedVault& synchedVault, const Array& params)
     result.push_back(Pair("schema", (uint64_t)vault->getSchemaVersion()));
     result.push_back(Pair("horizon", (uint64_t)vault->getHorizonTimestamp()));
     return result;
+}
+
+Value cmd_setvaultfromfile(SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    // TODO: make sure the file is strictly in the allowed dir
+    Vault* vault = synchedVault.getVault();
+    string filepath = g_documentDir + "/" + params[0].get_str();
+
+    synchedVault.suspendBlockUpdates();
+    try
+    {   
+        vault->importVault(filepath);
+        synchedVault.resyncVault();
+        return Value("success");
+    }
+    catch (const exception& e)
+    {
+        synchedVault.resyncVault();
+        throw e;
+    }
+}
+
+Value cmd_exportvaulttofile(SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 2 || params[0].type() != str_type || params[1].type() != bool_type)
+        throw CommandInvalidParametersException();
+
+    // TODO: make sure the file is strictly in the allowed dir
+    Vault* vault = synchedVault.getVault();
+    string filepath = g_documentDir + "/" + params[0].get_str();
+    vault->exportVault(filepath, params[1].get_bool());
+    return Value("success");
 }
 
 // Keychain operations
@@ -176,6 +215,7 @@ Value cmd_newaccount(SynchedVault& synchedVault, const Array& params)
     vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes using passphrase
     vault->newAccount(accountName, minsigs, keychainNames);
     vault->lockChainCodes();
+    synchedVault.resyncVault();
     AccountInfo accountInfo = vault->getAccountInfo(accountName);
     return getAccountInfoObject(accountInfo);
 }
@@ -526,6 +566,8 @@ void initCommandMap(command_map_t& command_map)
 
     // Global operations
     command_map.insert(cmd_pair("getvaultinfo", Command(&cmd_getvaultinfo)));
+    command_map.insert(cmd_pair("setvaultfromfile", Command(&cmd_setvaultfromfile)));
+    command_map.insert(cmd_pair("exportvaulttofile", Command(&cmd_exportvaulttofile)));
 
     // Keychain operations
     command_map.insert(cmd_pair("newkeychain", Command(&cmd_newkeychain)));

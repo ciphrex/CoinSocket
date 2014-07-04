@@ -2,7 +2,7 @@
 //
 // CoinSocket
 //
-// main.cpp
+// CoinSocket.cpp
 //
 // Copyright (c) 2014 Eric Lombrozo
 //
@@ -163,6 +163,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    setDocumentDir(config.getDocumentDir());
     g_connectKey = string("/") + config.getConnectKey();
     std::string logFile = config.getDataDir() + "/coinsocket.log"; 
     INIT_LOGGER(logFile.c_str());

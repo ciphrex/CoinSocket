@@ -37,8 +37,13 @@ private:
 typedef std::pair<std::string, Command> cmd_pair;
 typedef std::map<std::string, Command>  command_map_t;
 
+void setDocumentDir(const std::string& documentDir);
+const std::string& getDocumentDir();
+
 // Global operations
 json_spirit::Value cmd_getvaultinfo(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_setvaultfromfile(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_exportvaulttofile(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 // Keychain operations
 json_spirit::Value cmd_newkeychain(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
