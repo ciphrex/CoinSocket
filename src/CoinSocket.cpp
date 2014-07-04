@@ -233,6 +233,8 @@ int main(int argc, char* argv[])
         {
             LOGGER(debug) << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
 
+            if (synchedVault.getStatus() != SynchedVault::READY) return;
+
             std::stringstream msg;
             msg << "{\"event\":\"merkleblockinserted\", \"data\":" << merkleblock->toJson() << "}";
             wsServer.sendAll(msg.str());
