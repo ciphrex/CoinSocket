@@ -210,7 +210,16 @@ int main(int argc, char* argv[])
             cerr << "Error starting websocket server: " << e.what() << endl;
             return 1;
         }
-        
+
+        synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status)
+        {
+            const string& statusString = SynchedVault::getStatusString(status);
+            LOGGER(debug) << "Status changed: " << statusString << endl;
+            stringstream msg;
+            msg << "{\"event\":\"statuschanged\", \"data\":\"" << statusString << "\"}";
+            wsServer.sendAll(msg.str());
+        });
+ 
         synchedVault.subscribeTxInserted([&](std::shared_ptr<Tx> tx)
         {
             std::string hash = uchar_vector(tx->hash()).getHex();
