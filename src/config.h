@@ -20,6 +20,7 @@
 #include <sysutils/filesystem.h>
 
 const std::string DEFAULT_DATADIR = "CoinSocket";
+const std::string DEFAULT_DOCDIR = "vaultdocs";
 const std::string DEFAULT_CONFIG_FILE = "coinsocket.conf";
 const std::string DEFAULT_PEER_HOST = "localhost";
 const std::string DEFAULT_PEER_PORT = "8333";
@@ -38,6 +39,7 @@ public:
     const std::string& getDatabasePassword() const { return m_databasePassword; }
     const std::string& getDatabaseName() const { return m_databaseName; }
     const std::string& getDataDir() const { return m_dataDir; }
+    const std::string& getDocumentDir() const { return m_documentDir; }
     const std::string& getPeerHost() const { return m_peerHost; }
     const std::string& getPeerPort() const { return m_peerPort; }
     const std::string& getWebSocketPort() const { return m_webSocketPort; }
@@ -54,6 +56,7 @@ private:
     std::string m_databasePassword;
     std::string m_databaseName;
     std::string m_dataDir;
+    std::string m_documentDir;
     std::string m_peerHost;
     std::string m_peerPort;
     std::string m_webSocketPort;
@@ -76,6 +79,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("dbpasswd", po::value<std::string>(&m_databasePassword), "vault database password")
         ("dbname", po::value<std::string>(&m_databaseName), "vault database name")
         ("datadir", po::value<std::string>(&m_dataDir), "data directory")
+        ("docdir", po::value<std::string>(&m_documentDir), "document directory")
         ("peerhost", po::value<std::string>(&m_peerHost), "peer hostname")
         ("peerport", po::value<std::string>(&m_peerPort), "peer port")
         ("wsport", po::value<std::string>(&m_webSocketPort), "port to listen for inbound websocket connections")
@@ -97,6 +101,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         return;
     }
 
+    using namespace sysutils::filesystem;
     if (!vm.count("datadir"))       { m_dataDir = getDefaultDataDir(DEFAULT_DATADIR); }
     if (!vm.count("config"))        { m_configFile =  m_dataDir + "/" + DEFAULT_CONFIG_FILE; }
 
@@ -111,6 +116,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     }
 
     if (!vm.count("dbname")) throw CoinSocket::ConfigMissingDBNameException(); 
+    if (!vm.count("docdir"))        { m_documentDir = getUserProfileDir() + "/" + DEFAULT_DOCDIR; }
     if (!vm.count("peerhost"))      { m_peerHost = DEFAULT_PEER_HOST; }
     if (!vm.count("peerport"))      { m_peerPort = DEFAULT_PEER_PORT; }
     if (!vm.count("wsport"))        { m_webSocketPort = DEFAULT_WEBSOCKET_PORT; }
