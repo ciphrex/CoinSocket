@@ -59,6 +59,8 @@ json_spirit::Value cmd_renameaccount(CoinDB::SynchedVault& synchedVault, const j
 json_spirit::Value cmd_getaccountinfo(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getaccounts(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_issuescript(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_importaccountfromfile(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_exportaccounttofile(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 // Tx operations
 json_spirit::Value cmd_gethistory(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);

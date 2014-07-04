@@ -309,6 +309,43 @@ Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
+Value cmd_importaccountfromfile(SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    // TODO: make sure the file is strictly in the allowed dir
+    Vault* vault = synchedVault.getVault();
+    string filepath = g_documentDir + "/" + params[0].get_str();
+
+    synchedVault.suspendBlockUpdates();
+    try
+    {
+        unsigned int privkeysimported = 1;        
+        vault->importAccount(filepath, privkeysimported);
+        synchedVault.resyncVault();
+        return Value("success");
+    }
+    catch (const exception& e)
+    {
+        synchedVault.resyncVault();
+        throw e;
+    }
+}
+
+Value cmd_exportaccounttofile(SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 3 || params[0].type() != str_type || params[1].type() != str_type || params[2].type() != bool_type)
+        throw CommandInvalidParametersException();
+
+    // TODO: make sure the file is strictly in the allowed dir
+    Vault* vault = synchedVault.getVault();
+    string account = params[0].get_str();
+    string filepath = g_documentDir + "/" + params[1].get_str();
+    vault->exportAccount(account, filepath, params[2].get_bool());
+    return Value("success");
+}
+
 // Tx operations
 Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
 {
@@ -584,6 +621,8 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("getaccountinfo", Command(&cmd_getaccountinfo)));
     command_map.insert(cmd_pair("getaccounts", Command(&cmd_getaccounts)));
     command_map.insert(cmd_pair("issuescript", Command(&cmd_issuescript)));
+    command_map.insert(cmd_pair("importaccountfromfile", Command(&cmd_importaccountfromfile)));
+    //command_map.insert(cmd_pair("exportaccounttofile", Command(&cmd_exportaccounttofile)));
 
     // Tx operations
     command_map.insert(cmd_pair("gethistory", Command(&cmd_gethistory)));
