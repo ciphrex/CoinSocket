@@ -74,12 +74,12 @@ Value cmd_setvaultfromfile(SynchedVault& synchedVault, const Array& params)
     try
     {   
         vault->importVault(filepath);
-        synchedVault.resyncVault();
+        synchedVault.syncBlocks();
         return Value("success");
     }
     catch (const exception& e)
     {
-        synchedVault.resyncVault();
+        synchedVault.syncBlocks();
         throw e;
     }
 }
@@ -216,7 +216,7 @@ Value cmd_newaccount(SynchedVault& synchedVault, const Array& params)
     vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes using passphrase
     vault->newAccount(accountName, minsigs, keychainNames);
     vault->lockChainCodes();
-    synchedVault.resyncVault();
+    synchedVault.syncBlocks();
     AccountInfo accountInfo = vault->getAccountInfo(accountName);
     return getAccountInfoObject(accountInfo);
 }
@@ -323,12 +323,12 @@ Value cmd_importaccountfromfile(SynchedVault& synchedVault, const Array& params)
     {
         unsigned int privkeysimported = 1;        
         vault->importAccount(filepath, privkeysimported);
-        synchedVault.resyncVault();
+        synchedVault.syncBlocks();
         return Value("success");
     }
     catch (const exception& e)
     {
-        synchedVault.resyncVault();
+        synchedVault.syncBlocks();
         throw e;
     }
 }
