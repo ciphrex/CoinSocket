@@ -11,13 +11,21 @@
 
 #pragma once
 
-#include <CoinDB/Schema.h>
-#include <CoinDB/SigningRequest.h>
-
 #include <json_spirit/json_spirit_reader_template.h>
 #include <json_spirit/json_spirit_writer_template.h>
 #include <json_spirit/json_spirit_utils.h>
 
+namespace CoinDB
+{
+    class SynchedVault;
+    class BlockHeader;
+    class Keychain;
+    class AccountInfo;
+    class TxView;
+    class SigningRequest;
+}
+
+json_spirit::Object getSyncStatusObject(const CoinDB::SynchedVault& synchedVault);
 json_spirit::Object getBlockHeaderObject(CoinDB::BlockHeader* header);
 json_spirit::Object getKeychainObject(CoinDB::Keychain* keychain);
 json_spirit::Object getAccountInfoObject(const CoinDB::AccountInfo& accountInfo);

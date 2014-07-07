@@ -10,11 +10,22 @@
 //
 
 #include "jsonobjects.h"
-
+#include <CoinDB/Schema.h>
+#include <CoinDB/SigningRequest.h>
+#include <CoinDB/SynchedVault.h>
 #include <stdutils/uchar_vector.h>
 
 using namespace CoinDB;
 using namespace json_spirit;
+
+Object getSyncStatusObject(const SynchedVault& synchedVault)
+{
+    Object result;
+    result.push_back(Pair("status", SynchedVault::getStatusString(synchedVault.getStatus())));
+    result.push_back(Pair("syncheight", (uint64_t)synchedVault.getSyncHeight()));
+    result.push_back(Pair("bestheight", (uint64_t)synchedVault.getBestHeight()));
+    return result;
+}
 
 Object getBlockHeaderObject(BlockHeader* header)
 {

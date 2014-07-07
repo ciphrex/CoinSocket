@@ -10,6 +10,7 @@
 //
 
 #include "CoinSocketExceptions.h"
+#include "jsonobjects.h"
 
 #include <CoinDB/SynchedVault.h>
 #include <CoinQ/CoinQ_script.h>
@@ -213,11 +214,14 @@ int main(int argc, char* argv[])
 
         synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status)
         {
+/*
             stringstream statusData;
             statusData << "{\"status\":\"" << SynchedVault::getStatusString(status) << "\", \"syncheight\":" << synchedVault.getSyncHeight() << ", \"bestheight\":" << synchedVault.getBestHeight() << "}";
-            LOGGER(debug) << "Status changed: " << statusData.str() << endl;
+*/
+            string syncStatusJson = json_spirit::write_string<json_spirit::Value>(getSyncStatusObject(synchedVault));
+            LOGGER(debug) << "Sync status changed: " << syncStatusJson << endl;
             stringstream msg;
-            msg << "{\"event\":\"statuschanged\", \"data\":" << statusData.str() << "}";
+            msg << "{\"event\":\"syncstatuschanged\", \"data\":" << syncStatusJson << "}";
             wsServer.sendAll(msg.str());
         });
  
