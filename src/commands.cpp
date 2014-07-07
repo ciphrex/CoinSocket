@@ -56,7 +56,8 @@ Value cmd_getvaultinfo(SynchedVault& synchedVault, const Array& params)
     Object result;
     result.push_back(Pair("name", vault->getName()));
     result.push_back(Pair("schema", (uint64_t)vault->getSchemaVersion()));
-    result.push_back(Pair("horizon", (uint64_t)vault->getHorizonTimestamp()));
+    result.push_back(Pair("horizontimestamp", (uint64_t)vault->getHorizonTimestamp()));
+    result.push_back(Pair("horizonheight", (uint64_t)vault->getHorizonHeight()));
     result.push_back(Pair("syncstatus", getSyncStatusObject(synchedVault)));
     return result;
 }
