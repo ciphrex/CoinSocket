@@ -213,10 +213,11 @@ int main(int argc, char* argv[])
 
         synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status)
         {
-            const string& statusString = SynchedVault::getStatusString(status);
-            LOGGER(debug) << "Status changed: " << statusString << endl;
+            stringstream statusData;
+            statusData << "{\"status\":\"" << SynchedVault::getStatusString(status) << "\", \"syncheight\":" << synchedVault.getSyncHeight() << ", \"bestheight\":" << synchedVault.getBestHeight() << "}";
+            LOGGER(debug) << "Status changed: " << statusData.str() << endl;
             stringstream msg;
-            msg << "{\"event\":\"statuschanged\", \"data\":\"" << statusString << "\"}";
+            msg << "{\"event\":\"statuschanged\", \"data\":" << statusData.str() << "}";
             wsServer.sendAll(msg.str());
         });
  
