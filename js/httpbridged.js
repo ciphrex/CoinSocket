@@ -1,22 +1,24 @@
 var wsserverurl = 'ws://localhost:8080/C3bScn4mPs2mAecdgdF3dlrb1yLloLRL';
 var httpport = 8888;
 
-var requestid = 0;
-var call
+// WS Client
+var rpcsocket = require('./rpcsocket')
+rpcsocket.connect(wsserverurl);
 
 // HTTP Server
 console.log('Starting http server on port ' + httpport + '...');
 var http = require("http");
 var server = http.createServer(function(request, response) {
     console.log(request.url);
-  response.writeHead(200, {"Content-Type": "application/json"});
-  response.end();
+    rpcsocket.send({method: "getvaultinfo"}, function(obj) {
+        response.writeHead(200, {"Content-Type": "application/json"});
+        response.write(JSON.stringify(obj));
+        response.end();
+    }); 
 });
 server.listen(httpport);
 console.log('http server is listening on port ' + httpport + '.');
 
-var rpcsocket = require('./rpcsocket')
-rpcsocket.connect(wsserverurl);
 
 /*
 // WebSockets Client
