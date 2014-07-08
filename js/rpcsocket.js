@@ -31,14 +31,14 @@ rpcsocket.connect = function(url) {
             var callback = that.sendOnOpen.callback;
             that.send(params, callback);
         }
-    }
+    };
 
     this.ws.onclose = function() {
         console.log('Connection to ' + this.url + ' closed.');
         that.ws = null;
         that.sequence = 0;
         that.callbacks = { };
-    }
+    };
 
     this.ws.onmessage = function(e) {
         console.log('Received ' + e.data + ' from ' + that.url + '.')
@@ -60,11 +60,16 @@ rpcsocket.connect = function(url) {
         }
 
         // Invoke handler
-        if (obj.hasOwnProperty('event') && obj.hasOwnProperty('data') && that.handlers.hasOwnProperty(obj.event)) {
-            that.handlers[obj.event](obj.data);
+        if (obj.hasOwnProperty('event') && obj.hasOwnProperty('data')) {
+            if (that.handlers.hasOwnProperty(obj.event)) {
+                that.handlers[obj.event](obj.data);
+            }
+            if (that.handlers.hasOwnProperty('all')) {
+                that.handlers['all'](obj);
+            }
         }
-    }
-}
+    };
+};
 
 rpcsocket.send = function(params, callback) {
     if (this.sendOnOpen)
@@ -84,7 +89,7 @@ rpcsocket.send = function(params, callback) {
         this.sendOnOpen = { params: params, callback: callback };
         this.ws = new WebSocket(this.url);
     }
-}
+};
 
 rpcsocket.close = function() {
     if (this.ws) this.ws.close();
