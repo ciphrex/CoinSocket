@@ -13,30 +13,43 @@ rpcsocket.connect(wsserverurl);
 console.log('Starting http server on port ' + httpport + '...');
 var http = require("http");
 var server = http.createServer(function(request, response) {
-    console.log(request.url);
-    rpcsocket.send({method: "getvaultinfo"}, function(obj) {
-        response.writeHead(200, {"Content-Type": "application/json"});
-        response.write(JSON.stringify(obj));
-        response.end();
-    }); 
+    var fullcommand = request.url.split("/");
+    console.log('fullcommand');
+    console.log(fullcommand);
+    if (fullcommand.length < 2) {
+        returnError({message: "Invalid command.", code: -1}, response);
+        return;
+    }
+
+    var method = fullcommand[1];
+    var params = fullcommand.slice(2);
+    execCommand(method, params, response);
 });
 server.listen(httpport);
 console.log('http server is listening on port ' + httpport + '.');
 
+function returnError(error, response) {
+    response.writeHead(400, {"Content-Type": "application/json"});
+    response.write(JSON.stringify(error));
+    response.end();
+}
 
-/*
-// WebSockets Client
-console.log('Connecting to ' + wsserverurl + '...');
-var WebSocket = require('ws')
-  , ws = new WebSocket(wsserverurl);
-ws.on('open', function() {
-    console.log('Connected to ' + wsserverurl + '.');
-});
-ws.on('message', function(message) {
-    console.log('received: %s', message);
-});
-ws.on('close', function() {
-    console.log('WebSockets connection closed.');
-});
-*/
+function execCommand(method, params, response) {
+    // Make integer parameters true integers
+    var i;
+    for (i = 0; i < params.length; i++) {
+        if (params[i] % 1 === 0) { params[i] = parseInt(params[i]); }
+    }
 
+    var command = {
+        method: method,
+        params: params
+    };
+    console.log('Executing command:');
+    console.log(command);
+    rpcsocket.send(command, function(obj) {
+        response.writeHead(200, {"Content-Type": "application/json"});
+        response.write(JSON.stringify(obj));
+        response.end();
+    }); 
+}
