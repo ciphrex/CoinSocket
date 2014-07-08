@@ -1,3 +1,12 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// httpbridged.js
+//
+// Copyright (c) 2014 Eric Lombrozo
+//
+// All Rights Reserved.
+//
+
 var wsserverurl = 'ws://localhost:8080/C3bScn4mPs2mAecdgdF3dlrb1yLloLRL';
 var httpport = 8888;
 var eventcallbackurls = [];

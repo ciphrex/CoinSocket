@@ -1,3 +1,12 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// rpcsocket.js
+//
+// Copyright (c) 2014 Eric Lombrozo
+//
+// All Rights Reserved.
+//
+
 var WebSocket = require('ws');
 
 var rpcsocket = { }
