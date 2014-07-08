@@ -7,9 +7,7 @@ rpcsocket.url = null;
 rpcsocket.sendOnOpen = null;
 rpcsocket.sequence = 0;
 rpcsocket.callbacks = { };
-
-// TODO: allow attaching and detaching multiple handlers
-//rpcsocket.onTx = null;
+rpcsocket.handlers = { };
 
 rpcsocket.connect = function(url) {
     var that = this;
@@ -51,6 +49,11 @@ rpcsocket.connect = function(url) {
                 console.log('Deleted callback for id ' + obj.id);
             }
         }
+
+        // Invoke handler
+        if (obj.hasOwnProperty('event') && obj.hasOwnProperty('data') && that.handlers.hasOwnProperty(obj.event)) {
+            that.handlers[obj.event](obj.data);
+        }
 /*
         // Transaction callbacks
         if (obj.type && obj.type === 'transaction' && obj.validated && that.onTx)
@@ -81,6 +84,14 @@ rpcsocket.send = function(params, callback) {
 
 rpcsocket.close = function() {
     if (this.ws) this.ws.close();
-}
+};
+
+rpcsocket.on = function(event, handler) {
+    this.handlers[event] = handler;
+};
+
+rpcsocket.clearHandlers = function() {
+    this.handlers = { };
+};
 
 module.exports = rpcsocket;

@@ -2,7 +2,11 @@ var wsserverurl = 'ws://localhost:8080/C3bScn4mPs2mAecdgdF3dlrb1yLloLRL';
 var httpport = 8888;
 
 // WS Client
-var rpcsocket = require('./rpcsocket')
+var rpcsocket = require('./rpcsocket');
+rpcsocket.on('syncstatuschanged', function(data) {
+    console.log('syncstatuschanged handler called.');
+    console.log(data);
+});
 rpcsocket.connect(wsserverurl);
 
 // HTTP Server
