@@ -1,11 +1,25 @@
 var wsserverurl = 'ws://localhost:8080/C3bScn4mPs2mAecdgdF3dlrb1yLloLRL';
 var httpport = 8888;
+var eventcallbackurls = [];
+
+var request = require('request');
 
 // WS Client
 var rpcsocket = require('./rpcsocket');
 rpcsocket.on('syncstatuschanged', function(data) {
     console.log('syncstatuschanged handler called.');
     console.log(data);
+    eventcallbackurls.forEach(function(url) {
+        console.log("Sending %s to %s...", JSON.stringify(data), url);
+        var options = {
+            url: url,
+            method: 'POST',
+            json: data
+        };
+        request(options, function(error, response, body) {
+            console.log("Received response: %s", JSON.stringify({error: error, response: response, body: body}));
+        });
+    });
 });
 rpcsocket.connect(wsserverurl);
 

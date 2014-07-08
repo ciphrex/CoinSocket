@@ -54,11 +54,6 @@ rpcsocket.connect = function(url) {
         if (obj.hasOwnProperty('event') && obj.hasOwnProperty('data') && that.handlers.hasOwnProperty(obj.event)) {
             that.handlers[obj.event](obj.data);
         }
-/*
-        // Transaction callbacks
-        if (obj.type && obj.type === 'transaction' && obj.validated && that.onTx)
-            that.onTx(obj);
-*/
     }
 }
 
