@@ -188,6 +188,35 @@
             <div class="opgroupheader">Transaction Operations</div>
             <div class="command">
                 <div class="accordion">
+                    <p><b>newtx</b></p>
+                    <div><p>Creates a new unsigned transaction and updates all clients.</p></div>
+                </div>
+                <table class="gridtable">
+                    <tr><td>string</td><td>account</td>
+                        <td>
+                            <input type="text" id="newtx_account" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>string</td><td>address</td>
+                        <td>
+                            <input type="text" id="newtx_address" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>integer</td><td>amount (in satoshis)</td>
+                        <td>
+                            <input type="text" id="newtx_amount" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>integer</td><td>fee (in satoshis)</td>
+                        <td>
+                            <input type="text" id="newtx_fee" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="newtx()" value="Submit" />
+            </div>
+            <div class="command">
+                <div class="accordion">
                     <p><b>gethistory</b></p>
                     <div><p>Returns a list of all confirmed transactions since a particular block height as well as any unsigned or unconfirmed transactions.</p></div>
                 </div>

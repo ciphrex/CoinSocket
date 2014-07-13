@@ -188,6 +188,17 @@ function issuescript() {
 }
 
 // Transaction Operations
+function newtx() {
+    if (!ws) return;
+    var account = document.getElementById('newtx_account').value;
+    var address = document.getElementById('newtx_address').value;
+    var amount = document.getElementById('newtx_amount').value;
+    var fee = document.getElementById('newtx_fee').value;
+    var req = '{"method": "newtx", "params": ["' + account + '", "' + address + '", ' + amount + ', ' + fee + '], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 function gethistory() {
     if (!ws) return;
     var startheight = document.getElementById('gethistory_startheight').value;
