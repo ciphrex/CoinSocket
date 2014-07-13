@@ -371,13 +371,12 @@ Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
 
 Value cmd_getunsigned(SynchedVault& synchedVault, const Array& params)
 {
-    if (params.size() > 1 || (params.size() == 1 && params[0].type() != int_type))
+    if (params.size() != 0)
         throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
-    uint32_t minheight = params.size() > 0 ? (uint32_t)params[0].get_uint64() : 0;
-    std::vector<TxView> txviews = vault->getTxViews(Tx::UNSIGNED, 0, -1, minheight);
+    std::vector<TxView> txviews = vault->getTxViews(Tx::UNSIGNED);
 
     std::vector<Object> txViewObjs; 
     for (auto& txview: txviews)
