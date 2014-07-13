@@ -369,6 +369,27 @@ Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
+Value cmd_getunsigned(SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() > 1 || (params.size() == 1 && params[0].type() != int_type))
+        throw CommandInvalidParametersException();
+
+    Vault* vault = synchedVault.getVault();
+
+    uint32_t minheight = params.size() > 0 ? (uint32_t)params[0].get_uint64() : 0;
+    std::vector<TxView> txviews = vault->getTxViews(Tx::UNSIGNED, 0, -1, minheight);
+
+    std::vector<Object> txViewObjs; 
+    for (auto& txview: txviews)
+    {
+        txViewObjs.push_back(getTxViewObject(txview));
+    }
+
+    Object result;
+    result.push_back(Pair("txs", Array(txViewObjs.begin(), txViewObjs.end())));
+    return result;
+}
+
 Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
@@ -618,6 +639,7 @@ void initCommandMap(command_map_t& command_map)
 
     // Tx operations
     command_map.insert(cmd_pair("gethistory", Command(&cmd_gethistory)));
+    command_map.insert(cmd_pair("getunsigned", Command(&cmd_getunsigned)));
     command_map.insert(cmd_pair("gettx", Command(&cmd_gettx)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
     command_map.insert(cmd_pair("getsigningrequest", Command(&cmd_getsigningrequest)));
