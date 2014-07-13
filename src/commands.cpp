@@ -392,13 +392,10 @@ Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
     }
 
     Value txObj;
-    if (!read_string(tx->toJson(), txObj))
+    if (!read_string(tx->toJson(true), txObj))
         throw InternalTxJsonInvalidException(); 
 
-    Object result;
-    result.push_back(Pair("tx", txObj));
-    result.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
-    return result;
+    return txObj;
 }
 
 Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
@@ -433,13 +430,10 @@ Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
     std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
 
     Value txObj;
-    if (!read_string(tx->toJson(), txObj))
+    if (!read_string(tx->toJson(true), txObj))
         throw InternalTxJsonInvalidException(); 
 
-    Object result;
-    result.push_back(Pair("tx", txObj));
-    result.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
-    return result;
+    return txObj;
 }
 
 Value cmd_getsigningrequest(SynchedVault& synchedVault, const Array& params)
@@ -525,13 +519,10 @@ Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
         throw OperationTransactionNotInsertedException();
 
     Value txObj;
-    if (!read_string(tx->toJson(), txObj))
+    if (!read_string(tx->toJson(true), txObj))
         throw InternalTxJsonInvalidException();
 
-    Object result;
-    result.push_back(Pair("tx", txObj));
-    result.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
-    return result;
+    return txObj;
 }
 
 Value cmd_sendtx(SynchedVault& synchedVault, const Array& params)

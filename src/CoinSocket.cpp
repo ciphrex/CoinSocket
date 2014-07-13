@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
             std::string hash = uchar_vector(tx->hash()).getHex();
             LOGGER(debug) << "Transaction inserted: " << hash << endl;
             std::stringstream msg;
-            msg << "{\"event\":\"txinserted\", \"data\":" << tx->toJson() << "}";
+            msg << "{\"event\":\"txinserted\", \"data\":" << tx->toJson(true) << "}";
             wsServer.sendAll(msg.str());
         });
 
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
             LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
 
             std::stringstream msg;
-            msg << "{\"event\":\"txstatuschanged\", \"data\":" << tx->toJson() << "}";
+            msg << "{\"event\":\"txstatuschanged\", \"data\":" << tx->toJson(true) << "}";
             wsServer.sendAll(msg.str());
         });
 
