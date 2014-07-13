@@ -87,3 +87,4 @@ obj/%.o: src/%.cpp src/%.h
 	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
 
 # Examples
+examples:

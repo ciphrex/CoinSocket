@@ -41,7 +41,7 @@ CoinSocketClient::~CoinSocketClient()
     }
 }
 
-void CoinSocketClient::start(const string& serverUrl, OpenHandler, handler_t on_open, CloseHandler on_close, LogHandler on_log, ErrorHandler on_error)
+void CoinSocketClient::start(const string& serverUrl, OpenHandler on_open, CloseHandler on_close, LogHandler on_log, ErrorHandler on_error)
 {
     if (bConnected) throw runtime_error("Already connected.");
 
@@ -115,9 +115,10 @@ void CoinSocketClient::onFail(connection_hdl_t hdl)
 
 void CoinSocketClient::onMessage(connection_hdl_t hdl, message_ptr_t msg)
 {
+    string json = msg->get_payload();
+
     try
     {
-        string json = msg->get_payload();
         if (on_log)
         {
             stringstream ss;
@@ -131,16 +132,16 @@ void CoinSocketClient::onMessage(connection_hdl_t hdl, message_ptr_t msg)
         const Value& id = find_value(obj, "id");
 
         const Value& result = find_value(obj, "result");
-        if (result.type() != null_type)
+        if (result.type() != null_type && id.type() == int_type)
         {
-            onResult(result, id);
+            onResult(result, id.get_uint64());
             return;
         }
 
         const Value& error = find_value(obj, "error");
-        if (error.type() != null_type)
+        if (error.type() != null_type && id.type() == int_type)
         {
-            onError(error, id);
+            onError(error, id.get_uint64());
             return;
         }
 
@@ -189,7 +190,7 @@ void CoinSocketClient::onResult(const Value& result, uint64_t id)
         auto it = callback_map.find(id);
         if (it != callback_map.end() && it->second.first)
         {
-            it->second.first(obj);
+            it->second.first(result);
             callback_map.erase(id);
         }
     }
@@ -219,7 +220,7 @@ void CoinSocketClient::onError(const Value& error, uint64_t id)
         auto it = callback_map.find(id);
         if (it != callback_map.end() && it->second.second)
         {
-            it->second.second(obj);
+            it->second.second(error);
             callback_map.erase(id);
         }
     }
