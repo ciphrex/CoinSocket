@@ -78,6 +78,7 @@ endif
 
 LIBS = \
     -lWebSocketServer \
+    -lJsonRpc \
     -lCoinDB \
     -lCoinQ \
     -lCoinCore \

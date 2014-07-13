@@ -17,7 +17,7 @@
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/random.h>
 
-#include <WebSocketServer/WebSocketServer.h>
+#include <WebSocketAPI/WebSocketServer.h>
 #ifdef USE_TLS
     typedef WebSocket::ServerTls WebSocketServer;
 #else
