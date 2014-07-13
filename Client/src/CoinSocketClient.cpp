@@ -52,7 +52,8 @@ void CoinSocketClient::start(const string& serverUrl, OpenHandler, handler_t on_
         client.get_alog().write(websocketpp::log::alevel::app, error_code.message());
         throw runtime_error(error_code.message());
     }
-    
+
+    sequence = 0; 
     this->on_open = on_open;
     this->on_close = on_close;
     this->on_log = on_log;
@@ -69,11 +70,10 @@ void CoinSocketClient::stop()
     if (bConnected)
     {
         pConnection->close(websocketpp::close::status::going_away, "");
-        if (on_stop) on_stop();
     }
 }
 
-void CoinSocketClient::sendCommand(Object& cmd, ResultCallback resultCallback, ErrorCallback errorCallback)
+void CoinSocketClient::send(Object& cmd, ResultCallback resultCallback, ErrorCallback errorCallback)
 {
     cmd.push_back(Pair("id", sequence));
     if (resultCallback || errorCallback)
@@ -97,14 +97,14 @@ void CoinSocketClient::onOpen(connection_hdl_t hdl)
 {
     bConnected = true;
     if (on_log) on_log("Connection opened.");
-    if (on_open) on_open();
+    if (on_open) on_open(hdl);
 }
 
 void CoinSocketClient::onClose(connection_hdl_t hdl)
 {
     bConnected = false;
     if (on_log) on_log("Connection closed.");
-    if (on_close) on_close();
+    if (on_close) on_close(hdl);
 }
 
 void CoinSocketClient::onFail(connection_hdl_t hdl)

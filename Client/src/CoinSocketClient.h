@@ -27,29 +27,35 @@ typedef websocketpp::config::asio_client::message_type::ptr   message_ptr_t;
 typedef websocketpp::connection_hdl                           connection_hdl_t;
 typedef websocketpp::lib::error_code                          error_code_t;
 
-typedef std::function<void(const json_spirit::Object&)> callback_t;
-typedef std::map<int64_t, callback_t> callback_map_t;
-typedef std::map<std::string, callback_t> msg_handler_map_t;
+typedef std::function<void(const json_spirit::Value&)> ResultCallback;
+typedef std::function<void(const json_spirit::Value&)> ErrorCallback;
+typedef std::pair<ResultCallback, ErrorCallback> CallbackPair;
+typedef std::map<uint64_t, CallbackPair> CallbackMap;
 
-typedef std::function<void(void)> socket_handler_t;
-typedef std::function<void(const std::string&)> log_handler_t;
+typedef std::function<void(const json_spirit::Value&)> EventHandler;
+typedef std::map<std::string, EventHandler> EventHandlerMap;
+ 
+typedef std::function<void(connection_hdl_t)> OpenHandler;
+typedef std::function<void(connection_hdl_t)> CloseHandler;
+typedef std::function<void(const std::string&)> LogHandler;
+typedef std::function<void(const std::string&)> ErrorHandler;
 
 class CoinSocketClient
 {
-private:
-    // WebSocket connection to rippled
-    client_t            client;
-    std::string         serverUrl;
-    connection_ptr_t    pConnection;
-    bool                bConnected;
+public:
+    // Constructor / Destructor
+    CoinSocketClient();
+    ~CoinSocketClient();
 
-    socket_handler_t    on_open;
-    log_handler_t       on_log;
+    // start() blocks until disconnection occurs.
+    void start(const std::string& serverUrl, OpenHandler on_open = nullptr, CloseHandler on_close = nullptr, LogHandler on_log = nullptr, ErrorHandler on_error = nullptr);
+    void stop();
 
-    msg_handler_map_t   msg_handler_map;
+    // Send formatted command
+    void send(json_spirit::Object& cmd, ResultCallback resultCallback = nullptr, ErrorCallback errorCallback = nullptr);
 
-    int64_t             sequence;
-    callback_map_t      callback_map;
+    // Subscribe to events
+    CoinSocketClient& on(const std::string& eventType, EventHandler handler);
 
 protected:
     // Connection handlers
@@ -58,20 +64,26 @@ protected:
     void onFail(connection_hdl_t hdl);
     void onMessage(connection_hdl_t, message_ptr_t msg);
 
-    // Ripple message handlers
-    void onResponse(const json_spirit::Object& obj);
+    // Results and errors from commands
+    void onResult(const json_spirit::Value& result, uint64_t id);
+    void onError(const json_spirit::Value& error, uint64_t id); 
 
-public:
-    // Constructor / Destructor
-    CoinSocketClient();
-    ~CoinSocketClient();
+private:
+    // WebSocket connection to CoinSocket server
+    client_t            client;
+    std::string         serverUrl;
+    connection_ptr_t    pConnection;
+    bool                bConnected;
 
-    // start() blocks until disconnection occurs.
-    void start(const std::string& serverUrl, socket_handler_t on_open = NULL, log_handler_t on_log = NULL);
-    void stop();
+    OpenHandler         on_open;
+    CloseHandler        on_close;
+    LogHandler          on_log;
+    ErrorHandler        on_error;
 
-    CoinSocketClient& on(const std::string& messageType, callback_t handler); 
-    void sendCommand(json_spirit::Object& cmd, callback_t callback = NULL);
+    EventHandlerMap     event_handler_map;
+
+    uint64_t            sequence;
+    CallbackMap         callback_map;
 };
 
 } 
