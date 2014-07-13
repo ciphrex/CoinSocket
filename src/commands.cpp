@@ -526,17 +526,30 @@ Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
 
 Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
 {
-    if (params.size() != 1 || params[0].type() != str_type)
+    if (params.size() < 1 || params.size() > 2 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
+
+    bool trySend = false;
+    if (params.size() > 1)
+    {
+        if (params[1].type() != bool_type)
+            throw CommandInvalidParametersException();
+
+        trySend = params[1].get_bool();
+    }
 
     Vault* vault = synchedVault.getVault();
 
     uchar_vector rawtx(params[0].get_str());
     std::shared_ptr<Tx> tx(new Tx());
-    tx->set(rawtx);
+    tx->set(rawtx, time(NULL), Tx::UNSENT);
     tx = vault->insertTx(tx);
-    if (!tx)
-        throw OperationTransactionNotInsertedException();
+    if (!tx) throw OperationTransactionNotInsertedException();
+
+    if (trySend && tx->status() == Tx::UNSENT)
+    {
+        tx = synchedVault.sendTx(tx->id());
+    }
 
     Value txObj;
     if (!read_string(tx->toJson(true), txObj))
