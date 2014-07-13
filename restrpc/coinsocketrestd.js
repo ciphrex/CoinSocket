@@ -9,7 +9,7 @@
 
 var wsserverurl = 'ws://localhost:8080/C3bScn4mPs2mAecdgdF3dlrb1yLloLRL';
 var httpport = 8888;
-var eventcallbackurls = ['http://localhost/events'];
+var eventcallbackurls = ['http://blockhawk.net/tests/request.php'];
 
 var request = require('request');
 

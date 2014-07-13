@@ -196,6 +196,13 @@ function gethistory() {
     sendrequest(req);
 }
 
+function getunsigned() {
+    if (!ws) return;
+    var req = '{"method": "getunsigned", "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 function gettx_int() {
     if (!ws) return;
     var txid = document.getElementById('gettx_int_id').value;
