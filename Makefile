@@ -1,6 +1,6 @@
-# Use MySQL by default
+# Use SQLite by default
 ifndef DB
-    DB = mysql
+    DB = sqlite
 endif
 
 ifeq ($(DB), mysql)
