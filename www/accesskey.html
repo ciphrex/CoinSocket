@@ -1,0 +1,26 @@
+<html>
+<head>
+<title>Set Access Key</title>
+</head>
+<body>
+<div>
+    <input type="password" id="accesskeyinput" size="100" />
+    <input type="text" id="expirationinput" size="10" value="1" />
+    <input type="button" id="setbutton" onclick="setAction();" value="Set Access Key" />
+    <input type="button" id="clearbutton" onclick="clearAction();" value="Clear Access Key" />
+</div>
+<script type="text/javascript" src="js/cookies.js"></script>
+<script type="text/javascript">
+function setAction() {
+    var accesskeyinput = document.getElementById('accesskeyinput');
+    var expirationinput = document.getElementById('expirationinput');
+    setCookie('accesskey', accesskeyinput.value, parseInt(expirationinput.value));
+    window.alert('Access key set.');
+}
+
+function clearAction() {
+    deleteCookie('accesskey');
+}
+</script>
+</body>
+</html>
