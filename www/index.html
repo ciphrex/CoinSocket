@@ -1,6 +1,7 @@
 <html>
 <head>
 <title>CoinSocket API</title>
+<script type="text/javascript" src="js/settings.js"></script>
 <script type="text/javascript" src="/jquery/jquery.min.js"></script>
 <link rel="stylesheet" type="text/css" href="/jquery/jquery-ui-themes/themes/smoothness/jquery-ui.min.css" />
 <script type="text/javascript" src="/jquery/jquery-ui/jquery-ui.min.js"></script>
@@ -10,6 +11,8 @@
             collapsible: true,
             active: false
         });
+
+        $('#url').val(defaultUrl);
     });
 </script>
 <link rel="stylesheet" type="text/css" href="css/layout.css" />
@@ -19,7 +22,7 @@
 <div id="toptitle"><p>CoinSocket API</p></div>
 <div class="command">
     Server:
-    <input type="text" id="url" class="fullwidth" value="ws://test.ciphrex.com:8080/C3bScn4mPs2mAecdgdF3dlrb1yLloLRL" />
+    <input type="text" id="url" class="fullwidth" value="" />
     <input type="button" id="connectbutton" onclick="connect()" value="Connect" />
 </div>
 <div class="command">
@@ -320,6 +323,7 @@
         </div>
     </div>
 </div>
+<script type="text/javascript" src="js/cookies.js"></script>
 <script type="text/javascript" src="js/coinsocketapi.js"></script>
 </body>
 </html>

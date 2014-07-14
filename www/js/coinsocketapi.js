@@ -54,7 +54,8 @@ function connect() {
     serverurl = urlinput.value;
     setstatus('Connecting to ' + serverurl + '...');
 
-    ws = new WebSocket(serverurl);
+    var accesskey = getCookie('accesskey');
+    ws = new WebSocket(serverurl + '/' + accesskey);
     ws.onopen = onopen;
     ws.onclose = onclose;
     ws.onmessage = onmessage;
