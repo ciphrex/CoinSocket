@@ -13,7 +13,7 @@
 #commandscolumn {
     float: left;
     width: 35%;
-    height: 100%;
+    height: 90%;
 }
 #commandscrollarea {
     height: 70%;
@@ -23,7 +23,7 @@
     float: left;
     margin-left: 20px;
     width: 60%;
-    height: 100%;
+    height: 90%;
     overflow: scroll;
 }
 .opgroupheader {
