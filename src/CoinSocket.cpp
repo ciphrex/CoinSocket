@@ -256,9 +256,14 @@ int main(int argc, char* argv[])
 
 
         std::string blockTreeFile = config.getDataDir() + "/blocktree.dat"; 
-        cout << "Loading block tree " << blockTreeFile << endl;
-        LOGGER(info) << "Loading block tree " << blockTreeFile << endl;
-        synchedVault.loadBlockTree(blockTreeFile);
+        cout << "Loading headers from " << blockTreeFile << endl;
+        LOGGER(info) << "Loading headers from " << blockTreeFile << endl;
+        synchedVault.loadHeaders(blockTreeFile, false,
+            [](const CoinQBlockTreeMem& blockTree) {
+                std::stringstream progress;
+                progress << "Height: " << blockTree.getBestHeight() << " / " << "Total Work: " << blockTree.getTotalWork().getDec();
+                cout << "Loaded headers - " << progress.str() << endl;
+            });
 
         cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
         LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
