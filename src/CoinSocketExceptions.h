@@ -22,6 +22,7 @@ enum ErrorCodes
 
     // Config errors - these errors result from invalid program options
     CONFIG_MISSING_DBNAME = 1101,
+    CONFIG_INVALID_DATA_DIR_EXCEPTION,
 
     // Command  errors - these errors imply an error in a submitted command
     COMMAND_INVALID_METHOD = 1201,
@@ -61,6 +62,12 @@ class ConfigMissingDBNameException : public ConfigException
 {
 public:
     explicit ConfigMissingDBNameException() : ConfigException("No dbname specified.", CONFIG_MISSING_DBNAME) { }
+};
+
+class ConfigInvalidDataDirException : public ConfigException
+{
+public:
+    explicit ConfigInvalidDataDirException() : ConfigException("Invalid data dir.", CONFIG_INVALID_DATA_DIR_EXCEPTION) { }
 };
 
 // COMMAND EXCEPTIONS

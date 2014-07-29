@@ -106,6 +106,10 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     if (!vm.count("config"))        { m_configFile =  m_dataDir + "/" + DEFAULT_CONFIG_FILE; }
 
     namespace fs = boost::filesystem;
+    fs::path dataDirPath(m_dataDir);
+    if ((!fs::exists(dataDirPath) && !fs::create_directory(dataDirPath)) || !fs::is_directory(dataDirPath))
+        throw CoinSocket::ConfigInvalidDataDirException();
+
     fs::path p(m_configFile);
     if (fs::exists(p))
     {
