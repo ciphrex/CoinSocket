@@ -293,7 +293,7 @@ Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
     if (binName.empty()) binName = DEFAULT_BIN_NAME;
 
     std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label);
-    synchedVault.updateBloomFilter();
+    if (synchedVault.isConnected()) { synchedVault.updateBloomFilter(); }
 
     std::string address = getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS);
     std::string uri = "bitcoin:";
@@ -304,6 +304,7 @@ Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
     result.push_back(Pair("account", accountName));
     result.push_back(Pair("label", label));
     result.push_back(Pair("accountbin", binName));
+    result.push_back(Pair("index", (uint64_t)script->index()));
     result.push_back(Pair("script", uchar_vector(script->txoutscript()).getHex()));
     result.push_back(Pair("address", address));
     result.push_back(Pair("uri", uri)); 
