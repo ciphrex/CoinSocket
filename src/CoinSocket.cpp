@@ -254,20 +254,22 @@ int main(int argc, char* argv[])
             wsServer.sendAll(msg.str());
         });
 
+        if (config.getSync())
+        {
+            std::string blockTreeFile = config.getDataDir() + "/blocktree.dat"; 
+            cout << "Loading headers from " << blockTreeFile << endl;
+            LOGGER(info) << "Loading headers from " << blockTreeFile << endl;
+            synchedVault.loadHeaders(blockTreeFile, false,
+                [](const CoinQBlockTreeMem& blockTree) {
+                    std::stringstream progress;
+                    progress << "Height: " << blockTree.getBestHeight() << " / " << "Total Work: " << blockTree.getTotalWork().getDec();
+                    cout << "Loaded headers - " << progress.str() << endl;
+                });
 
-        std::string blockTreeFile = config.getDataDir() + "/blocktree.dat"; 
-        cout << "Loading headers from " << blockTreeFile << endl;
-        LOGGER(info) << "Loading headers from " << blockTreeFile << endl;
-        synchedVault.loadHeaders(blockTreeFile, false,
-            [](const CoinQBlockTreeMem& blockTree) {
-                std::stringstream progress;
-                progress << "Height: " << blockTree.getBestHeight() << " / " << "Total Work: " << blockTree.getTotalWork().getDec();
-                cout << "Loaded headers - " << progress.str() << endl;
-            });
-
-        cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
-        LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
-        synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
+            cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+            LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+            synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
+        }
 
         while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
 
