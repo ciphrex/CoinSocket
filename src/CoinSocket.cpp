@@ -268,10 +268,6 @@ int main(int argc, char* argv[])
 
         synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status)
         {
-/*
-            stringstream statusData;
-            statusData << "{\"status\":\"" << SynchedVault::getStatusString(status) << "\", \"syncheight\":" << synchedVault.getSyncHeight() << ", \"bestheight\":" << synchedVault.getBestHeight() << "}";
-*/
             string syncStatusJson = json_spirit::write_string<json_spirit::Value>(getSyncStatusObject(synchedVault));
             LOGGER(debug) << "Sync status changed: " << syncStatusJson << endl;
             stringstream msg;
@@ -280,55 +276,121 @@ int main(int argc, char* argv[])
         });
         g_validGroups.insert("statuschanged");
  
-        synchedVault.subscribeTxInserted([&](std::shared_ptr<Tx> tx)
+        synchedVault.subscribeTxInserted([&](shared_ptr<Tx> tx)
         {
-            std::string hashstr = uchar_vector(tx->hash()).getHex();
-            LOGGER(debug) << "Transaction inserted: " << hashstr << endl;
+            using namespace json_spirit;
+
+            try
             {
-                std::stringstream msg;
-                msg << "{\"event\":\"txinserted\", \"data\":" << tx->toJson(false) << "}";
-                wsServer.sendGroup("txinserted", msg.str());
+                string hash = uchar_vector(tx->hash()).getHex();
+                string status = Tx::getStatusString(tx->status());
+                uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
+                uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
+
+                LOGGER(debug) << "Transaction inserted: " << hash << " Status: " << status << " Confirmations: " << confirmations << " Height: " << height << endl;
+
+                Object txData;
+                txData.push_back(Pair("hash", hash));
+                txData.push_back(Pair("status", status));
+                txData.push_back(Pair("confirmations", (uint64_t)confirmations));
+                txData.push_back(Pair("height", (uint64_t)height));
+
+                {
+                    stringstream msg;
+                    msg << "{\"event\":\"txinserted\", \"data\":" << write_string<Value>(txData) << "}";
+                    wsServer.sendGroup("txinserted", msg.str());
+                }
+                {
+                    Value txVal;
+                    if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
+                    Object txObj = txVal.get_obj();
+
+                    txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
+                    stringstream msg;
+                    msg << "{\"event\":\"txinsertedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                    wsServer.sendGroup("txinsertedjson", msg.str());
+                }
+                {
+                    Object rawTxData(txData);
+                    rawTxData.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
+                    stringstream msg;
+                    msg << "{\"event\":\"txinsertedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
+                    wsServer.sendGroup("txinsertedraw", msg.str());
+                }
+                {
+                    Object serializedTxData(txData);
+                    serializedTxData.push_back(Pair("serializedtx", synchedVault.getVault()->exportTx(tx)));
+                    stringstream msg;
+                    msg << "{\"event\":\"txinsertedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
+                    wsServer.sendGroup("txinsertedserialized", msg.str());
+                }
             }
+            catch (const exception& e)
             {
-                std::string rawtx = uchar_vector(tx->raw()).getHex();
-                std::stringstream msg;
-                msg << "{\"event\":\"txinsertedraw\", \"data\":{\"hash\":\"" << hashstr << "\",\"rawtx\":\"" << rawtx << "\"}}";
-                wsServer.sendGroup("txinsertedraw", msg.str());
-            }
-            {
-                std::string serializedtx = synchedVault.getVault()->exportTx(tx);
-                std::stringstream msg;
-                msg << "{\"event\":\"txinsertedserialized\", \"data\":{\"hash\":\"" << hashstr << "\",\"serializedtx\":\"" << serializedtx << "\"}}";
-                wsServer.sendGroup("txinsertedserialized", msg.str());
+                LOGGER(error) << "txinserted handler error: " << e.what() << endl;
             }
         });
         g_validGroups.insert("txinserted");
+        g_validGroups.insert("txinsertedjson");
         g_validGroups.insert("txinsertedraw");
         g_validGroups.insert("txinsertedserialized");
 
         synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
         {
-            std::string hashstr = uchar_vector(tx->hash()).getHex();
-            LOGGER(debug) << "Transaction status changed: " << hashstr << " New status: " << Tx::getStatusString(tx->status()) << endl;
+            using namespace json_spirit;
+
+            try
             {
-                std::stringstream msg;
-                msg << "{\"event\":\"txstatuschanged\", \"data\":" << tx->toJson(false) << "}";
-                wsServer.sendGroup("txstatuschanged", msg.str());
+                string hash = uchar_vector(tx->hash()).getHex();
+                string status = Tx::getStatusString(tx->status());
+                uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
+                uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
+
+                LOGGER(debug) << "Transaction status changed: " << hash << " Status: " << status << " Confirmations: " << confirmations << " Height: " << height << endl;
+
+                Object txData;
+                txData.push_back(Pair("hash", hash));
+                txData.push_back(Pair("status", status));
+                txData.push_back(Pair("confirmations", (uint64_t)confirmations));
+                txData.push_back(Pair("height", (uint64_t)height));
+
+                {
+                    stringstream msg;
+                    msg << "{\"event\":\"txstatuschanged\", \"data\":" << write_string<Value>(txData) << "}";
+                    wsServer.sendGroup("txstatuschanged", msg.str());
+                }
+                {
+                    Value txVal;
+                    if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
+                    Object txObj = txVal.get_obj();
+
+                    txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
+                    stringstream msg;
+                    msg << "{\"event\":\"txstatuschangedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                    wsServer.sendGroup("txstatuschangedjson", msg.str());
+                }
+                {
+                    Object rawTxData(txData);
+                    rawTxData.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
+                    stringstream msg;
+                    msg << "{\"event\":\"txstatuschangedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
+                    wsServer.sendGroup("txstatuschangedraw", msg.str());
+                }
+                {
+                    Object serializedTxData(txData);
+                    serializedTxData.push_back(Pair("serializedtx", synchedVault.getVault()->exportTx(tx)));
+                    stringstream msg;
+                    msg << "{\"event\":\"txstatuschangedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
+                    wsServer.sendGroup("txstatuschangedserialized", msg.str());
+                }
             }
+            catch (const exception& e)
             {
-                std::string rawtx = uchar_vector(tx->raw()).getHex();
-                std::stringstream msg;
-                msg << "{\"event\":\"txstatuschangedraw\", \"data\":{\"hash\":\"" << hashstr << "\",\"rawtx\":\"" << rawtx << "\"}}";
-                wsServer.sendGroup("txstatuschangedraw", msg.str());
-            }
-            {
-                std::string serializedtx = synchedVault.getVault()->exportTx(tx);
-                std::stringstream msg;
-                msg << "{\"event\":\"txstatuschangedserialized\", \"data\":{\"hash\":\"" << hashstr << "\",\"serializedtx\":\"" << serializedtx << "\"}}";
-                wsServer.sendGroup("txstatuschangedserialized", msg.str());
+                LOGGER(error) << "txstatuschanged handler error: " << e.what() << endl;
             }
         });
         g_validGroups.insert("txstatuschanged");
+        g_validGroups.insert("txstatuschangedjson");
         g_validGroups.insert("txstatuschangedraw");
         g_validGroups.insert("txstatuschangedserialized");
 
