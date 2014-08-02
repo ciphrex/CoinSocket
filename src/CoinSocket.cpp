@@ -41,6 +41,8 @@ using namespace std;
 
 // Globals
 command_map_t g_command_map;
+set<string> g_validGroups;
+
 bool g_bShutdown = false;
 
 std::string g_connectKey;
@@ -109,6 +111,45 @@ WebSocketServer::context_ptr tlsInit(const std::string& tlsCertificateFile, WebS
 }
 #endif
 
+void subscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
+{
+    using namespace json_spirit;
+ 
+    std::vector<std::string> groups;
+    for (auto& param: params)
+    {
+        if (param.type() != str_type) throw CommandInvalidParametersException();
+        std::string group = param.get_str();
+        if (!g_validGroups.count(group)) throw CommandInvalidGroupsException();
+        groups.push_back(group);
+    }
+
+    for (auto& group: groups) { server.addToGroup(group, hdl); }
+}
+
+void unsubscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
+{
+    using namespace json_spirit;
+
+    if (params.size() == 0)
+    {
+        server.removeFromAllGroups(hdl);
+    }
+    else
+    { 
+        std::vector<std::string> groups;
+        for (auto& param: params)
+        {
+            if (param.type() != str_type) throw CommandInvalidParametersException();
+            std::string group = param.get_str();
+            if (!g_validGroups.count(group)) throw CommandInvalidGroupsException();
+            groups.push_back(group);
+        }
+
+        for (auto& group: groups) { server.removeFromGroup(group, hdl); }
+    }
+}
+
 void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const WebSocketServer::client_request_t& req)
 {
     using namespace json_spirit;
@@ -124,12 +165,25 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
 
     try
     {
-        auto it = g_command_map.find(method);
-        if (it == g_command_map.end())
-            throw CommandInvalidMethodException();
+        if (method == "subscribe")
+        {
+            subscribeClient(server, req.first, params);
+            response.setResult("success", id);
+        }
+        else if (method == "unsubscribe")
+        {
+            unsubscribeClient(server, req.first, params);
+            response.setResult("success", id);
+        }
+        else
+        {    
+            auto it = g_command_map.find(method);
+            if (it == g_command_map.end())
+                throw CommandInvalidMethodException();
 
-        Value result = it->second(synchedVault, params);
-        response.setResult(result, id);
+            Value result = it->second(synchedVault, params);
+            response.setResult(result, id);
+        }
     }
     catch (const stdutils::custom_error& e)
     {
@@ -222,26 +276,61 @@ int main(int argc, char* argv[])
             LOGGER(debug) << "Sync status changed: " << syncStatusJson << endl;
             stringstream msg;
             msg << "{\"event\":\"syncstatuschanged\", \"data\":" << syncStatusJson << "}";
-            wsServer.sendAll(msg.str());
+            wsServer.sendGroup("statuschanged", msg.str());
         });
+        g_validGroups.insert("statuschanged");
  
         synchedVault.subscribeTxInserted([&](std::shared_ptr<Tx> tx)
         {
-            std::string hash = uchar_vector(tx->hash()).getHex();
-            LOGGER(debug) << "Transaction inserted: " << hash << endl;
-            std::stringstream msg;
-            msg << "{\"event\":\"txinserted\", \"data\":" << tx->toJson(true) << "}";
-            wsServer.sendAll(msg.str());
+            std::string hashstr = uchar_vector(tx->hash()).getHex();
+            LOGGER(debug) << "Transaction inserted: " << hashstr << endl;
+            {
+                std::stringstream msg;
+                msg << "{\"event\":\"txinserted\", \"data\":" << tx->toJson(false) << "}";
+                wsServer.sendGroup("txinserted", msg.str());
+            }
+            {
+                std::string rawtx = uchar_vector(tx->raw()).getHex();
+                std::stringstream msg;
+                msg << "{\"event\":\"txinsertedraw\", \"data\":{\"hash\":\"" << hashstr << "\",\"rawtx\":\"" << rawtx << "\"}}";
+                wsServer.sendGroup("txinsertedraw", uchar_vector(tx->raw()).getHex());
+            }
+            {
+                std::string serializedtx = synchedVault.getVault()->exportTx(tx);
+                std::stringstream msg;
+                msg << "{\"event\":\"txinsertedserialized\", \"data\":{\"hash\":\"" << hashstr << "\",\"serializedtx\":\"" << serializedtx << "\"}}";
+                wsServer.sendGroup("txinsertedserialized", serializedtx);
+            }
         });
+        g_validGroups.insert("txinserted");
+        g_validGroups.insert("txinsertedraw");
+        g_validGroups.insert("txinsertedserialized");
 
         synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
         {
-            LOGGER(debug) << "Transaction status changed: " << uchar_vector(tx->hash()).getHex() << " New status: " << Tx::getStatusString(tx->status()) << endl;
-
-            std::stringstream msg;
-            msg << "{\"event\":\"txstatuschanged\", \"data\":" << tx->toJson(true) << "}";
-            wsServer.sendAll(msg.str());
+            std::string hashstr = uchar_vector(tx->hash()).getHex();
+            LOGGER(debug) << "Transaction status changed: " << hashstr << " New status: " << Tx::getStatusString(tx->status()) << endl;
+            {
+                std::stringstream msg;
+                msg << "{\"event\":\"txstatuschanged\", \"data\":" << tx->toJson(false) << "}";
+                wsServer.sendGroup("txstatuschanged", msg.str());
+            }
+            {
+                std::string rawtx = uchar_vector(tx->raw()).getHex();
+                std::stringstream msg;
+                msg << "{\"event\":\"txstatuschangedraw\", \"data\":{\"hash\":\"" << hashstr << "\",\"rawtx\":\"" << rawtx << "\"}}";
+                wsServer.sendGroup("txstatuschangedraw", uchar_vector(tx->raw()).getHex());
+            }
+            {
+                std::string serializedtx = synchedVault.getVault()->exportTx(tx);
+                std::stringstream msg;
+                msg << "{\"event\":\"txstatuschangedserialized\", \"data\":{\"hash\":\"" << hashstr << "\",\"serializedtx\":\"" << serializedtx << "\"}}";
+                wsServer.sendGroup("txstatuschangedserialized", serializedtx);
+            }
         });
+        g_validGroups.insert("txstatuschanged");
+        g_validGroups.insert("txstatuschangedraw");
+        g_validGroups.insert("txstatuschangedserialized");
 
         synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
         {
@@ -253,6 +342,7 @@ int main(int argc, char* argv[])
             msg << "{\"event\":\"merkleblockinserted\", \"data\":" << merkleblock->toJson() << "}";
             wsServer.sendAll(msg.str());
         });
+        g_validGroups.insert("merkleblockinserted");
 
         if (config.getSync())
         {

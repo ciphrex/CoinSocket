@@ -27,6 +27,7 @@ enum ErrorCodes
     // Command  errors - these errors imply an error in a submitted command
     COMMAND_INVALID_METHOD = 1201,
     COMMAND_INVALID_PARAMETERS,
+    COMMAND_INVALID_GROUPS,
 
     // Operation errors - these errors imply an error in the execution of command
     OPERATION_TRANSACTION_NOT_INSERTED = 1301
@@ -90,6 +91,12 @@ class CommandInvalidParametersException : public CommandException
 {
 public:
     explicit CommandInvalidParametersException() : CommandException("Invalid parameters.", COMMAND_INVALID_PARAMETERS) { }
+};
+
+class CommandInvalidGroupsException : public CommandException
+{
+public:
+    explicit CommandInvalidGroupsException() : CommandException("Invalid subscription groups.", COMMAND_INVALID_GROUPS) { }
 };
 
 // OPERATION EXCEPTIONS
