@@ -32,6 +32,11 @@
 #include <iostream>
 #include <signal.h>
 
+#include <string>
+#include <set>
+#include <vector>
+#include <map>
+
 #include <thread>
 #include <chrono>
 
@@ -41,7 +46,14 @@ using namespace std;
 
 // Globals
 command_map_t g_command_map;
-set<string> g_validGroups;
+
+typedef set<string> GroupSet;
+GroupSet g_group_set;
+
+typedef multimap<string, string> GroupMultiMap;
+GroupMultiMap g_group_multimap;
+
+typedef pair<string, string> GroupMultiMapPair;
 
 bool g_bShutdown = false;
 
@@ -115,13 +127,21 @@ void subscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl, c
 {
     using namespace json_spirit;
  
-    std::vector<std::string> groups;
+    std::set<std::string> groups;
     for (auto& param: params)
     {
         if (param.type() != str_type) throw CommandInvalidParametersException();
         std::string group = param.get_str();
-        if (!g_validGroups.count(group)) throw CommandInvalidGroupsException();
-        groups.push_back(group);
+        if (g_group_set.count(group))
+        {
+            groups.insert(group);
+        }
+        else
+        {
+            auto range = g_group_multimap.equal_range(group);
+            if (range.first == range.second) throw CommandInvalidGroupsException();
+            for (GroupMultiMap::iterator it = range.first; it != range.second; ++it) { groups.insert(it->second); }
+        }
     }
 
     for (auto& group: groups) { server.addToGroup(group, hdl); }
@@ -137,13 +157,21 @@ void unsubscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl,
     }
     else
     { 
-        std::vector<std::string> groups;
+        std::set<std::string> groups;
         for (auto& param: params)
         {
             if (param.type() != str_type) throw CommandInvalidParametersException();
             std::string group = param.get_str();
-            if (!g_validGroups.count(group)) throw CommandInvalidGroupsException();
-            groups.push_back(group);
+            if (g_group_set.count(group))
+            {
+                groups.insert(group);
+            }
+            else
+            {
+                auto range = g_group_multimap.equal_range(group);
+                if (range.first == range.second) throw CommandInvalidGroupsException();
+                for (GroupMultiMap::iterator it = range.first; it != range.second; ++it) { groups.insert(it->second); }
+            }
         }
 
         for (auto& group: groups) { server.removeFromGroup(group, hdl); }
@@ -174,6 +202,10 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
         {
             unsubscribeClient(server, req.first, params);
             response.setResult("success", id);
+        }
+        else if (method == "getgroups")
+        {
+            response.setResult(Array(g_group_set.begin(), g_group_set.end()), id);
         }
         else
         {    
@@ -266,16 +298,20 @@ int main(int argc, char* argv[])
             return 1;
         }
 
+        // SYNC STATUS CHANGE
         synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status)
         {
             string syncStatusJson = json_spirit::write_string<json_spirit::Value>(getSyncStatusObject(synchedVault));
             LOGGER(debug) << "Sync status changed: " << syncStatusJson << endl;
             stringstream msg;
             msg << "{\"event\":\"syncstatuschanged\", \"data\":" << syncStatusJson << "}";
-            wsServer.sendGroup("statuschanged", msg.str());
+            wsServer.sendGroup("syncstatuschanged", msg.str());
         });
-        g_validGroups.insert("statuschanged");
- 
+        g_group_set.insert("syncstatuschanged");
+
+        g_group_multimap.insert(GroupMultiMapPair("all", "syncstatuschanged"));
+
+        // TX INSERTED 
         synchedVault.subscribeTxInserted([&](shared_ptr<Tx> tx)
         {
             using namespace json_spirit;
@@ -330,11 +366,22 @@ int main(int argc, char* argv[])
                 LOGGER(error) << "txinserted handler error: " << e.what() << endl;
             }
         });
-        g_validGroups.insert("txinserted");
-        g_validGroups.insert("txinsertedjson");
-        g_validGroups.insert("txinsertedraw");
-        g_validGroups.insert("txinsertedserialized");
+        g_group_set.insert("txinserted");
+        g_group_set.insert("txinsertedjson");
+        g_group_set.insert("txinsertedraw");
+        g_group_set.insert("txinsertedserialized");
 
+        g_group_multimap.insert(GroupMultiMapPair("tx", "txinserted"));
+        g_group_multimap.insert(GroupMultiMapPair("txjson", "txinsertedjson"));
+        g_group_multimap.insert(GroupMultiMapPair("txraw", "txinsertedraw"));
+        g_group_multimap.insert(GroupMultiMapPair("txserialized", "txinsertedserialized"));
+
+        g_group_multimap.insert(GroupMultiMapPair("all", "txinserted"));
+        g_group_multimap.insert(GroupMultiMapPair("all", "txinsertedjson"));
+        g_group_multimap.insert(GroupMultiMapPair("all", "txinsertedraw"));
+        g_group_multimap.insert(GroupMultiMapPair("all", "txinsertedserialized"));
+
+        // TX STATUS CHANGED
         synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
         {
             using namespace json_spirit;
@@ -389,22 +436,35 @@ int main(int argc, char* argv[])
                 LOGGER(error) << "txstatuschanged handler error: " << e.what() << endl;
             }
         });
-        g_validGroups.insert("txstatuschanged");
-        g_validGroups.insert("txstatuschangedjson");
-        g_validGroups.insert("txstatuschangedraw");
-        g_validGroups.insert("txstatuschangedserialized");
+        g_group_set.insert("txstatuschanged");
+        g_group_set.insert("txstatuschangedjson");
+        g_group_set.insert("txstatuschangedraw");
+        g_group_set.insert("txstatuschangedserialized");
 
+        g_group_multimap.insert(GroupMultiMapPair("tx", "txstatuschanged"));
+        g_group_multimap.insert(GroupMultiMapPair("txjson", "txstatuschangedjson"));
+        g_group_multimap.insert(GroupMultiMapPair("txraw", "txstatuschangedraw"));
+        g_group_multimap.insert(GroupMultiMapPair("txserialized", "txstatuschangedserialized"));
+
+        g_group_multimap.insert(GroupMultiMapPair("all", "txstatuschanged"));
+        g_group_multimap.insert(GroupMultiMapPair("all", "txstatuschangedjson"));
+        g_group_multimap.insert(GroupMultiMapPair("all", "txstatuschangedraw"));
+        g_group_multimap.insert(GroupMultiMapPair("all", "txstatuschangedserialized"));
+
+        // MERKLE BLOCK INSERTED
         synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
         {
             LOGGER(debug) << "Merkle block inserted: " << uchar_vector(merkleblock->blockheader()->hash()).getHex() << " Height: " << merkleblock->blockheader()->height() << endl;
 
-            if (synchedVault.getStatus() != SynchedVault::SYNCHED) return;
+            //if (synchedVault.getStatus() != SynchedVault::SYNCHED) return;
 
             std::stringstream msg;
             msg << "{\"event\":\"merkleblockinserted\", \"data\":" << merkleblock->toJson() << "}";
             wsServer.sendGroup("merkleblockinserted", msg.str());
         });
-        g_validGroups.insert("merkleblockinserted");
+        g_group_set.insert("merkleblockinserted");
+
+        g_group_multimap.insert(GroupMultiMapPair("all", "merkleblockinserted"));
 
         if (config.getSync())
         {
