@@ -419,6 +419,36 @@ Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
     return txObj;
 }
 
+Value cmd_getserializedtx(SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1)
+        throw CommandInvalidParametersException();
+
+    Vault* vault = synchedVault.getVault();
+
+    std::shared_ptr<Tx> tx;
+    if (params[0].type() == str_type)
+    {
+        uchar_vector hash(params[0].get_str());
+        tx = vault->getTx(hash); 
+    }
+    else if (params[0].type() == int_type)
+    {
+        tx = vault->getTx((unsigned long)params[0].get_uint64());
+    }
+    else
+    {
+        throw CommandInvalidParametersException();
+    }
+
+    string serializedTx = vault->exportTx(tx);
+
+    Object result;
+    result.push_back(Pair("hash", uchar_vector(tx->hash()).getHex()));
+    result.push_back(Pair("serializedtx", serializedTx));
+    return result;
+}
+
 Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 3)
@@ -559,6 +589,37 @@ Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
     return txObj;
 }
 
+Value cmd_insertserializedtx(SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() < 1 || params.size() > 2 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    bool trySend = false;
+    if (params.size() > 1)
+    {
+        if (params[1].type() != bool_type)
+            throw CommandInvalidParametersException();
+
+        trySend = params[1].get_bool();
+    }
+
+    Vault* vault = synchedVault.getVault();
+
+    std::shared_ptr<Tx> tx = vault->importTxFromString(params[0].get_str());
+    if (!tx) throw OperationTransactionNotInsertedException();
+
+    if (trySend && tx->status() == Tx::UNSENT)
+    {
+        tx = synchedVault.sendTx(tx->id());
+    }
+
+    Value txObj;
+    if (!read_string(tx->toJson(true), txObj))
+        throw InternalTxJsonInvalidException();
+
+    return txObj;
+}
+
 Value cmd_sendtx(SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
@@ -654,10 +715,12 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("gethistory", Command(&cmd_gethistory)));
     command_map.insert(cmd_pair("getunsigned", Command(&cmd_getunsigned)));
     command_map.insert(cmd_pair("gettx", Command(&cmd_gettx)));
+    command_map.insert(cmd_pair("getserializedtx", Command(&cmd_getserializedtx)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
     command_map.insert(cmd_pair("getsigningrequest", Command(&cmd_getsigningrequest)));
     command_map.insert(cmd_pair("signtx", Command(&cmd_signtx)));
     command_map.insert(cmd_pair("insertrawtx", Command(&cmd_insertrawtx)));
+    command_map.insert(cmd_pair("insertserializedtx", Command(&cmd_insertserializedtx)));
     command_map.insert(cmd_pair("sendtx", Command(&cmd_sendtx)));
 
     // Blockchain operations

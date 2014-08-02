@@ -65,10 +65,12 @@ json_spirit::Value cmd_exportaccounttofile(CoinDB::SynchedVault& synchedVault, c
 // Tx operations
 json_spirit::Value cmd_gethistory(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_gettx(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getserializedtx(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_newtx(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getsigningrequest(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_signtx(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_insertrawtx(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_insertserializedtx(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_sendtx(CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 
