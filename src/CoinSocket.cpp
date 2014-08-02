@@ -293,13 +293,13 @@ int main(int argc, char* argv[])
                 std::string rawtx = uchar_vector(tx->raw()).getHex();
                 std::stringstream msg;
                 msg << "{\"event\":\"txinsertedraw\", \"data\":{\"hash\":\"" << hashstr << "\",\"rawtx\":\"" << rawtx << "\"}}";
-                wsServer.sendGroup("txinsertedraw", uchar_vector(tx->raw()).getHex());
+                wsServer.sendGroup("txinsertedraw", msg.str());
             }
             {
                 std::string serializedtx = synchedVault.getVault()->exportTx(tx);
                 std::stringstream msg;
                 msg << "{\"event\":\"txinsertedserialized\", \"data\":{\"hash\":\"" << hashstr << "\",\"serializedtx\":\"" << serializedtx << "\"}}";
-                wsServer.sendGroup("txinsertedserialized", serializedtx);
+                wsServer.sendGroup("txinsertedserialized", msg.str());
             }
         });
         g_validGroups.insert("txinserted");
@@ -319,13 +319,13 @@ int main(int argc, char* argv[])
                 std::string rawtx = uchar_vector(tx->raw()).getHex();
                 std::stringstream msg;
                 msg << "{\"event\":\"txstatuschangedraw\", \"data\":{\"hash\":\"" << hashstr << "\",\"rawtx\":\"" << rawtx << "\"}}";
-                wsServer.sendGroup("txstatuschangedraw", uchar_vector(tx->raw()).getHex());
+                wsServer.sendGroup("txstatuschangedraw", msg.str());
             }
             {
                 std::string serializedtx = synchedVault.getVault()->exportTx(tx);
                 std::stringstream msg;
                 msg << "{\"event\":\"txstatuschangedserialized\", \"data\":{\"hash\":\"" << hashstr << "\",\"serializedtx\":\"" << serializedtx << "\"}}";
-                wsServer.sendGroup("txstatuschangedserialized", serializedtx);
+                wsServer.sendGroup("txstatuschangedserialized", msg.str());
             }
         });
         g_validGroups.insert("txstatuschanged");
@@ -340,7 +340,7 @@ int main(int argc, char* argv[])
 
             std::stringstream msg;
             msg << "{\"event\":\"merkleblockinserted\", \"data\":" << merkleblock->toJson() << "}";
-            wsServer.sendAll(msg.str());
+            wsServer.sendGroup("merkleblockinserted", msg.str());
         });
         g_validGroups.insert("merkleblockinserted");
 
