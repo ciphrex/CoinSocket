@@ -166,7 +166,7 @@ void unsubscribeClient(Server& server, websocketpp::connection_hdl hdl, const js
     for (auto& channel: subscriptions) { server.removeFromChannel(channel, hdl); }
 }
 
-void requestCallback(SynchedVault& synchedVault, Server& server, const Server::client_request_t& req)
+void requestCallback(Server& server, SynchedVault& synchedVault, const Server::client_request_t& req)
 {
     using namespace json_spirit;
 
@@ -201,7 +201,7 @@ void requestCallback(SynchedVault& synchedVault, Server& server, const Server::c
             if (it == g_command_map.end())
                 throw CommandInvalidMethodException();
 
-            Value result = it->second(synchedVault, params);
+            Value result = it->second(server, synchedVault, params);
             response.setResult(result, id);
         }
     }
@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
 #endif
         wsServer.setRequestCallback([&](Server& server, const Server::client_request_t& req)
         {
-            requestCallback(synchedVault, server, req);
+            requestCallback(server, synchedVault, req);
         });
 
         try

@@ -19,7 +19,11 @@
 
 #include "CoinSocketExceptions.h"
 
+#include <WebSocketAPI/Server.h>
+#include <CoinDB/SynchedVault.h>
+
 using namespace CoinSocket;
+using namespace WebSocket;
 using namespace json_spirit;
 using namespace CoinDB;
 using namespace std;
@@ -46,7 +50,7 @@ void setDocumentDir(const string& documentDir) { g_documentDir = documentDir; }
 const string& getDocumentDir() { return g_documentDir; }
 
 // Global operations
-Value cmd_getvaultinfo(SynchedVault& synchedVault, const Array& params)
+Value cmd_getvaultinfo(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 0)
         throw CommandInvalidParametersException();
@@ -62,7 +66,7 @@ Value cmd_getvaultinfo(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_setvaultfromfile(SynchedVault& synchedVault, const Array& params)
+Value cmd_setvaultfromfile(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
@@ -85,7 +89,7 @@ Value cmd_setvaultfromfile(SynchedVault& synchedVault, const Array& params)
     }
 }
 
-Value cmd_exportvaulttofile(SynchedVault& synchedVault, const Array& params)
+Value cmd_exportvaulttofile(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2 || params[0].type() != str_type || params[1].type() != bool_type)
         throw CommandInvalidParametersException();
@@ -98,7 +102,7 @@ Value cmd_exportvaulttofile(SynchedVault& synchedVault, const Array& params)
 }
 
 // Keychain operations
-Value cmd_newkeychain(SynchedVault& synchedVault, const Array& params)
+Value cmd_newkeychain(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
@@ -110,7 +114,7 @@ Value cmd_newkeychain(SynchedVault& synchedVault, const Array& params)
     return getKeychainObject(keychain.get());
 }
 
-Value cmd_renamekeychain(SynchedVault& synchedVault, const Array& params)
+Value cmd_renamekeychain(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2 || params[0].type() != str_type || params[0].type() != str_type)
         throw CommandInvalidParametersException();
@@ -123,7 +127,7 @@ Value cmd_renamekeychain(SynchedVault& synchedVault, const Array& params)
     return Value("success");
 }
 
-Value cmd_getkeychaininfo(SynchedVault& synchedVault, const Array& params)
+Value cmd_getkeychaininfo(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
@@ -135,7 +139,7 @@ Value cmd_getkeychaininfo(SynchedVault& synchedVault, const Array& params)
     return getKeychainObject(keychain.get());
 }
 
-Value cmd_getkeychains(SynchedVault& synchedVault, const Array& params)
+Value cmd_getkeychains(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 2)
         throw CommandInvalidParametersException();
@@ -166,7 +170,7 @@ Value cmd_getkeychains(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_exportbip32(SynchedVault& synchedVault, const Array& params)
+Value cmd_exportbip32(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw CommandInvalidParametersException();
@@ -183,7 +187,7 @@ Value cmd_exportbip32(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_importbip32(SynchedVault& synchedVault, const Array& params)
+Value cmd_importbip32(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2)
         throw CommandInvalidParametersException();
@@ -198,7 +202,7 @@ Value cmd_importbip32(SynchedVault& synchedVault, const Array& params)
     return Value("success");
 }
 
-Value cmd_newaccount(SynchedVault& synchedVault, const Array& params)
+Value cmd_newaccount(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 3 || params.size() > 18)
         throw CommandInvalidParametersException();
@@ -222,7 +226,7 @@ Value cmd_newaccount(SynchedVault& synchedVault, const Array& params)
     return getAccountInfoObject(accountInfo);
 }
 
-Value cmd_renameaccount(SynchedVault& synchedVault, const Array& params)
+Value cmd_renameaccount(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 2 || params[0].type() != str_type || params[1].type() != str_type)
         throw CommandInvalidParametersException();
@@ -235,7 +239,7 @@ Value cmd_renameaccount(SynchedVault& synchedVault, const Array& params)
     return Value("success");
 }
 
-Value cmd_getaccountinfo(SynchedVault& synchedVault, const Array& params)
+Value cmd_getaccountinfo(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
@@ -253,7 +257,7 @@ Value cmd_getaccountinfo(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_getaccounts(SynchedVault& synchedVault, const Array& params)
+Value cmd_getaccounts(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 0)
         throw CommandInvalidParametersException();
@@ -278,7 +282,7 @@ Value cmd_getaccounts(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
+Value cmd_issuescript(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 1 || params.size() > 3)
         throw CommandInvalidParametersException();
@@ -311,7 +315,7 @@ Value cmd_issuescript(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_importaccountfromfile(SynchedVault& synchedVault, const Array& params)
+Value cmd_importaccountfromfile(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
@@ -335,7 +339,7 @@ Value cmd_importaccountfromfile(SynchedVault& synchedVault, const Array& params)
     }
 }
 
-Value cmd_exportaccounttofile(SynchedVault& synchedVault, const Array& params)
+Value cmd_exportaccounttofile(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 3 || params[0].type() != str_type || params[1].type() != str_type || params[2].type() != bool_type)
         throw CommandInvalidParametersException();
@@ -349,7 +353,7 @@ Value cmd_exportaccounttofile(SynchedVault& synchedVault, const Array& params)
 }
 
 // Tx operations
-Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
+Value cmd_gethistory(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 1 || (params.size() == 1 && params[0].type() != int_type))
         throw CommandInvalidParametersException();
@@ -370,7 +374,7 @@ Value cmd_gethistory(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_getunsigned(SynchedVault& synchedVault, const Array& params)
+Value cmd_getunsigned(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 0)
         throw CommandInvalidParametersException();
@@ -390,7 +394,7 @@ Value cmd_getunsigned(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
+Value cmd_gettx(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw CommandInvalidParametersException();
@@ -419,7 +423,7 @@ Value cmd_gettx(SynchedVault& synchedVault, const Array& params)
     return txObj;
 }
 
-Value cmd_getserializedtx(SynchedVault& synchedVault, const Array& params)
+Value cmd_getserializedtx(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw CommandInvalidParametersException();
@@ -449,7 +453,7 @@ Value cmd_getserializedtx(SynchedVault& synchedVault, const Array& params)
     return result;
 }
 
-Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
+Value cmd_newtx(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 3)
         throw CommandInvalidParametersException();
@@ -487,7 +491,7 @@ Value cmd_newtx(SynchedVault& synchedVault, const Array& params)
     return txObj;
 }
 
-Value cmd_getsigningrequest(SynchedVault& synchedVault, const Array& params)
+Value cmd_getsigningrequest(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw CommandInvalidParametersException();
@@ -512,7 +516,7 @@ Value cmd_getsigningrequest(SynchedVault& synchedVault, const Array& params)
 }
 
 // TODO: Mutex to prevent multiple clients from simultaneously unlocking and locking keychains
-Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
+Value cmd_signtx(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 3 || params[1].type() != str_type || params[2].type() != str_type)
         throw CommandInvalidParametersException();
@@ -555,7 +559,7 @@ Value cmd_signtx(SynchedVault& synchedVault, const Array& params)
     return getSigningRequestObject(vault->getSigningRequest(tx->id(), true));
 }
 
-Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
+Value cmd_insertrawtx(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 1 || params.size() > 2 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
@@ -589,7 +593,7 @@ Value cmd_insertrawtx(SynchedVault& synchedVault, const Array& params)
     return txObj;
 }
 
-Value cmd_insertserializedtx(SynchedVault& synchedVault, const Array& params)
+Value cmd_insertserializedtx(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 1 || params.size() > 2 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
@@ -620,7 +624,7 @@ Value cmd_insertserializedtx(SynchedVault& synchedVault, const Array& params)
     return txObj;
 }
 
-Value cmd_sendtx(SynchedVault& synchedVault, const Array& params)
+Value cmd_sendtx(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw CommandInvalidParametersException();
@@ -647,7 +651,7 @@ Value cmd_sendtx(SynchedVault& synchedVault, const Array& params)
 }
 
 // Blockchain operations
-Value cmd_getblockheader(SynchedVault& synchedVault, const Array& params)
+Value cmd_getblockheader(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1)
         throw CommandInvalidParametersException();
@@ -673,7 +677,7 @@ Value cmd_getblockheader(SynchedVault& synchedVault, const Array& params)
     return getBlockHeaderObject(header.get());
 }
 
-Value cmd_getchaintip(SynchedVault& synchedVault, const Array& params)
+Value cmd_getchaintip(Server& /*server*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 0)
         throw CommandInvalidParametersException();
