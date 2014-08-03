@@ -16,37 +16,20 @@
 #include <functional>
 
 #include <json_spirit/json_spirit_value.h>
-
-namespace WebSocket
-{
-    class ServerTls;
-    class ServerNoTls;
-
-#if defined(USE_TLS)
-    typedef ServerTls Server;
-#else
-    typedef ServerNoTls Server;
-#endif
-}
+#include <WebSocketAPI/Server.h>
 
 namespace CoinDB { class SynchedVault; }
-/*
-namespace json_spirit
-{
-    class Array;
-}
-*/
 
-typedef std::function<json_spirit::Value(WebSocket::Server& server, CoinDB::SynchedVault&, const json_spirit::Array&)> cmd_t;
+typedef std::function<json_spirit::Value(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault&, const json_spirit::Array&)> cmd_t;
 
 class Command
 {
 public:
     Command(cmd_t cmd) : m_cmd(cmd) { }
 
-    json_spirit::Value operator()(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params) const
+    json_spirit::Value operator()(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params) const
     {
-        return m_cmd(server, synchedVault, params);
+        return m_cmd(server, hdl, synchedVault, params);
     }
 
 private:
@@ -60,41 +43,41 @@ void setDocumentDir(const std::string& documentDir);
 const std::string& getDocumentDir();
 
 // Global operations
-json_spirit::Value cmd_getvaultinfo(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_setvaultfromfile(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_exportvaulttofile(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getvaultinfo(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_setvaultfromfile(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_exportvaulttofile(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 // Keychain operations
-json_spirit::Value cmd_newkeychain(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_renamekeychain(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_getkeychaininfo(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_getkeychains(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_exportbip32(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_importbip32(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_newkeychain(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_renamekeychain(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getkeychaininfo(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getkeychains(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_exportbip32(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_importbip32(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 // Account operations
-json_spirit::Value cmd_newaccount(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_renameaccount(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_getaccountinfo(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_getaccounts(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_issuescript(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_importaccountfromfile(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_exportaccounttofile(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_newaccount(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_renameaccount(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getaccountinfo(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getaccounts(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_issuescript(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_importaccountfromfile(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_exportaccounttofile(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 // Tx operations
-json_spirit::Value cmd_gethistory(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_gettx(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_getserializedtx(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_newtx(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_getsigningrequest(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_signtx(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_insertrawtx(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_insertserializedtx(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_sendtx(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_gethistory(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_gettx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getserializedtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_newtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getsigningrequest(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_signtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_insertrawtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_insertserializedtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_sendtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 
 // Blockchain operations
-json_spirit::Value cmd_getblockheader(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
-json_spirit::Value cmd_getchaintip(WebSocket::Server& server, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getblockheader(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getchaintip(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 void initCommandMap(command_map_t& command_map);

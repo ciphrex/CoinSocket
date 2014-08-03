@@ -201,7 +201,7 @@ void requestCallback(Server& server, SynchedVault& synchedVault, const Server::c
             if (it == g_command_map.end())
                 throw CommandInvalidMethodException();
 
-            Value result = it->second(server, synchedVault, params);
+            Value result = it->second(server, req.first, synchedVault, params);
             response.setResult(result, id);
         }
     }
