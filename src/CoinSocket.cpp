@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
                 }
                 {
                     Object serializedTxData(txData);
-                    serializedTxData.push_back(Pair("serializedtx", synchedVault.getVault()->exportTx(tx)));
+                    serializedTxData.push_back(Pair("serializedtx", tx->toSerialized()));
                     stringstream msg;
                     msg << "{\"event\":\"txinsertedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
                     wsServer.sendChannel("txinsertedserialized", msg.str());
@@ -342,7 +342,7 @@ int main(int argc, char* argv[])
                 }
                 {
                     Object serializedTxData(txData);
-                    serializedTxData.push_back(Pair("serializedtx", synchedVault.getVault()->exportTx(tx)));
+                    serializedTxData.push_back(Pair("serializedtx", tx->toSerialized()));
                     stringstream msg;
                     msg << "{\"event\":\"txstatuschangedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
                     wsServer.sendChannel("txstatuschangedserialized", msg.str());
