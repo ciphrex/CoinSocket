@@ -100,7 +100,8 @@ endif
 
 OBJS = \
     obj/jsonobjects.o \
-    obj/commands.o
+    obj/commands.o \
+    obj/channels.o
 
 all: build/coinsocketd$(EXE_EXT)
 
@@ -112,6 +113,9 @@ obj/jsonobjects.o: src/jsonobjects.cpp src/jsonobjects.h
 
 obj/commands.o: src/commands.cpp src/commands.h src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
+
+obj/channels.o: src/channels.cpp src/channels.h
+	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
 
 install:
 	-mkdir -p $(SYSROOT)/bin

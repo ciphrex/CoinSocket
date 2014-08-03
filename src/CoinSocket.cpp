@@ -11,6 +11,7 @@
 
 #include "CoinSocketExceptions.h"
 #include "jsonobjects.h"
+#include "channels.h"
 
 #include <CoinDB/SynchedVault.h>
 #include <CoinQ/CoinQ_script.h>
@@ -46,14 +47,6 @@ using namespace std;
 
 // Globals
 command_map_t g_command_map;
-
-typedef set<string> GroupSet;
-GroupSet g_group_set;
-
-typedef multimap<string, string> GroupMultiMap;
-GroupMultiMap g_group_multimap;
-
-typedef pair<string, string> GroupMultiMapPair;
 
 bool g_bShutdown = false;
 
@@ -127,24 +120,24 @@ void subscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl, c
 {
     using namespace json_spirit;
  
-    std::set<std::string> groups;
+    Channels subscriptions;
     for (auto& param: params)
     {
         if (param.type() != str_type) throw CommandInvalidParametersException();
-        std::string group = param.get_str();
-        if (g_group_set.count(group))
+        std::string channel = param.get_str();
+        if (channelExists(channel))
         {
-            groups.insert(group);
+            subscriptions.insert(channel);
         }
         else
         {
-            auto range = g_group_multimap.equal_range(group);
-            if (range.first == range.second) throw CommandInvalidGroupsException();
-            for (GroupMultiMap::iterator it = range.first; it != range.second; ++it) { groups.insert(it->second); }
+            ChannelRange range = getChannelRange(channel);
+            if (isChannelRangeEmpty(range)) throw CommandInvalidChannelsException();
+            for (ChannelSets::iterator it = range.first; it != range.second; ++it) { subscriptions.insert(it->second); }
         }
     }
 
-    for (auto& group: groups) { server.addToGroup(group, hdl); }
+    for (auto& channel: subscriptions) { server.addToChannel(channel, hdl); }
 }
 
 void unsubscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
@@ -153,29 +146,28 @@ void unsubscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl,
 
     if (params.size() == 0)
     {
-        server.removeFromAllGroups(hdl);
+        server.removeFromAllChannels(hdl);
+        return;
     }
-    else
-    { 
-        std::set<std::string> groups;
-        for (auto& param: params)
-        {
-            if (param.type() != str_type) throw CommandInvalidParametersException();
-            std::string group = param.get_str();
-            if (g_group_set.count(group))
-            {
-                groups.insert(group);
-            }
-            else
-            {
-                auto range = g_group_multimap.equal_range(group);
-                if (range.first == range.second) throw CommandInvalidGroupsException();
-                for (GroupMultiMap::iterator it = range.first; it != range.second; ++it) { groups.insert(it->second); }
-            }
-        }
 
-        for (auto& group: groups) { server.removeFromGroup(group, hdl); }
+    Channels subscriptions;
+    for (auto& param: params)
+    {
+        if (param.type() != str_type) throw CommandInvalidParametersException();
+        std::string channel = param.get_str();
+        if (channelExists(channel))
+        {
+            subscriptions.insert(channel);
+        }
+        else
+        {
+            ChannelRange range = getChannelRange(channel);
+            if (isChannelRangeEmpty(range)) throw CommandInvalidChannelsException();
+            for (ChannelSets::iterator it = range.first; it != range.second; ++it) { subscriptions.insert(it->second); }
+        }
     }
+
+    for (auto& channel: subscriptions) { server.removeFromChannel(channel, hdl); }
 }
 
 void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const WebSocketServer::client_request_t& req)
@@ -203,9 +195,9 @@ void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const 
             unsubscribeClient(server, req.first, params);
             response.setResult("success", id);
         }
-        else if (method == "getgroups")
+        else if (method == "getchannels")
         {
-            response.setResult(Array(g_group_set.begin(), g_group_set.end()), id);
+            response.setResult(Array(getChannels().begin(), getChannels().end()), id);
         }
         else
         {    
@@ -305,11 +297,10 @@ int main(int argc, char* argv[])
             LOGGER(debug) << "Sync status changed: " << syncStatusJson << endl;
             stringstream msg;
             msg << "{\"event\":\"syncstatuschanged\", \"data\":" << syncStatusJson << "}";
-            wsServer.sendGroup("syncstatuschanged", msg.str());
+            wsServer.sendChannel("syncstatuschanged", msg.str());
         });
-        g_group_set.insert("syncstatuschanged");
-
-        g_group_multimap.insert(GroupMultiMapPair("all", "syncstatuschanged"));
+        addChannel("syncstatuschanged");
+        addChannelToSet("all", "syncstatuschanged");
 
         // TX INSERTED 
         synchedVault.subscribeTxInserted([&](shared_ptr<Tx> tx)
@@ -334,7 +325,7 @@ int main(int argc, char* argv[])
                 {
                     stringstream msg;
                     msg << "{\"event\":\"txinserted\", \"data\":" << write_string<Value>(txData) << "}";
-                    wsServer.sendGroup("txinserted", msg.str());
+                    wsServer.sendChannel("txinserted", msg.str());
                 }
                 {
                     Value txVal;
@@ -344,21 +335,21 @@ int main(int argc, char* argv[])
                     txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
                     stringstream msg;
                     msg << "{\"event\":\"txinsertedjson\", \"data\":" << write_string<Value>(txObj) << "}";
-                    wsServer.sendGroup("txinsertedjson", msg.str());
+                    wsServer.sendChannel("txinsertedjson", msg.str());
                 }
                 {
                     Object rawTxData(txData);
                     rawTxData.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
                     stringstream msg;
                     msg << "{\"event\":\"txinsertedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
-                    wsServer.sendGroup("txinsertedraw", msg.str());
+                    wsServer.sendChannel("txinsertedraw", msg.str());
                 }
                 {
                     Object serializedTxData(txData);
                     serializedTxData.push_back(Pair("serializedtx", synchedVault.getVault()->exportTx(tx)));
                     stringstream msg;
                     msg << "{\"event\":\"txinsertedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
-                    wsServer.sendGroup("txinsertedserialized", msg.str());
+                    wsServer.sendChannel("txinsertedserialized", msg.str());
                 }
             }
             catch (const exception& e)
@@ -366,20 +357,20 @@ int main(int argc, char* argv[])
                 LOGGER(error) << "txinserted handler error: " << e.what() << endl;
             }
         });
-        g_group_set.insert("txinserted");
-        g_group_set.insert("txinsertedjson");
-        g_group_set.insert("txinsertedraw");
-        g_group_set.insert("txinsertedserialized");
+        addChannel("txinserted");
+        addChannel("txinsertedjson");
+        addChannel("txinsertedraw");
+        addChannel("txinsertedserialized");
 
-        g_group_multimap.insert(GroupMultiMapPair("tx", "txinserted"));
-        g_group_multimap.insert(GroupMultiMapPair("txjson", "txinsertedjson"));
-        g_group_multimap.insert(GroupMultiMapPair("txraw", "txinsertedraw"));
-        g_group_multimap.insert(GroupMultiMapPair("txserialized", "txinsertedserialized"));
+        addChannelToSet("tx",           "txinserted");
+        addChannelToSet("txjson",       "txinsertedjson");
+        addChannelToSet("txraw",        "txinsertedraw");
+        addChannelToSet("txserialized", "txinsertedserialized");
 
-        g_group_multimap.insert(GroupMultiMapPair("all", "txinserted"));
-        g_group_multimap.insert(GroupMultiMapPair("all", "txinsertedjson"));
-        g_group_multimap.insert(GroupMultiMapPair("all", "txinsertedraw"));
-        g_group_multimap.insert(GroupMultiMapPair("all", "txinsertedserialized"));
+        addChannelToSet("all",          "txinserted");
+        addChannelToSet("all",          "txinsertedjson");
+        addChannelToSet("all",          "txinsertedraw");
+        addChannelToSet("all",          "txinsertedserialized");
 
         // TX STATUS CHANGED
         synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
@@ -404,7 +395,7 @@ int main(int argc, char* argv[])
                 {
                     stringstream msg;
                     msg << "{\"event\":\"txstatuschanged\", \"data\":" << write_string<Value>(txData) << "}";
-                    wsServer.sendGroup("txstatuschanged", msg.str());
+                    wsServer.sendChannel("txstatuschanged", msg.str());
                 }
                 {
                     Value txVal;
@@ -414,21 +405,21 @@ int main(int argc, char* argv[])
                     txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
                     stringstream msg;
                     msg << "{\"event\":\"txstatuschangedjson\", \"data\":" << write_string<Value>(txObj) << "}";
-                    wsServer.sendGroup("txstatuschangedjson", msg.str());
+                    wsServer.sendChannel("txstatuschangedjson", msg.str());
                 }
                 {
                     Object rawTxData(txData);
                     rawTxData.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
                     stringstream msg;
                     msg << "{\"event\":\"txstatuschangedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
-                    wsServer.sendGroup("txstatuschangedraw", msg.str());
+                    wsServer.sendChannel("txstatuschangedraw", msg.str());
                 }
                 {
                     Object serializedTxData(txData);
                     serializedTxData.push_back(Pair("serializedtx", synchedVault.getVault()->exportTx(tx)));
                     stringstream msg;
                     msg << "{\"event\":\"txstatuschangedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
-                    wsServer.sendGroup("txstatuschangedserialized", msg.str());
+                    wsServer.sendChannel("txstatuschangedserialized", msg.str());
                 }
             }
             catch (const exception& e)
@@ -436,20 +427,20 @@ int main(int argc, char* argv[])
                 LOGGER(error) << "txstatuschanged handler error: " << e.what() << endl;
             }
         });
-        g_group_set.insert("txstatuschanged");
-        g_group_set.insert("txstatuschangedjson");
-        g_group_set.insert("txstatuschangedraw");
-        g_group_set.insert("txstatuschangedserialized");
+        addChannel("txstatuschanged");
+        addChannel("txstatuschangedjson");
+        addChannel("txstatuschangedraw");
+        addChannel("txstatuschangedserialized");
 
-        g_group_multimap.insert(GroupMultiMapPair("tx", "txstatuschanged"));
-        g_group_multimap.insert(GroupMultiMapPair("txjson", "txstatuschangedjson"));
-        g_group_multimap.insert(GroupMultiMapPair("txraw", "txstatuschangedraw"));
-        g_group_multimap.insert(GroupMultiMapPair("txserialized", "txstatuschangedserialized"));
+        addChannelToSet("tx",           "txstatuschanged");
+        addChannelToSet("txjson",       "txstatuschangedjson");
+        addChannelToSet("txraw",        "txstatuschangedraw");
+        addChannelToSet("txserialized", "txstatuschangedserialized");
 
-        g_group_multimap.insert(GroupMultiMapPair("all", "txstatuschanged"));
-        g_group_multimap.insert(GroupMultiMapPair("all", "txstatuschangedjson"));
-        g_group_multimap.insert(GroupMultiMapPair("all", "txstatuschangedraw"));
-        g_group_multimap.insert(GroupMultiMapPair("all", "txstatuschangedserialized"));
+        addChannelToSet("all",          "txstatuschanged");
+        addChannelToSet("all",          "txstatuschangedjson");
+        addChannelToSet("all",          "txstatuschangedraw");
+        addChannelToSet("all",          "txstatuschangedserialized");
 
         // MERKLE BLOCK INSERTED
         synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
@@ -460,11 +451,14 @@ int main(int argc, char* argv[])
 
             std::stringstream msg;
             msg << "{\"event\":\"merkleblockinserted\", \"data\":" << merkleblock->toJson() << "}";
-            wsServer.sendGroup("merkleblockinserted", msg.str());
+            wsServer.sendChannel("merkleblockinserted", msg.str());
         });
-        g_group_set.insert("merkleblockinserted");
+        addChannel("merkleblockinserted");
 
-        g_group_multimap.insert(GroupMultiMapPair("all", "merkleblockinserted"));
+        addChannelToSet("all",          "merkleblockinserted");
+
+
+
 
         if (config.getSync())
         {
