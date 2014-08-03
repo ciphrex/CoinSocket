@@ -36,11 +36,8 @@ var onmessage = function (e) {
         output.scrollTop = output.scrollHeight;
 
     // update uri
-    if (obj.hasOwnProperty('result') && obj.result.hasOwnProperty('uri')) {
-        uridiv.innerHTML = '<a href="' + obj.result.uri + '">Request from local wallet...</a>';
-    }
-    else {
-        uridiv.innerHTML = '';
+    if ((typeof obj === 'object') && (obj !== null) && obj.hasOwnProperty('result') && obj.result.hasOwnProperty('address') && obj.result.hasOwnProperty('uri')) {
+        uridiv.innerHTML = '<a href="' + obj.result.uri + '">Send to ' +  obj.result.address + ' from local wallet...</a>';
     }
 };
 
