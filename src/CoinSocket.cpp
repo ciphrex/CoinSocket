@@ -18,12 +18,7 @@
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/random.h>
 
-#include <WebSocketAPI/WebSocketServer.h>
-#ifdef USE_TLS
-    typedef WebSocket::ServerTls WebSocketServer;
-#else
-    typedef WebSocket::Server WebSocketServer;
-#endif
+#include <WebSocketAPI/Server.h>
 
 #include <logger/logger.h>
 
@@ -42,6 +37,7 @@
 #include <chrono>
 
 using namespace CoinSocket;
+using namespace WebSocket;
 using namespace CoinDB;
 using namespace std;
 
@@ -59,7 +55,7 @@ void finish(int sig)
     g_bShutdown = true;
 }
 
-bool validateCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
+bool validateCallback(Server& server, websocketpp::connection_hdl hdl)
 {
     string endpoint = server.getRemoteEndpoint(hdl);
     string key = server.getResource(hdl);
@@ -77,7 +73,7 @@ bool validateCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
     }
 }
 
-void openCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
+void openCallback(Server& server, websocketpp::connection_hdl hdl)
 {
     LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " connected as " << hdl.lock().get() << "." << endl;
 
@@ -86,17 +82,17 @@ void openCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
     server.send(hdl, res);
 }
 
-void closeCallback(WebSocketServer& server, websocketpp::connection_hdl hdl)
+void closeCallback(Server& server, websocketpp::connection_hdl hdl)
 {
     LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " disconnected as " << hdl.lock().get() << "." << endl;
 }
 
 #ifdef USE_TLS
-WebSocketServer::context_ptr tlsInit(const std::string& tlsCertificateFile, WebSocketServer& server, websocketpp::connection_hdl hdl)
+Server::context_ptr tlsInit(const std::string& tlsCertificateFile, Server& server, websocketpp::connection_hdl hdl)
 {
     LOGGER(info) << "tlsInit called with hdl " << hdl.lock().get() << "." << endl;
  
-    WebSocketServer::context_ptr ctx(new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1));
+    Server::context_ptr ctx(new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1));
  
     try
     {
@@ -116,7 +112,7 @@ WebSocketServer::context_ptr tlsInit(const std::string& tlsCertificateFile, WebS
 }
 #endif
 
-void subscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
+void subscribeClient(Server& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
 {
     using namespace json_spirit;
  
@@ -140,7 +136,7 @@ void subscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl, c
     for (auto& channel: subscriptions) { server.addToChannel(channel, hdl); }
 }
 
-void unsubscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
+void unsubscribeClient(Server& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
 {
     using namespace json_spirit;
 
@@ -170,7 +166,7 @@ void unsubscribeClient(WebSocketServer& server, websocketpp::connection_hdl hdl,
     for (auto& channel: subscriptions) { server.removeFromChannel(channel, hdl); }
 }
 
-void requestCallback(SynchedVault& synchedVault, WebSocketServer& server, const WebSocketServer::client_request_t& req)
+void requestCallback(SynchedVault& synchedVault, Server& server, const Server::client_request_t& req)
 {
     using namespace json_spirit;
 
@@ -259,17 +255,17 @@ int main(int argc, char* argv[])
         synchedVault.openVault(config.getDatabaseUser(), config.getDatabasePassword(), config.getDatabaseName());
 
         initCommandMap(g_command_map);
-        WebSocketServer wsServer(config.getWebSocketPort(), config.getAllowedIps());
+        Server wsServer(config.getWebSocketPort(), config.getAllowedIps());
         wsServer.setValidateCallback(&validateCallback);
         wsServer.setOpenCallback(&openCallback);
         wsServer.setCloseCallback(&closeCallback);
 #ifdef USE_TLS
-        wsServer.setTlsInitCallback([&](WebSocketServer& server, websocketpp::connection_hdl hdl)
+        wsServer.setTlsInitCallback([&](Server& server, websocketpp::connection_hdl hdl)
         {
             return tlsInit(config.getTlsCertificateFile(), server, hdl);
         });
 #endif
-        wsServer.setRequestCallback([&](WebSocketServer& server, const WebSocketServer::client_request_t& req)
+        wsServer.setRequestCallback([&](Server& server, const Server::client_request_t& req)
         {
             requestCallback(synchedVault, server, req);
         });
