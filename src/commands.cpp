@@ -10,12 +10,12 @@
 //
 
 #include "commands.h"
+#include "channels.h"
+#include "jsonobjects.h"
 
 #include <CoinQ/CoinQ_script.h>
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/random.h>
-
-#include "jsonobjects.h"
 
 #include "CoinSocketExceptions.h"
 
@@ -49,11 +49,74 @@ static string g_documentDir;
 void setDocumentDir(const string& documentDir) { g_documentDir = documentDir; }
 const string& getDocumentDir() { return g_documentDir; }
 
-// Global operations
+// Channel operations
+Value cmd_subscribe(Server& server, websocketpp::connection_hdl hdl, SynchedVault& /*synchedVault*/, const Array& params)
+{
+    using namespace json_spirit;
+
+    Channels subscriptions;
+    for (auto& param: params)
+    {
+        if (param.type() != str_type) throw CommandInvalidParametersException();
+        std::string channel = param.get_str();
+        if (channelExists(channel))
+        {
+            subscriptions.insert(channel);
+        }
+        else
+        {
+            ChannelRange range = getChannelRange(channel);
+            if (isChannelRangeEmpty(range)) throw CommandInvalidChannelsException();
+            for (ChannelSets::iterator it = range.first; it != range.second; ++it) { subscriptions.insert(it->second); }
+        }
+    }
+
+    for (auto& channel: subscriptions) { server.addToChannel(channel, hdl); }
+    return Value("success");
+}
+
+Value cmd_unsubscribe(Server& server, websocketpp::connection_hdl hdl, SynchedVault& /*synchedVault*/, const Array& params)
+{
+    using namespace json_spirit;
+
+    if (params.size() == 0)
+    {
+        server.removeFromAllChannels(hdl);
+        return Value("success");
+    }
+
+    Channels subscriptions;
+    for (auto& param: params)
+    {
+        if (param.type() != str_type) throw CommandInvalidParametersException();
+        std::string channel = param.get_str();
+        if (channelExists(channel))
+        {
+            subscriptions.insert(channel);
+        }
+        else
+        {
+            ChannelRange range = getChannelRange(channel);
+            if (isChannelRangeEmpty(range)) throw CommandInvalidChannelsException();
+            for (ChannelSets::iterator it = range.first; it != range.second; ++it) { subscriptions.insert(it->second); }
+        }
+    }
+
+    for (auto& channel: subscriptions) { server.removeFromChannel(channel, hdl); }
+    return Value("success");
+}
+
+Value cmd_getchannels(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& /*synchedVault*/, const Array& params)
+{
+    if (params.size() != 0) throw CommandInvalidParametersException();
+
+    return Array(getChannels().begin(), getChannels().end());
+}
+
+// Global vault operations
 Value cmd_getvaultinfo(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
-    if (params.size() != 0)
-        throw CommandInvalidParametersException();
+    if (params.size() != 0) throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
@@ -693,7 +756,12 @@ void initCommandMap(command_map_t& command_map)
 {
     command_map.clear();
 
-    // Global operations
+    // Channel operations
+    command_map.insert(cmd_pair("subscribe", Command(&cmd_subscribe)));
+    command_map.insert(cmd_pair("unsubscribe", Command(&cmd_unsubscribe)));
+    command_map.insert(cmd_pair("getchannels", Command(&cmd_getchannels)));
+
+    // Global vault operations
     command_map.insert(cmd_pair("getvaultinfo", Command(&cmd_getvaultinfo)));
     //command_map.insert(cmd_pair("setvaultfromfile", Command(&cmd_setvaultfromfile)));
     //command_map.insert(cmd_pair("exportvaulttofile", Command(&cmd_exportvaulttofile)));

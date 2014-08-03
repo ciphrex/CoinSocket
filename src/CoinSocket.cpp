@@ -181,6 +181,7 @@ void requestCallback(Server& server, SynchedVault& synchedVault, const Server::c
 
     try
     {
+/*
         if (method == "subscribe")
         {
             subscribeClient(server, req.first, params);
@@ -197,13 +198,16 @@ void requestCallback(Server& server, SynchedVault& synchedVault, const Server::c
         }
         else
         {    
+*/
             auto it = g_command_map.find(method);
             if (it == g_command_map.end())
                 throw CommandInvalidMethodException();
 
             Value result = it->second(server, req.first, synchedVault, params);
             response.setResult(result, id);
+/*
         }
+*/
     }
     catch (const stdutils::custom_error& e)
     {
