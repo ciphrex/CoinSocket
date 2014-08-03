@@ -112,59 +112,6 @@ Server::context_ptr tlsInit(const std::string& tlsCertificateFile, Server& serve
 }
 #endif
 
-void subscribeClient(Server& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
-{
-    using namespace json_spirit;
- 
-    Channels subscriptions;
-    for (auto& param: params)
-    {
-        if (param.type() != str_type) throw CommandInvalidParametersException();
-        std::string channel = param.get_str();
-        if (channelExists(channel))
-        {
-            subscriptions.insert(channel);
-        }
-        else
-        {
-            ChannelRange range = getChannelRange(channel);
-            if (isChannelRangeEmpty(range)) throw CommandInvalidChannelsException();
-            for (ChannelSets::iterator it = range.first; it != range.second; ++it) { subscriptions.insert(it->second); }
-        }
-    }
-
-    for (auto& channel: subscriptions) { server.addToChannel(channel, hdl); }
-}
-
-void unsubscribeClient(Server& server, websocketpp::connection_hdl hdl, const json_spirit::Array& params)
-{
-    using namespace json_spirit;
-
-    if (params.size() == 0)
-    {
-        server.removeFromAllChannels(hdl);
-        return;
-    }
-
-    Channels subscriptions;
-    for (auto& param: params)
-    {
-        if (param.type() != str_type) throw CommandInvalidParametersException();
-        std::string channel = param.get_str();
-        if (channelExists(channel))
-        {
-            subscriptions.insert(channel);
-        }
-        else
-        {
-            ChannelRange range = getChannelRange(channel);
-            if (isChannelRangeEmpty(range)) throw CommandInvalidChannelsException();
-            for (ChannelSets::iterator it = range.first; it != range.second; ++it) { subscriptions.insert(it->second); }
-        }
-    }
-
-    for (auto& channel: subscriptions) { server.removeFromChannel(channel, hdl); }
-}
 
 void requestCallback(Server& server, SynchedVault& synchedVault, const Server::client_request_t& req)
 {
@@ -181,33 +128,12 @@ void requestCallback(Server& server, SynchedVault& synchedVault, const Server::c
 
     try
     {
-/*
-        if (method == "subscribe")
-        {
-            subscribeClient(server, req.first, params);
-            response.setResult("success", id);
-        }
-        else if (method == "unsubscribe")
-        {
-            unsubscribeClient(server, req.first, params);
-            response.setResult("success", id);
-        }
-        else if (method == "getchannels")
-        {
-            response.setResult(Array(getChannels().begin(), getChannels().end()), id);
-        }
-        else
-        {    
-*/
-            auto it = g_command_map.find(method);
-            if (it == g_command_map.end())
-                throw CommandInvalidMethodException();
+        auto it = g_command_map.find(method);
+        if (it == g_command_map.end())
+            throw CommandInvalidMethodException();
 
-            Value result = it->second(server, req.first, synchedVault, params);
-            response.setResult(result, id);
-/*
-        }
-*/
+        Value result = it->second(server, req.first, synchedVault, params);
+        response.setResult(result, id);
     }
     catch (const stdutils::custom_error& e)
     {
