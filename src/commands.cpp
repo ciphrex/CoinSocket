@@ -516,6 +516,19 @@ Value cmd_getserializedtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*
     return result;
 }
 
+Value cmd_getserializedunsignedtxs(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type) throw CommandInvalidParametersException();
+
+    Vault* vault = synchedVault.getVault();
+
+    std::vector<std::string> txs = vault->getSerializedUnsignedTxs(params[0].get_str());
+
+    Object result;
+    result.push_back(Pair("serializedtxs", Array(txs.begin(), txs.end())));
+    return result;
+}
+
 Value cmd_newtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 3)
@@ -788,6 +801,7 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("getunsigned", Command(&cmd_getunsigned)));
     command_map.insert(cmd_pair("gettx", Command(&cmd_gettx)));
     command_map.insert(cmd_pair("getserializedtx", Command(&cmd_getserializedtx)));
+    command_map.insert(cmd_pair("getserializedunsignedtxs", Command(&cmd_getserializedunsignedtxs)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
     command_map.insert(cmd_pair("getsigningrequest", Command(&cmd_getsigningrequest)));
     command_map.insert(cmd_pair("signtx", Command(&cmd_signtx)));
