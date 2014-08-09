@@ -96,9 +96,9 @@ function customcommand() {
 }
 
 // Global Operations
-function getvaultinfo() {
+function getstatus() {
     if (!ws) return;
-    var req = '{"method": "getvaultinfo", "id": ' + requestid + '}';
+    var req = '{"method": "getstatus", "id": ' + requestid + '}';
     requestid++;
     sendrequest(req);
 }

@@ -113,8 +113,8 @@ Value cmd_getchannels(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
     return Array(getChannels().begin(), getChannels().end());
 }
 
-// Global vault operations
-Value cmd_getvaultinfo(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
+// Global operations
+Value cmd_getstatus(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 0) throw CommandInvalidParametersException();
 
@@ -774,8 +774,8 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("unsubscribe", Command(&cmd_unsubscribe)));
     command_map.insert(cmd_pair("getchannels", Command(&cmd_getchannels)));
 
-    // Global vault operations
-    command_map.insert(cmd_pair("getvaultinfo", Command(&cmd_getvaultinfo)));
+    // Global operations
+    command_map.insert(cmd_pair("getstatus", Command(&cmd_getstatus)));
     //command_map.insert(cmd_pair("setvaultfromfile", Command(&cmd_setvaultfromfile)));
     //command_map.insert(cmd_pair("exportvaulttofile", Command(&cmd_exportvaulttofile)));
 
