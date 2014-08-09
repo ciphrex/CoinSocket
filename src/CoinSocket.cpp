@@ -298,8 +298,8 @@ int main(int argc, char* argv[])
         addChannelToSet("all",          "txinsertedraw");
         addChannelToSet("all",          "txinsertedserialized");
 
-        // TX STATUS CHANGED
-        synchedVault.subscribeTxStatusChanged([&](std::shared_ptr<Tx> tx)
+        // TX UPDATED
+        synchedVault.subscribeTxUpdated([&](std::shared_ptr<Tx> tx)
         {
             using namespace json_spirit;
 
@@ -310,7 +310,7 @@ int main(int argc, char* argv[])
                 uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
                 uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
 
-                LOGGER(debug) << "Transaction status changed: " << hash << " Status: " << status << " Confirmations: " << confirmations << " Height: " << height << endl;
+                LOGGER(debug) << "Transaction updated: " << hash << " Status: " << status << " Confirmations: " << confirmations << " Height: " << height << endl;
 
                 Object txData;
                 txData.push_back(Pair("hash", hash));
@@ -320,8 +320,8 @@ int main(int argc, char* argv[])
 
                 {
                     stringstream msg;
-                    msg << "{\"event\":\"txstatuschanged\", \"data\":" << write_string<Value>(txData) << "}";
-                    wsServer.sendChannel("txstatuschanged", msg.str());
+                    msg << "{\"event\":\"txupdated\", \"data\":" << write_string<Value>(txData) << "}";
+                    wsServer.sendChannel("txupdated", msg.str());
                 }
                 {
                     Value txVal;
@@ -330,43 +330,43 @@ int main(int argc, char* argv[])
 
                     txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
                     stringstream msg;
-                    msg << "{\"event\":\"txstatuschangedjson\", \"data\":" << write_string<Value>(txObj) << "}";
-                    wsServer.sendChannel("txstatuschangedjson", msg.str());
+                    msg << "{\"event\":\"txupdatedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                    wsServer.sendChannel("txupdatedjson", msg.str());
                 }
                 {
                     Object rawTxData(txData);
                     rawTxData.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
                     stringstream msg;
-                    msg << "{\"event\":\"txstatuschangedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
-                    wsServer.sendChannel("txstatuschangedraw", msg.str());
+                    msg << "{\"event\":\"txupdatedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
+                    wsServer.sendChannel("txupdatedraw", msg.str());
                 }
                 {
                     Object serializedTxData(txData);
                     serializedTxData.push_back(Pair("serializedtx", tx->toSerialized()));
                     stringstream msg;
-                    msg << "{\"event\":\"txstatuschangedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
-                    wsServer.sendChannel("txstatuschangedserialized", msg.str());
+                    msg << "{\"event\":\"txupdatedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
+                    wsServer.sendChannel("txupdatedserialized", msg.str());
                 }
             }
             catch (const exception& e)
             {
-                LOGGER(error) << "txstatuschanged handler error: " << e.what() << endl;
+                LOGGER(error) << "txupdated handler error: " << e.what() << endl;
             }
         });
-        addChannel("txstatuschanged");
-        addChannel("txstatuschangedjson");
-        addChannel("txstatuschangedraw");
-        addChannel("txstatuschangedserialized");
+        addChannel("txupdated");
+        addChannel("txupdatedjson");
+        addChannel("txupdatedraw");
+        addChannel("txupdatedserialized");
 
-        addChannelToSet("tx",           "txstatuschanged");
-        addChannelToSet("txjson",       "txstatuschangedjson");
-        addChannelToSet("txraw",        "txstatuschangedraw");
-        addChannelToSet("txserialized", "txstatuschangedserialized");
+        addChannelToSet("tx",           "txupdated");
+        addChannelToSet("txjson",       "txupdatedjson");
+        addChannelToSet("txraw",        "txupdatedraw");
+        addChannelToSet("txserialized", "txupdatedserialized");
 
-        addChannelToSet("all",          "txstatuschanged");
-        addChannelToSet("all",          "txstatuschangedjson");
-        addChannelToSet("all",          "txstatuschangedraw");
-        addChannelToSet("all",          "txstatuschangedserialized");
+        addChannelToSet("all",          "txupdated");
+        addChannelToSet("all",          "txupdatedjson");
+        addChannelToSet("all",          "txupdatedraw");
+        addChannelToSet("all",          "txupdatedserialized");
 
         // MERKLE BLOCK INSERTED
         synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
@@ -396,7 +396,16 @@ int main(int argc, char* argv[])
                     std::stringstream progress;
                     progress << "Height: " << blockTree.getBestHeight() << " / " << "Total Work: " << blockTree.getTotalWork().getDec();
                     cout << "Loaded headers - " << progress.str() << endl;
+                    return !g_bShutdown;
                 });
+
+            if (g_bShutdown)
+            {
+                cout << "Interrupted." << endl;
+                LOGGER(info) << "Interrupted." << endl;
+                wsServer.stop();
+                return 0;
+            }
 
             cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
             LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
