@@ -220,13 +220,13 @@ int main(int argc, char* argv[])
         synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status)
         {
             string syncStatusJson = json_spirit::write_string<json_spirit::Value>(getSyncStatusObject(synchedVault));
-            LOGGER(debug) << "Sync status changed: " << syncStatusJson << endl;
+            LOGGER(debug) << "Status: " << syncStatusJson << endl;
             stringstream msg;
-            msg << "{\"event\":\"syncstatuschanged\", \"data\":" << syncStatusJson << "}";
-            wsServer.sendChannel("syncstatuschanged", msg.str());
+            msg << "{\"event\":\"status\", \"data\":" << syncStatusJson << "}";
+            wsServer.sendChannel("status", msg.str());
         });
-        addChannel("syncstatuschanged");
-        addChannelToSet("all", "syncstatuschanged");
+        addChannel("status");
+        addChannelToSet("all", "status");
 
         // TX INSERTED 
         synchedVault.subscribeTxInserted([&](shared_ptr<Tx> tx)
