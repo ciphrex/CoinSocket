@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        SynchedVault synchedVault;
+        SynchedVault synchedVault(config.getCoinParams());
 
         cout << "Opening vault " << config.getDatabaseName() << endl;
         LOGGER(info) << "Opening vault " << config.getDatabaseName() << endl;
@@ -407,8 +407,8 @@ int main(int argc, char* argv[])
                 return 0;
             }
 
-            cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
-            LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << endl;
+            cout << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << " on network " << config.getNetworkName() << endl;
+            LOGGER(info) << "Attempting to sync with " << config.getPeerHost() << ":" << config.getPeerPort() << " on network " << config.getNetworkName() << endl;
             synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
         }
 

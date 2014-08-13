@@ -21,7 +21,8 @@ enum ErrorCodes
     INTERNAL_TX_JSON_INVALID = 1001, // CoinDB reserves error codes 100 - 999
 
     // Config errors - these errors result from invalid program options
-    CONFIG_MISSING_DBNAME = 1101,
+    CONFIG_MISSING_NETWORK = 1101,
+    CONFIG_MISSING_DBNAME,
     CONFIG_INVALID_DATA_DIR_EXCEPTION,
 
     // Command  errors - these errors imply an error in a submitted command
@@ -57,6 +58,12 @@ public:
 
 protected:
     explicit ConfigException(const std::string& what, int code) : stdutils::custom_error(what, code) { }
+};
+
+class ConfigMissingNetworkException : public ConfigException
+{
+public:
+    explicit ConfigMissingNetworkException() : ConfigException("No network specified.", CONFIG_MISSING_NETWORK) { }
 };
 
 class ConfigMissingDBNameException : public ConfigException
