@@ -827,5 +827,5 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("getchaintip", Command(&cmd_getchaintip)));
 
     // Test operations
-    command_map.insert(cmd_pair("fakemerkleblock", Command(&cmd_fakemerkleblock)));
+    //command_map.insert(cmd_pair("fakemerkleblock", Command(&cmd_fakemerkleblock)));
 }
