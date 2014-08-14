@@ -81,9 +81,11 @@ json_spirit::Value cmd_insertrawtx(WebSocket::Server& server, websocketpp::conne
 json_spirit::Value cmd_insertserializedtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_sendtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
-
 // Blockchain operations
 json_spirit::Value cmd_getblockheader(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getchaintip(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+
+// Testing operations
+json_spirit::Value cmd_fakemerkleblock(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 void initCommandMap(command_map_t& command_map);

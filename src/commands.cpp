@@ -759,11 +759,24 @@ Value cmd_getchaintip(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
         throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
-    uint32_t height = vault->getBestHeight();
-    std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
+//    uint32_t height = vault->getBestHeight();
+//    std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
+    std::shared_ptr<BlockHeader> header = vault->getBestBlockHeader();
+    if (!header) throw BlockHeaderNotFoundException();
     return getBlockHeaderObject(header.get());
 }
 
+Value cmd_fakemerkleblock(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+{
+    if (params.size() > 1 || (params.size() > 0 && params[0].type() != int_type))
+        throw CommandInvalidParametersException();
+
+    int nExtraLeaves = params.size() > 0 ? params[0].get_int() : 0;
+    if (nExtraLeaves < 0) throw CommandInvalidParametersException();
+
+    synchedVault.insertFakeMerkleBlock((unsigned int)nExtraLeaves);
+    return Value("success");
+}
 
 void initCommandMap(command_map_t& command_map)
 {
@@ -812,4 +825,7 @@ void initCommandMap(command_map_t& command_map)
     // Blockchain operations
     command_map.insert(cmd_pair("getblockheader", Command(&cmd_getblockheader)));
     command_map.insert(cmd_pair("getchaintip", Command(&cmd_getchaintip)));
+
+    // Test operations
+    command_map.insert(cmd_pair("fakemerkleblock", Command(&cmd_fakemerkleblock)));
 }
