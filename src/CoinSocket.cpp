@@ -237,15 +237,15 @@ int main(int argc, char* argv[])
             {
                 string hash = uchar_vector(tx->hash()).getHex();
                 string status = Tx::getStatusString(tx->status());
-                uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
+                //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
                 uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
 
-                LOGGER(debug) << "Transaction inserted: " << hash << " Status: " << status << " Confirmations: " << confirmations << " Height: " << height << endl;
+                LOGGER(debug) << "Transaction inserted: " << hash << " Status: " << status << " Height: " << height << endl;
 
                 Object txData;
                 txData.push_back(Pair("hash", hash));
                 txData.push_back(Pair("status", status));
-                txData.push_back(Pair("confirmations", (uint64_t)confirmations));
+                //txData.push_back(Pair("confirmations", (uint64_t)confirmations));
                 txData.push_back(Pair("height", (uint64_t)height));
 
                 {
@@ -307,15 +307,15 @@ int main(int argc, char* argv[])
             {
                 string hash = uchar_vector(tx->hash()).getHex();
                 string status = Tx::getStatusString(tx->status());
-                uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
+                //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
                 uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
 
-                LOGGER(debug) << "Transaction updated: " << hash << " Status: " << status << " Confirmations: " << confirmations << " Height: " << height << endl;
+                LOGGER(debug) << "Transaction updated: " << hash << " Status: " << status << " Height: " << height << endl;
 
                 Object txData;
                 txData.push_back(Pair("hash", hash));
                 txData.push_back(Pair("status", status));
-                txData.push_back(Pair("confirmations", (uint64_t)confirmations));
+                //txData.push_back(Pair("confirmations", (uint64_t)confirmations));
                 txData.push_back(Pair("height", (uint64_t)height));
 
                 {
@@ -328,7 +328,7 @@ int main(int argc, char* argv[])
                     if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
                     Object txObj = txVal.get_obj();
 
-                    txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
+                    //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
                     stringstream msg;
                     msg << "{\"event\":\"txupdatedjson\", \"data\":" << write_string<Value>(txObj) << "}";
                     wsServer.sendChannel("txupdatedjson", msg.str());
