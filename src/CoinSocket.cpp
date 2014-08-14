@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
                     if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
                     Object txObj = txVal.get_obj();
 
-                    txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
+                    //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
                     stringstream msg;
                     msg << "{\"event\":\"txinsertedjson\", \"data\":" << write_string<Value>(txObj) << "}";
                     wsServer.sendChannel("txinsertedjson", msg.str());
@@ -388,7 +388,7 @@ int main(int argc, char* argv[])
 
         if (config.getSync())
         {
-            std::string blockTreeFile = config.getDataDir() + "/blocktree.dat"; 
+            std::string blockTreeFile = config.getBlockTreeFile();
             cout << "Loading headers from " << blockTreeFile << endl;
             LOGGER(info) << "Loading headers from " << blockTreeFile << endl;
             synchedVault.loadHeaders(blockTreeFile, false,

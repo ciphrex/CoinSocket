@@ -24,6 +24,7 @@
 #include <sysutils/filesystem.h>
 
 const std::string DEFAULT_DATADIR = "CoinSocket";
+const std::string DEFAULT_BLOCKTREE_FILE = "blocktree.dat";
 const std::string DEFAULT_DOCDIR = "vaultdocs";
 const std::string DEFAULT_CONFIG_FILE = "coinsocket.conf";
 const std::string DEFAULT_PEER_HOST = "localhost";
@@ -37,12 +38,13 @@ public:
 
     void init(int argc, char* argv[]);
 
+    const std::string& getDataDir() const { return m_dataDir; }
     const std::string& getConfigFile() const { return m_configFile; }
     const std::string& getNetworkName() const { return m_networkName; }
+    const std::string& getBlockTreeFile() const { return m_blockTreeFile; }
     const std::string& getDatabaseUser() const { return m_databaseUser; }
     const std::string& getDatabasePassword() const { return m_databasePassword; }
     const std::string& getDatabaseName() const { return m_databaseName; }
-    const std::string& getDataDir() const { return m_dataDir; }
     const std::string& getDocumentDir() const { return m_documentDir; }
     bool               getSync() const { return m_bSync; }
     const std::string& getPeerHost() const { return m_peerHost; }
@@ -59,12 +61,14 @@ public:
 private:
     CoinQ::NetworkSelector m_networkSelector;
 
+    std::string m_dataSubDir;
+    std::string m_dataDir;
     std::string m_configFile;
     std::string m_networkName;
+    std::string m_blockTreeFile;
     std::string m_databaseUser;
     std::string m_databasePassword;
     std::string m_databaseName;
-    std::string m_dataDir;
     std::string m_documentDir;
     bool        m_bSync;
     std::string m_peerHost;
@@ -84,12 +88,13 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     po::options_description options("Options");
     options.add_options()
         ("help", "display help message")
+        ("datadir", po::value<std::string>(&m_dataSubDir), "data directory")
         ("config", po::value<std::string>(&m_configFile), "name of the configuration file")
         ("network", po::value<std::string>(&m_networkName), "name of the p2p network")
+        ("blocktreefile", po::value<std::string>(&m_blockTreeFile), "name of blocktree file")
         ("dbuser", po::value<std::string>(&m_databaseUser), "vault database user")
         ("dbpasswd", po::value<std::string>(&m_databasePassword), "vault database password")
         ("dbname", po::value<std::string>(&m_databaseName), "vault database name")
-        ("datadir", po::value<std::string>(&m_dataDir), "data directory")
         ("docdir", po::value<std::string>(&m_documentDir), "document directory")
         ("sync", po::value<bool>(&m_bSync), "set to true to turn on p2p synchronization")
         ("peerhost", po::value<std::string>(&m_peerHost), "peer hostname")
@@ -113,16 +118,10 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         return;
     }
 
-    std::string datadir(DEFAULT_DATADIR);
-    if (vm.count("network"))
-    {
-        std::transform(m_networkName.begin(), m_networkName.end(), m_networkName.begin(), ::tolower);
-        datadir += "_";
-        datadir += m_networkName; 
-    }
-
     using namespace sysutils::filesystem;
-    if (!vm.count("datadir"))       { m_dataDir = getDefaultDataDir(datadir); }
+    if (!vm.count("datadir"))       { m_dataSubDir = DEFAULT_DATADIR; }
+    m_dataDir = getDefaultDataDir(m_dataSubDir);
+
     if (!vm.count("config"))        { m_configFile =  m_dataDir + "/" + DEFAULT_CONFIG_FILE; }
 
     namespace fs = boost::filesystem;
@@ -139,10 +138,14 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         po::notify(vm);     
     }
 
+    if (!vm.count("dbname")) throw CoinSocket::ConfigMissingDBNameException(); 
     if (!vm.count("network")) throw CoinSocket::ConfigMissingNetworkException();
+    std::transform(m_networkName.begin(), m_networkName.end(), m_networkName.begin(), ::tolower);
     m_networkSelector.select(m_networkName);
 
-    if (!vm.count("dbname")) throw CoinSocket::ConfigMissingDBNameException(); 
+    m_dataDir = getDefaultDataDir(m_dataSubDir);
+
+    if (!vm.count("blocktreefile")) { m_blockTreeFile = m_dataDir + "/" + DEFAULT_BLOCKTREE_FILE; }
     if (!vm.count("docdir"))        { m_documentDir = getUserProfileDir() + "/" + DEFAULT_DOCDIR; }
     if (!vm.count("sync"))          { m_bSync = false; }
     if (!vm.count("peerhost"))      { m_peerHost = DEFAULT_PEER_HOST; }
