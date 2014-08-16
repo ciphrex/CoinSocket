@@ -242,8 +242,7 @@ Value cmd_exportbip32(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
 
     Vault* vault = synchedVault.getVault();
 
-    vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes
-    bytes_t extendedkey = vault->getKeychainExtendedKey(keychainName, false);
+    bytes_t extendedkey = vault->exportBIP32(keychainName, false);
 
     Object result;
     result.push_back(Pair("extendedkey", toBase58Check(extendedkey)));
@@ -261,7 +260,7 @@ Value cmd_importbip32(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
 
     Vault* vault = synchedVault.getVault();
 
-    vault->importKeychainExtendedKey(params[0].get_str(), extendedkey, false);
+    vault->importBIP32(params[0].get_str(), extendedkey);
     return Value("success");
 }
 
@@ -281,9 +280,7 @@ Value cmd_newaccount(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sy
 
     Vault* vault = synchedVault.getVault();
 
-    vault->unlockChainCodes(secure_bytes_t()); // TODO: add a method to unlock chaincodes using passphrase
     vault->newAccount(accountName, minsigs, keychainNames);
-    vault->lockChainCodes();
     synchedVault.syncBlocks();
     AccountInfo accountInfo = vault->getAccountInfo(accountName);
     return getAccountInfoObject(accountInfo);
@@ -608,13 +605,11 @@ Value cmd_signtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synche
     {
         if (params[0].type() == str_type)
         {
-            vault->unlockChainCodes(uchar_vector("1234"));
             vault->unlockKeychain(keychain, secure_bytes_t());
             tx = vault->signTx(uchar_vector(params[0].get_str()), keychains, true);
         }
         else if (params[0].type() == int_type)
         {
-            vault->unlockChainCodes(uchar_vector("1234"));
             vault->unlockKeychain(keychain, secure_bytes_t());
             tx = vault->signTx(params[0].get_uint64(), keychains, true);
         }
@@ -626,12 +621,10 @@ Value cmd_signtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synche
     catch (const std::runtime_error& e)
     {
         vault->lockAllKeychains();
-        vault->lockChainCodes();
         throw e;
     }
 
     vault->lockAllKeychains();
-    vault->lockChainCodes();
     return getSigningRequestObject(vault->getSigningRequest(tx->id(), true));
 }
 

@@ -23,7 +23,9 @@ Object getSyncStatusObject(const SynchedVault& synchedVault)
     Object result;
     result.push_back(Pair("status", SynchedVault::getStatusString(synchedVault.getStatus())));
     result.push_back(Pair("syncheight", (uint64_t)synchedVault.getSyncHeight()));
+    result.push_back(Pair("synchash", uchar_vector(synchedVault.getSyncHash()).getHex()));
     result.push_back(Pair("bestheight", (uint64_t)synchedVault.getBestHeight()));
+    result.push_back(Pair("besthash", uchar_vector(synchedVault.getBestHash()).getHex()));
     return result;
 }
 
