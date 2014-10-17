@@ -89,4 +89,30 @@ json_spirit::Value cmd_getchaintip(WebSocket::Server& server, websocketpp::conne
 // Testing operations
 json_spirit::Value cmd_fakemerkleblock(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
+// Bitcoin Core compatibility methods
+json_spirit::Value cmd_getaccount(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getaccountaddress(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getaddressesbyaccount(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getbalance(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getbestblockhash(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getblockcount(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getblockhash(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getnewaddress(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getrawtransaction(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getreceivedbyaccount(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_getreceivedbyaddress(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_gettransaction(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_gettxout(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_listaccounts(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_listreceivedbyaccount(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_listreceivedbyaddress(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_listsinceblock(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_listtransactions(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_listunspent(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_sendfrom(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_sendmany(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_sendrawtransaction(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_sendtoaddress(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_validateaddress(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+
 void initCommandMap(command_map_t& command_map);
