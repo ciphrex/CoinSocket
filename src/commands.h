@@ -71,6 +71,7 @@ json_spirit::Value cmd_renameaccount(WebSocket::Server& server, websocketpp::con
 json_spirit::Value cmd_getaccountinfo(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getaccounts(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_issuescript(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_issuecontactcript(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_importaccountfromfile(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_exportaccounttofile(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 

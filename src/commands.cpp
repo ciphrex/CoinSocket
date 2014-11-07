@@ -345,7 +345,7 @@ Value cmd_getaccounts(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
 
 Value cmd_issuescript(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
-    if (params.size() < 1 || params.size() > 3)
+    if (params.size() < 1 || params.size() > 4)
         throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
@@ -356,8 +356,9 @@ Value cmd_issuescript(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
     std::string binName;
     if (params.size() > 2) binName = params[2].get_str();
     if (binName.empty()) binName = DEFAULT_BIN_NAME;
+    uint32_t index = params.size() > 3 ? (uint32_t)params[3].get_uint64() : 0;
 
-    std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label);
+    std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label, index);
     if (synchedVault.isConnected()) { synchedVault.updateBloomFilter(); }
 
     std::string address = getAddressFromScript(script->txoutscript(), g_coinParams.address_versions());
@@ -367,6 +368,42 @@ Value cmd_issuescript(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
 
     Object result;
     result.push_back(Pair("account", accountName));
+    result.push_back(Pair("label", label));
+    result.push_back(Pair("accountbin", binName));
+    result.push_back(Pair("index", (uint64_t)script->index()));
+    result.push_back(Pair("script", uchar_vector(script->txoutscript()).getHex()));
+    result.push_back(Pair("address", address));
+    result.push_back(Pair("uri", uri)); 
+    return result;
+}
+
+Value cmd_issuecontactscript(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() < 2 || params.size() > 4)
+        throw CommandInvalidParametersException();
+
+    Vault* vault = synchedVault.getVault();
+
+    std::string accountName = params[0].get_str();
+    std::string userName = params[1].get_str();
+    if (userName.empty()) throw CommandInvalidParametersException();
+    std::string label;
+    if (params.size() > 2) label = params[2].get_str();
+    std::string binName;
+    if (params.size() > 3) binName = params[3].get_str();
+    if (binName.empty()) binName = DEFAULT_BIN_NAME;
+
+    std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label, 0, userName);
+    if (synchedVault.isConnected()) { synchedVault.updateBloomFilter(); }
+
+    std::string address = getAddressFromScript(script->txoutscript(), g_coinParams.address_versions());
+    std::string uri = "bitcoin:";
+    uri += address;
+    if (!label.empty()) { uri += "?label="; uri += label; }
+
+    Object result;
+    result.push_back(Pair("account", accountName));
+    result.push_back(Pair("username", userName));
     result.push_back(Pair("label", label));
     result.push_back(Pair("accountbin", binName));
     result.push_back(Pair("index", (uint64_t)script->index()));
@@ -841,6 +878,7 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("getaccountinfo", Command(&cmd_getaccountinfo)));
     command_map.insert(cmd_pair("getaccounts", Command(&cmd_getaccounts)));
     command_map.insert(cmd_pair("issuescript", Command(&cmd_issuescript)));
+    command_map.insert(cmd_pair("issuecontactscript", Command(&cmd_issuecontactscript)));
     command_map.insert(cmd_pair("importaccountfromfile", Command(&cmd_importaccountfromfile)));
     //command_map.insert(cmd_pair("exportaccounttofile", Command(&cmd_exportaccounttofile)));
 
