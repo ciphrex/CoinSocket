@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <CoinQ/CoinQ_coinparams.h>
+
 #include <string>
 #include <map>
 #include <functional>
@@ -41,6 +43,9 @@ typedef std::map<std::string, Command>  command_map_t;
 
 void setDocumentDir(const std::string& documentDir);
 const std::string& getDocumentDir();
+
+void setCoinParams(const CoinQ::CoinParams& coinParams);
+const CoinQ::CoinParams& getCoinParams();
 
 // Channel operations
 json_spirit::Value cmd_subscribe(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);

@@ -28,9 +28,6 @@ using namespace json_spirit;
 using namespace CoinDB;
 using namespace std;
 
-// TODO: Get this from a config file
-const unsigned char BITCOIN_BASE58_VERSIONS[] = { 0x00, 0x05 };
- 
 // Data formatting
 std::string getAddressFromScript(const bytes_t& script, const unsigned char base58Versions[])
 {
@@ -48,6 +45,10 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
 static string g_documentDir;
 void setDocumentDir(const string& documentDir) { g_documentDir = documentDir; }
 const string& getDocumentDir() { return g_documentDir; }
+
+static CoinQ::CoinParams g_coinParams;
+void setCoinParams(const CoinQ::CoinParams& coinParams) { g_coinParams = coinParams; }
+const CoinQ::CoinParams& getCoinParams() { return g_coinParams; }
 
 // Channel operations
 Value cmd_subscribe(Server& server, websocketpp::connection_hdl hdl, SynchedVault& /*synchedVault*/, const Array& params)
@@ -359,7 +360,7 @@ Value cmd_issuescript(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
     std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label);
     if (synchedVault.isConnected()) { synchedVault.updateBloomFilter(); }
 
-    std::string address = getAddressFromScript(script->txoutscript(), BITCOIN_BASE58_VERSIONS);
+    std::string address = getAddressFromScript(script->txoutscript(), g_coinParams.address_versions());
     std::string uri = "bitcoin:";
     uri += address;
     if (!label.empty()) { uri += "?label="; uri += label; }
@@ -545,7 +546,7 @@ Value cmd_newtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
 
         std::string address = params[i++].get_str();
         uint64_t value = params[i++].get_uint64();
-        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, BITCOIN_BASE58_VERSIONS);
+        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
         std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
         txouts.push_back(txout);
          
@@ -585,7 +586,7 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
 	std::string sending_label = params[i++].get_str();
         std::string address = params[i++].get_str();
         uint64_t value = params[i++].get_uint64();
-        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, BITCOIN_BASE58_VERSIONS);
+        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
         std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
 	txout->sending_label(sending_label);
         txouts.push_back(txout);

@@ -169,6 +169,7 @@ int main(int argc, char* argv[])
     }
 
     setDocumentDir(config.getDocumentDir());
+    setCoinParams(config.getCoinParams());
     g_connectKey = string("/") + config.getConnectKey();
     std::string logFile = config.getDataDir() + "/coinsocket.log"; 
     INIT_LOGGER(logFile.c_str());
