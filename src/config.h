@@ -38,25 +38,26 @@ public:
 
     void init(int argc, char* argv[]);
 
-    const std::string& getDataDir() const { return m_dataDir; }
-    const std::string& getConfigFile() const { return m_configFile; }
-    const std::string& getNetworkName() const { return m_networkName; }
-    const std::string& getBlockTreeFile() const { return m_blockTreeFile; }
-    const std::string& getDatabaseUser() const { return m_databaseUser; }
-    const std::string& getDatabasePassword() const { return m_databasePassword; }
-    const std::string& getDatabaseName() const { return m_databaseName; }
-    const std::string& getDocumentDir() const { return m_documentDir; }
-    bool               getSync() const { return m_bSync; }
-    const std::string& getPeerHost() const { return m_peerHost; }
-    const std::string& getPeerPort() const { return m_peerPort; }
-    const std::string& getWebSocketPort() const { return m_webSocketPort; }
-    const std::string& getAllowedIps() const { return m_allowedIps; }
-    const std::string& getConnectKey() const { return m_connectKey; }
-    const std::string& getTlsCertificateFile() const { return m_tlsCertificateFile; }
-    const CoinQ::CoinParams& getCoinParams() const { return m_networkSelector.getCoinParams(); }
+    const std::string&          getDataDir() const { return m_dataDir; }
+    const std::string&          getConfigFile() const { return m_configFile; }
+    const std::string&          getNetworkName() const { return m_networkName; }
+    const std::string&          getBlockTreeFile() const { return m_blockTreeFile; }
+    const std::string&          getDatabaseUser() const { return m_databaseUser; }
+    const std::string&          getDatabasePassword() const { return m_databasePassword; }
+    const std::string&          getDatabaseName() const { return m_databaseName; }
+    const std::string&          getDocumentDir() const { return m_documentDir; }
+    bool                        getMigrate() const { return m_bMigrate; }
+    bool                        getSync() const { return m_bSync; }
+    const std::string&          getPeerHost() const { return m_peerHost; }
+    const std::string&          getPeerPort() const { return m_peerPort; }
+    const std::string&          getWebSocketPort() const { return m_webSocketPort; }
+    const std::string&          getAllowedIps() const { return m_allowedIps; }
+    const std::string&          getConnectKey() const { return m_connectKey; }
+    const std::string&          getTlsCertificateFile() const { return m_tlsCertificateFile; }
+    const CoinQ::CoinParams&    getCoinParams() const { return m_networkSelector.getCoinParams(); }
 
-    bool help() const { return m_bHelp; }
-    const std::string& getHelpOptions() const { return m_helpOptions; }
+    bool                        help() const { return m_bHelp; }
+    const std::string&          getHelpOptions() const { return m_helpOptions; }
 
 private:
     CoinQ::NetworkSelector m_networkSelector;
@@ -70,6 +71,7 @@ private:
     std::string m_databasePassword;
     std::string m_databaseName;
     std::string m_documentDir;
+    bool        m_bMigrate;
     bool        m_bSync;
     std::string m_peerHost;
     std::string m_peerPort;
@@ -78,7 +80,7 @@ private:
     std::string m_connectKey;
     std::string m_tlsCertificateFile;
 
-    bool m_bHelp;
+    bool        m_bHelp;
     std::string m_helpOptions;
 };
 
@@ -96,6 +98,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("dbpasswd", po::value<std::string>(&m_databasePassword), "vault database password")
         ("dbname", po::value<std::string>(&m_databaseName), "vault database name")
         ("docdir", po::value<std::string>(&m_documentDir), "document directory")
+        ("migrate", po::value<bool>(&m_bMigrate), "migrate database")
         ("sync", po::value<bool>(&m_bSync), "set to true to turn on p2p synchronization")
         ("peerhost", po::value<std::string>(&m_peerHost), "peer hostname")
         ("peerport", po::value<std::string>(&m_peerPort), "peer port")
@@ -147,6 +150,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
 
     if (!vm.count("blocktreefile")) { m_blockTreeFile = m_dataDir + "/" + DEFAULT_BLOCKTREE_FILE; }
     if (!vm.count("docdir"))        { m_documentDir = getUserProfileDir() + "/" + DEFAULT_DOCDIR; }
+    if (!vm.count("migrate"))       { m_bMigrate = false; }
     if (!vm.count("sync"))          { m_bSync = false; }
     if (!vm.count("peerhost"))      { m_peerHost = DEFAULT_PEER_HOST; }
     if (!vm.count("peerport"))      { m_peerPort = m_networkSelector.getCoinParams().default_port(); }

@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
 
         cout << "Opening vault " << config.getDatabaseName() << endl;
         LOGGER(info) << "Opening vault " << config.getDatabaseName() << endl;
-        synchedVault.openVault(config.getDatabaseUser(), config.getDatabasePassword(), config.getDatabaseName());
+        synchedVault.openVault(config.getDatabaseUser(), config.getDatabasePassword(), config.getDatabaseName(), false, SCHEMA_VERSION, string(), config.getMigrate());
 
         initCommandMap(g_command_map);
         Server wsServer(config.getWebSocketPort(), config.getAllowedIps());
