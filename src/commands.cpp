@@ -798,6 +798,37 @@ Value cmd_sendtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synche
     return result;
 }
 
+Value cmd_deletetx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1)
+        throw CommandInvalidParametersException();
+
+    Vault* vault = synchedVault.getVault();
+
+    std::shared_ptr<Tx> tx;
+    if (params[0].type() == str_type)
+    {
+        uchar_vector hash(params[0].get_str());
+        tx = vault->getTx(hash);
+        if (tx->status() >= Tx::PROPAGATED) throw OperationTransactionNotDeletedException();
+
+        vault->deleteTx(hash); 
+    }
+    else if (params[0].type() == int_type)
+    {
+        tx = vault->getTx((unsigned long)params[0].get_uint64());
+        if (tx->status() >= Tx::PROPAGATED) throw OperationTransactionNotDeletedException();
+
+        vault->deleteTx((unsigned long)params[0].get_uint64());
+    }
+    else
+    {
+        throw CommandInvalidParametersException();
+    }
+
+    return Value("success");
+}
+
 // Blockchain operations
 Value cmd_getblockheader(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
@@ -895,6 +926,7 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("insertrawtx", Command(&cmd_insertrawtx)));
     command_map.insert(cmd_pair("insertserializedtx", Command(&cmd_insertserializedtx)));
     command_map.insert(cmd_pair("sendtx", Command(&cmd_sendtx)));
+    command_map.insert(cmd_pair("deletetx", Command(&cmd_deletetx)));
 
     // Blockchain operations
     command_map.insert(cmd_pair("getblockheader", Command(&cmd_getblockheader)));

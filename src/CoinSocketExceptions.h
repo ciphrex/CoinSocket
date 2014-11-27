@@ -31,7 +31,8 @@ enum ErrorCodes
     COMMAND_INVALID_CHANNELS,
 
     // Operation errors - these errors imply an error in the execution of command
-    OPERATION_TRANSACTION_NOT_INSERTED = 1301
+    OPERATION_TRANSACTION_NOT_INSERTED = 1301,
+    OPERATION_TRANSACTION_NOT_DELETED
 };
 
 // INTERNAL EXCEPTIONS
@@ -120,6 +121,12 @@ class OperationTransactionNotInsertedException : public OperationException
 {
 public:
     explicit OperationTransactionNotInsertedException() : OperationException("Transaction not inserted.", OPERATION_TRANSACTION_NOT_INSERTED) { }
+};
+
+class OperationTransactionNotDeletedException : public OperationException
+{
+public:
+    explicit OperationTransactionNotDeletedException() : OperationException("Transaction not deleted.", OPERATION_TRANSACTION_NOT_DELETED) { }
 };
 
 }
