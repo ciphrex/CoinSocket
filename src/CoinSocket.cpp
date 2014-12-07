@@ -369,6 +369,76 @@ int main(int argc, char* argv[])
         addChannelToSet("all",          "txupdatedraw");
         addChannelToSet("all",          "txupdatedserialized");
 
+        // TX DELETED
+        synchedVault.subscribeTxDeleted([&](std::shared_ptr<Tx> tx)
+        {
+            using namespace json_spirit;
+
+            try
+            {
+                string hash = uchar_vector(tx->hash()).getHex();
+                string status = Tx::getStatusString(tx->status());
+                //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
+                uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
+
+                LOGGER(debug) << "Transaction deleted: " << hash << " Status: " << status << " Height: " << height << endl;
+
+                Object txData;
+                txData.push_back(Pair("hash", hash));
+                txData.push_back(Pair("status", status));
+                //txData.push_back(Pair("confirmations", (uint64_t)confirmations));
+                txData.push_back(Pair("height", (uint64_t)height));
+
+                {
+                    stringstream msg;
+                    msg << "{\"event\":\"txdeleted\", \"data\":" << write_string<Value>(txData) << "}";
+                    wsServer.sendChannel("txdeleted", msg.str());
+                }
+                {
+                    Value txVal;
+                    if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
+                    Object txObj = txVal.get_obj();
+
+                    //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
+                    stringstream msg;
+                    msg << "{\"event\":\"txdeletedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                    wsServer.sendChannel("txdeletedjson", msg.str());
+                }
+                {
+                    Object rawTxData(txData);
+                    rawTxData.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
+                    stringstream msg;
+                    msg << "{\"event\":\"txdeletedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
+                    wsServer.sendChannel("txdeletedraw", msg.str());
+                }
+                {
+                    Object serializedTxData(txData);
+                    serializedTxData.push_back(Pair("serializedtx", tx->toSerialized()));
+                    stringstream msg;
+                    msg << "{\"event\":\"txdeletedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
+                    wsServer.sendChannel("txdeletedserialized", msg.str());
+                }
+            }
+            catch (const exception& e)
+            {
+                LOGGER(error) << "txdeleted handler error: " << e.what() << endl;
+            }
+        });
+        addChannel("txdeleted");
+        addChannel("txdeletedjson");
+        addChannel("txdeletedraw");
+        addChannel("txdeletedserialized");
+
+        addChannelToSet("tx",           "txdeleted");
+        addChannelToSet("txjson",       "txdeletedjson");
+        addChannelToSet("txraw",        "txdeletedraw");
+        addChannelToSet("txserialized", "txdeletedserialized");
+
+        addChannelToSet("all",          "txdeleted");
+        addChannelToSet("all",          "txdeletedjson");
+        addChannelToSet("all",          "txdeletedraw");
+        addChannelToSet("all",          "txdeletedserialized");
+
         // MERKLE BLOCK INSERTED
         synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
         {
