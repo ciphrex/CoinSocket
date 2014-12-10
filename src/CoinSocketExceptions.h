@@ -32,7 +32,10 @@ enum ErrorCodes
 
     // Operation errors - these errors imply an error in the execution of command
     OPERATION_TRANSACTION_NOT_INSERTED = 1301,
-    OPERATION_TRANSACTION_NOT_DELETED
+    OPERATION_TRANSACTION_NOT_DELETED,
+
+    // Data format errors - these errors imply an error with the way parameter data is formatted
+    DATA_FORMAT_INVALID_ADDRESS = 1401
 };
 
 // INTERNAL EXCEPTIONS
@@ -127,6 +130,22 @@ class OperationTransactionNotDeletedException : public OperationException
 {
 public:
     explicit OperationTransactionNotDeletedException() : OperationException("Transaction not deleted.", OPERATION_TRANSACTION_NOT_DELETED) { }
+};
+
+// DATA FORMAT EXCEPTIONS
+class DataFormatException : public stdutils::custom_error
+{
+public:
+    virtual ~DataFormatException() throw() { }
+
+protected:
+    explicit DataFormatException(const std::string& what, int code) : stdutils::custom_error(what, code) { }
+};
+
+class DataFormatInvalidAddressException : public DataFormatException
+{
+public:
+    explicit DataFormatInvalidAddressException() : DataFormatException("Invalid address.", DATA_FORMAT_INVALID_ADDRESS) { }
 };
 
 }

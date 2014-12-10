@@ -582,6 +582,9 @@ Value cmd_newtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
             throw CommandInvalidParametersException();
 
         std::string address = params[i++].get_str();
+        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+            throw DataFormatInvalidAddressException();
+
         uint64_t value = params[i++].get_uint64();
         bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
         std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
@@ -622,6 +625,9 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
 	std::string username = params[i++].get_str();
 	std::string sending_label = params[i++].get_str();
         std::string address = params[i++].get_str();
+        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+            throw DataFormatInvalidAddressException();
+
         uint64_t value = params[i++].get_uint64();
         bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
         std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
