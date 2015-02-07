@@ -1,0 +1,2 @@
+To use wscat over TLS using a self-signed certificate:
+$ export NODE_TLS_REJECT_UNAUTHORIZED=0
