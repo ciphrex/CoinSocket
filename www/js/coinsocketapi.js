@@ -228,6 +228,14 @@ function gettx_string() {
     sendrequest(req);
 }
 
+function deletetx_string() {
+    if (!ws) return;
+    var hash = document.getElementById('deletetx_string_hash').value;
+    var req = '{"method": "deletetx", "params": ["' + hash + '"], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
+
 // Blockchain Operations
 function getchaintip() {
     if (!ws) return;

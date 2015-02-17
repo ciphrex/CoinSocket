@@ -274,6 +274,20 @@
                 </table>
                 <input type="button" onclick="gettx_string()" value="Submit" />
             </div>
+            <div class="command">
+                <div class="accordion">
+                    <p><b>deletetx</b></p>
+                    <div><p>Deletes a transaction by hash. Only unpropagated transactions can be deleted. It will search by signed hash and unsigned hash.</p></div>
+                </div>
+                <table class="gridtable">
+                    <tr><td>string</td><td>hash</td>
+                        <td>
+                            <input type="text" id="deletetx_string_hash" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="deletetx_string()" value="Submit" />
+            </div>
         </div>
         <div>
             <div class="opgroupheader">Blockchain Operations</div>
