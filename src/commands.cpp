@@ -515,7 +515,7 @@ Value cmd_gettx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
     }
 
     Value txObj;
-    if (!read_string(tx->toJson(true), txObj))
+    if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException(); 
 
     return txObj;
@@ -599,7 +599,7 @@ Value cmd_newtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
     std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
 
     Value txObj;
-    if (!read_string(tx->toJson(true), txObj))
+    if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException(); 
 
     return txObj;
@@ -643,7 +643,7 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
     std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
 
     Value txObj;
-    if (!read_string(tx->toJson(true), txObj))
+    if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException(); 
 
     return txObj;
@@ -741,7 +741,7 @@ Value cmd_insertrawtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
     }
 
     Value txObj;
-    if (!read_string(tx->toJson(true), txObj))
+    if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException();
 
     return txObj;
@@ -772,7 +772,7 @@ Value cmd_insertserializedtx(Server& /*server*/, websocketpp::connection_hdl /*h
     }
 
     Value txObj;
-    if (!read_string(tx->toJson(true), txObj))
+    if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException();
 
     return txObj;
