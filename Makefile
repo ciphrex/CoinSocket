@@ -2,7 +2,7 @@ INCLUDE_PATH += -Isrc
 
 include mk/os.mk mk/cxx_flags.mk mk/boost_suffix.mk mk/odb.mk
 
-ifdef USE_TLS
+ifndef DISABLE_TLS
     CXX_FLAGS += -DUSE_TLS=1
 endif
 
@@ -24,7 +24,7 @@ LIBS = \
     -lodb-$(DB) \
     -lodb
 
-ifdef USE_TLS
+ifndef DISABLE_TLS
     LIBS += -lssl
 endif
 
