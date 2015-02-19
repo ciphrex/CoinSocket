@@ -98,9 +98,11 @@ Server::context_ptr tlsInit(const std::string& tlsCertificateFile, Server& serve
     {
         ctx->set_options(boost::asio::ssl::context::default_workarounds |
                          boost::asio::ssl::context::no_sslv2 |
+                         boost::asio::ssl::context::no_sslv3 |
                          boost::asio::ssl::context::single_dh_use);
-        ctx->set_password_callback(bind([]() { return "test"; }));
-        ctx->use_certificate_chain_file(tlsCertificateFile);
+        //ctx->set_password_callback(bind([]() { return "test"; }));
+        //ctx->use_certificate_chain_file(tlsCertificateFile);
+        ctx->use_certificate_file(tlsCertificateFile, boost::asio::ssl::context::pem);
         ctx->use_private_key_file(tlsCertificateFile, boost::asio::ssl::context::pem);
     }
     catch (std::exception& e)
