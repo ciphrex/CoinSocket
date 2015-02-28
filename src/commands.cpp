@@ -891,13 +891,64 @@ Value cmd_adduser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*h
 
 Value cmd_getuser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
 {
-    if (params.size() < 1 || params[0].type() != str_type || params.size() > 1)
+    if (params.size() != 1 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
 
     std::string username = params[0].get_str();
 
     Vault* vault = synchedVault.getVault();
     std::shared_ptr<User> user = vault->getUser(username);
+    return getUserObject(user.get());
+}
+
+Value cmd_addaddresstowhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+{
+    if (params.size() != 2 || params[0].type() != str_type || params[1].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    std::string username = params[0].get_str();
+    std::string address = params[1].get_str();
+
+    if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+        throw DataFormatInvalidAddressException();
+
+    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+
+    Vault* vault = synchedVault.getVault();
+    std::shared_ptr<User> user = vault->getUser(username);
+    user->addTxOutScriptToWhitelist(txoutscript);
+    return getUserObject(user.get());
+}
+
+Value cmd_removeaddressfromwhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+{
+    if (params.size() != 2 || params[0].type() != str_type || params[1].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    std::string username = params[0].get_str();
+    std::string address = params[1].get_str();
+
+    if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+        throw DataFormatInvalidAddressException();
+
+    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+
+    Vault* vault = synchedVault.getVault();
+    std::shared_ptr<User> user = vault->getUser(username);
+    user->removeTxOutScriptFromWhitelist(txoutscript);
+    return getUserObject(user.get());
+}
+
+Value cmd_clearaddresswhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    std::string username = params[0].get_str();
+
+    Vault* vault = synchedVault.getVault();
+    std::shared_ptr<User> user = vault->getUser(username);
+    user->clearTxOutScriptWhitelist();
     return getUserObject(user.get());
 }
 
@@ -968,6 +1019,9 @@ void initCommandMap(command_map_t& command_map)
     // User operations
     command_map.insert(cmd_pair("adduser", Command(&cmd_adduser)));
     command_map.insert(cmd_pair("getuser", Command(&cmd_getuser)));
+    command_map.insert(cmd_pair("addaddresstowhitelist", Command(&cmd_addaddresstowhitelist)));
+    command_map.insert(cmd_pair("removeaddressfromwhitelist", Command(&cmd_removeaddressfromwhitelist)));
+    command_map.insert(cmd_pair("clearaddresswhitelist", Command(&cmd_clearaddresswhitelist)));
 
     // Test operations
     //command_map.insert(cmd_pair("fakemerkleblock", Command(&cmd_fakemerkleblock)));
