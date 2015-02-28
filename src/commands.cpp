@@ -875,6 +875,33 @@ Value cmd_getchaintip(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
     return getBlockHeaderObject(header.get());
 }
 
+// User operations
+Value cmd_adduser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+{
+    if (params.size() < 1 || params[0].type() != str_type || (params.size() > 1 && params[1].type() != bool_type) || params.size() > 2)
+        throw CommandInvalidParametersException();
+
+    std::string username = params[0].get_str();
+    bool enableTxOutScriptWhitelist = (params.size() > 1 && params[1].get_bool());
+
+    Vault* vault = synchedVault.getVault();
+    std::shared_ptr<User> user = vault->addUser(username, enableTxOutScriptWhitelist);
+    return getUserObject(user.get());
+}
+
+Value cmd_getuser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+{
+    if (params.size() < 1 || params[0].type() != str_type || params.size() > 1)
+        throw CommandInvalidParametersException();
+
+    std::string username = params[0].get_str();
+
+    Vault* vault = synchedVault.getVault();
+    std::shared_ptr<User> user = vault->getUser(username);
+    return getUserObject(user.get());
+}
+
+// Testing operations
 Value cmd_fakemerkleblock(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
 {
     if (params.size() > 1 || (params.size() > 0 && params[0].type() != int_type))
@@ -937,6 +964,10 @@ void initCommandMap(command_map_t& command_map)
     // Blockchain operations
     command_map.insert(cmd_pair("getblockheader", Command(&cmd_getblockheader)));
     command_map.insert(cmd_pair("getchaintip", Command(&cmd_getchaintip)));
+
+    // User operations
+    command_map.insert(cmd_pair("adduser", Command(&cmd_adduser)));
+    command_map.insert(cmd_pair("getuser", Command(&cmd_getuser)));
 
     // Test operations
     //command_map.insert(cmd_pair("fakemerkleblock", Command(&cmd_fakemerkleblock)));

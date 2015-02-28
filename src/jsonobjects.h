@@ -20,6 +20,7 @@ namespace CoinDB
     class SynchedVault;
     class BlockHeader;
     class Keychain;
+    class User;
     class AccountInfo;
     class TxView;
     class SigningRequest;
@@ -28,6 +29,7 @@ namespace CoinDB
 json_spirit::Object getSyncStatusObject(const CoinDB::SynchedVault& synchedVault);
 json_spirit::Object getBlockHeaderObject(CoinDB::BlockHeader* header);
 json_spirit::Object getKeychainObject(CoinDB::Keychain* keychain);
+json_spirit::Object getUserObject(CoinDB::User* user);
 json_spirit::Object getAccountInfoObject(const CoinDB::AccountInfo& accountInfo);
 json_spirit::Object getTxViewObject(const CoinDB::TxView& txview);
 json_spirit::Object getSigningRequestObject(const CoinDB::SigningRequest& req);

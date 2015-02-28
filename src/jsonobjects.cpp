@@ -56,6 +56,15 @@ Object getKeychainObject(Keychain* keychain)
     return result;
 }
 
+Object getUserObject(CoinDB::User* user)
+{
+    Object result;
+    result.push_back(Pair("id", (uint64_t)user->id()));
+    result.push_back(Pair("username", user->username()));
+    result.push_back(Pair("txoutscript_whitelist_enabled", user->isTxOutScriptWhitelistEnabled()));
+    return result;
+}
+
 Object getAccountInfoObject(const AccountInfo& accountInfo)
 {
     Object result;
