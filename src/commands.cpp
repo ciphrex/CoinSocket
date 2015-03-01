@@ -361,7 +361,7 @@ Value cmd_issuescript(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
     std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label, index);
     if (synchedVault.isConnected()) { synchedVault.updateBloomFilter(); }
 
-    std::string address = getAddressFromScript(script->txoutscript(), g_coinParams.address_versions());
+    std::string address = CoinQ::Script::getAddressForTxOutScript(script->txoutscript(), g_coinParams.address_versions());
     std::string uri = "bitcoin:";
     uri += address;
     if (!label.empty()) { uri += "?label="; uri += label; }
@@ -396,7 +396,7 @@ Value cmd_issuecontactscript(Server& /*server*/, websocketpp::connection_hdl /*h
     std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label, 0, userName);
     if (synchedVault.isConnected()) { synchedVault.updateBloomFilter(); }
 
-    std::string address = getAddressFromScript(script->txoutscript(), g_coinParams.address_versions());
+    std::string address = CoinQ::Script::getAddressForTxOutScript(script->txoutscript(), g_coinParams.address_versions());
     std::string uri = "bitcoin:";
     uri += address;
     if (!label.empty()) { uri += "?label="; uri += label; }
@@ -931,7 +931,7 @@ Value cmd_adduser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*h
 
     Vault* vault = synchedVault.getVault();
     std::shared_ptr<User> user = vault->addUser(username, enableTxOutScriptWhitelist);
-    return getUserObject(user.get());
+    return getUserObject(user.get(), g_coinParams.address_versions());
 }
 
 Value cmd_getuser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
@@ -943,7 +943,7 @@ Value cmd_getuser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*h
 
     Vault* vault = synchedVault.getVault();
     std::shared_ptr<User> user = vault->getUser(username);
-    return getUserObject(user.get());
+    return getUserObject(user.get(), g_coinParams.address_versions());
 }
 
 Value cmd_addaddresstowhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
@@ -960,9 +960,8 @@ Value cmd_addaddresstowhitelist(WebSocket::Server& /*server*/, websocketpp::conn
     bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
 
     Vault* vault = synchedVault.getVault();
-    std::shared_ptr<User> user = vault->getUser(username);
-    user->addTxOutScriptToWhitelist(txoutscript);
-    return getUserObject(user.get());
+    std::shared_ptr<User> user = vault->addTxOutScriptToWhitelist(username, txoutscript);
+    return getUserObject(user.get(), g_coinParams.address_versions());
 }
 
 Value cmd_removeaddressfromwhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
@@ -979,9 +978,8 @@ Value cmd_removeaddressfromwhitelist(WebSocket::Server& /*server*/, websocketpp:
     bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
 
     Vault* vault = synchedVault.getVault();
-    std::shared_ptr<User> user = vault->getUser(username);
-    user->removeTxOutScriptFromWhitelist(txoutscript);
-    return getUserObject(user.get());
+    std::shared_ptr<User> user = vault->removeTxOutScriptFromWhitelist(username, txoutscript);
+    return getUserObject(user.get(), g_coinParams.address_versions());
 }
 
 Value cmd_clearaddresswhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
@@ -992,9 +990,8 @@ Value cmd_clearaddresswhitelist(WebSocket::Server& /*server*/, websocketpp::conn
     std::string username = params[0].get_str();
 
     Vault* vault = synchedVault.getVault();
-    std::shared_ptr<User> user = vault->getUser(username);
-    user->clearTxOutScriptWhitelist();
-    return getUserObject(user.get());
+    std::shared_ptr<User> user = vault->clearTxOutScriptWhitelist(username);
+    return getUserObject(user.get(), g_coinParams.address_versions());
 }
 
 // Testing operations

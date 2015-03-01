@@ -10,6 +10,7 @@
 //
 
 #include "jsonobjects.h"
+#include <CoinQ/CoinQ_script.h>
 #include <CoinDB/Schema.h>
 #include <CoinDB/SigningRequest.h>
 #include <CoinDB/SynchedVault.h>
@@ -56,12 +57,20 @@ Object getKeychainObject(Keychain* keychain)
     return result;
 }
 
-Object getUserObject(CoinDB::User* user)
+Object getUserObject(CoinDB::User* user, const unsigned char base58Versions[])
 {
     Object result;
     result.push_back(Pair("id", (uint64_t)user->id()));
     result.push_back(Pair("username", user->username()));
     result.push_back(Pair("txoutscript_whitelist_enabled", user->isTxOutScriptWhitelistEnabled()));
+
+    std::set<bytes_t> scripts = user->txoutscript_whitelist();
+    std::vector<std::string> addresses;
+    for (auto& script: scripts)
+    {
+        addresses.push_back(CoinQ::Script::getAddressForTxOutScript(script, base58Versions));
+    }
+    result.push_back(Pair("addresses", Array(addresses.begin(), addresses.end())));
     return result;
 }
 
