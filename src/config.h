@@ -38,23 +38,24 @@ public:
 
     void init(int argc, char* argv[]);
 
-    const std::string&          getDataDir() const { return m_dataDir; }
-    const std::string&          getConfigFile() const { return m_configFile; }
-    const std::string&          getNetworkName() const { return m_networkName; }
-    const std::string&          getBlockTreeFile() const { return m_blockTreeFile; }
-    const std::string&          getDatabaseUser() const { return m_databaseUser; }
-    const std::string&          getDatabasePassword() const { return m_databasePassword; }
-    const std::string&          getDatabaseName() const { return m_databaseName; }
-    const std::string&          getDocumentDir() const { return m_documentDir; }
-    bool                        getMigrate() const { return m_bMigrate; }
-    bool                        getSync() const { return m_bSync; }
-    const std::string&          getPeerHost() const { return m_peerHost; }
-    const std::string&          getPeerPort() const { return m_peerPort; }
-    const std::string&          getWebSocketPort() const { return m_webSocketPort; }
-    const std::string&          getAllowedIps() const { return m_allowedIps; }
-    const std::string&          getConnectKey() const { return m_connectKey; }
-    const std::string&          getTlsCertificateFile() const { return m_tlsCertificateFile; }
-    const CoinQ::CoinParams&    getCoinParams() const { return m_networkSelector.getCoinParams(); }
+    const std::string&              getDataDir() const { return m_dataDir; }
+    const std::string&              getConfigFile() const { return m_configFile; }
+    const std::string&              getNetworkName() const { return m_networkName; }
+    const std::string&              getBlockTreeFile() const { return m_blockTreeFile; }
+    const std::string&              getDatabaseUser() const { return m_databaseUser; }
+    const std::string&              getDatabasePassword() const { return m_databasePassword; }
+    const std::string&              getDatabaseName() const { return m_databaseName; }
+    const std::string&              getDocumentDir() const { return m_documentDir; }
+    bool                            getMigrate() const { return m_bMigrate; }
+    bool                            getSync() const { return m_bSync; }
+    const std::string&              getPeerHost() const { return m_peerHost; }
+    const std::string&              getPeerPort() const { return m_peerPort; }
+    const std::string&              getWebSocketPort() const { return m_webSocketPort; }
+    const std::string&              getAllowedIps() const { return m_allowedIps; }
+    const std::string&              getConnectKey() const { return m_connectKey; }
+    const std::string&              getTlsCertificateFile() const { return m_tlsCertificateFile; }
+    const std::vector<std::string>& getEmailAlerts() const { return m_emailAlerts; }
+    const CoinQ::CoinParams&        getCoinParams() const { return m_networkSelector.getCoinParams(); }
 
     bool                        help() const { return m_bHelp; }
     const std::string&          getHelpOptions() const { return m_helpOptions; }
@@ -79,6 +80,7 @@ private:
     std::string m_allowedIps;
     std::string m_connectKey;
     std::string m_tlsCertificateFile;
+    std::vector<std::string> m_emailAlerts;
 
     bool        m_bHelp;
     std::string m_helpOptions;
@@ -106,6 +108,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("allowedips", po::value<std::string>(&m_allowedIps), "regular expression for allowed ip addresses")
         ("connectkey", po::value<std::string>(&m_connectKey), "key to be supplied when connecting")
         ("tlscertfile", po::value<std::string>(&m_tlsCertificateFile), "TLS certificate file")
+        ("emailalerts", po::value<std::vector<std::string>>(&m_emailAlerts), "email addresses for recipients of alerts")
     ;
 
     po::variables_map vm;
