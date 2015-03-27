@@ -59,6 +59,7 @@ public:
     const std::string&              getSmtpUser() const { return m_smtpUser; }
     const std::string&              getSmtpPassword() const { return m_smtpPassword; }
     const std::string&              getSmtpUrl() const { return m_smtpUrl; }
+    const std::string&              getSmtpFrom() const { return m_smtpFrom; }
     const CoinQ::CoinParams&        getCoinParams() const { return m_networkSelector.getCoinParams(); }
 
     bool                        help() const { return m_bHelp; }
@@ -88,6 +89,7 @@ private:
     std::string m_smtpUser;
     std::string m_smtpPassword;
     std::string m_smtpUrl;
+    std::string m_smtpFrom;
 
     bool        m_bHelp;
     std::string m_helpOptions;
@@ -119,6 +121,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("smtpuser", po::value<std::string>(&m_smtpUser), "smtp user for sending email alerts")
         ("smtppasswd", po::value<std::string>(&m_smtpPassword), "smtp password for sending email alerts")
         ("smtpurl", po::value<std::string>(&m_smtpUrl), "smtp url for sending email alerts")
+        ("smtpfrom", po::value<std::string>(&m_smtpFrom), "smtp from for sending email alerts")
     ;
 
     po::variables_map vm;
@@ -160,6 +163,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         if (!vm.count("smtpuser")) throw CoinSocket::ConfigMissingSmtpUserException();
         if (!vm.count("smtppasswd")) throw CoinSocket::ConfigMissingSmtpPasswordException();
         if (!vm.count("smtpurl")) throw CoinSocket::ConfigMissingSmtpUrlException();
+        if (!vm.count("smtpfrom")) throw CoinSocket::ConfigMissingSmtpFromException();
     }
 
     if (!vm.count("dbname")) throw CoinSocket::ConfigMissingDBNameException(); 

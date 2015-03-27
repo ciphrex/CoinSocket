@@ -172,7 +172,11 @@ int main(int argc, char* argv[])
 
     setDocumentDir(config.getDocumentDir());
     setCoinParams(config.getCoinParams());
-    if (config.getSendEmailAlerts()) { setSmtpTls(config.getSmtpUser(), config.getSmtpPassword(), config.getSmtpUrl()); }
+    if (config.getSendEmailAlerts())
+    {
+        setSmtpTls(config.getSmtpUser(), config.getSmtpPassword(), config.getSmtpUrl());
+        getSmtpTls().setFrom(config.getSmtpFrom());
+    }
 
     g_connectKey = string("/") + config.getConnectKey();
     std::string logFile = config.getDataDir() + "/coinsocket.log"; 
@@ -487,7 +491,22 @@ int main(int argc, char* argv[])
             synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
         }
 
+        SmtpTls& smtpTls = getSmtpTls();
+        if (smtpTls.isSet())
+        {
+            smtpTls.setSubject("CoinSocket instance started");
+            smtpTls.setBody("CoinSocket instance has started.");
+            smtpTls.send();
+        }
+
         while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
+
+        if (smtpTls.isSet())
+        {
+            smtpTls.setSubject("CoinSocket instance shutdown");
+            smtpTls.setBody("CoinSocket instance is shutting down.");
+            smtpTls.send();
+        }
 
         cout << "Stopping vault sync..." << flush;
         LOGGER(info) << "Stopping vault sync..." << endl;

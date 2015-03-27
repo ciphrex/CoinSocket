@@ -27,6 +27,7 @@ enum ErrorCodes
     CONFIG_MISSING_SMTP_USER,
     CONFIG_MISSING_SMTP_PASSWORD,
     CONFIG_MISSING_SMTP_URL,
+    CONFIG_MISSING_SMTP_FROM,
 
     // Command  errors - these errors imply an error in a submitted command
     COMMAND_INVALID_METHOD = 1201,
@@ -101,6 +102,12 @@ class ConfigMissingSmtpUrlException : public ConfigException
 {
 public:
     explicit ConfigMissingSmtpUrlException() : ConfigException("No smtpurl specified.", CONFIG_MISSING_SMTP_URL) { }
+};
+
+class ConfigMissingSmtpFromException : public ConfigException
+{
+public:
+    explicit ConfigMissingSmtpFromException() : ConfigException("No smtpfrom specified.", CONFIG_MISSING_SMTP_FROM) { }
 };
 
 // COMMAND EXCEPTIONS
