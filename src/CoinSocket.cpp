@@ -494,6 +494,8 @@ int main(int argc, char* argv[])
         SmtpTls& smtpTls = getSmtpTls();
         if (smtpTls.isSet())
         {
+            cout << "Sending instance started email alert..." << endl;
+            LOGGER(info) << "Sending instance started email alert..." << endl;
             smtpTls.setSubject("CoinSocket instance started");
             smtpTls.setBody("CoinSocket instance has started.");
             smtpTls.send();
@@ -503,6 +505,8 @@ int main(int argc, char* argv[])
 
         if (smtpTls.isSet())
         {
+            cout << "Sending instance shutdown email alert..." << endl;
+            LOGGER(info) << "Sending instance shutdown email alert..." << endl;
             smtpTls.setSubject("CoinSocket instance shutdown");
             smtpTls.setBody("CoinSocket instance is shutting down.");
             smtpTls.send();
