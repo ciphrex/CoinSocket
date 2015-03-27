@@ -176,6 +176,8 @@ int main(int argc, char* argv[])
     {
         setSmtpTls(config.getSmtpUser(), config.getSmtpPassword(), config.getSmtpUrl());
         getSmtpTls().setFrom(config.getSmtpFrom());
+        const vector<string>& emailAlerts = config.getEmailAlerts();
+        for (auto& to: emailAlerts) { getSmtpTls().addTo(to); }
     }
 
     g_connectKey = string("/") + config.getConnectKey();
@@ -496,9 +498,17 @@ int main(int argc, char* argv[])
         {
             cout << "Sending instance started email alert..." << endl;
             LOGGER(info) << "Sending instance started email alert..." << endl;
-            smtpTls.setSubject("CoinSocket instance started");
-            smtpTls.setBody("CoinSocket instance has started.");
-            smtpTls.send();
+            try
+            {
+                smtpTls.setSubject("CoinSocket instance started");
+                smtpTls.setBody("CoinSocket instance has started.");
+                smtpTls.send();
+            }
+            catch (const exception& e)
+            {
+                cerr << "Error sending email: " << e.what() << endl;
+                LOGGER(error) << "Error sending email: " << e.what() << endl;
+            }
         }
 
         while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
@@ -507,9 +517,17 @@ int main(int argc, char* argv[])
         {
             cout << "Sending instance shutdown email alert..." << endl;
             LOGGER(info) << "Sending instance shutdown email alert..." << endl;
-            smtpTls.setSubject("CoinSocket instance shutdown");
-            smtpTls.setBody("CoinSocket instance is shutting down.");
-            smtpTls.send();
+            try
+            {
+                smtpTls.setSubject("CoinSocket instance shutdown");
+                smtpTls.setBody("CoinSocket instance is shutting down.");
+                smtpTls.send();
+            }
+            catch (const exception& e)
+            {
+                cerr << "Error sending email: " << e.what() << endl;
+                LOGGER(error) << "Error sending email: " << e.what() << endl;
+            }
         }
 
         cout << "Stopping vault sync..." << flush;
