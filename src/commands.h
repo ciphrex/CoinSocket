@@ -13,6 +13,8 @@
 
 #include <CoinQ/CoinQ_coinparams.h>
 
+#include "smtp.h"
+
 #include <string>
 #include <map>
 #include <functional>
@@ -46,6 +48,9 @@ const std::string& getDocumentDir();
 
 void setCoinParams(const CoinQ::CoinParams& coinParams);
 const CoinQ::CoinParams& getCoinParams();
+
+void setSmtpTls(const std::string& username, const std::string& password, const std::string& url);
+SmtpTls& getSmtpTls();
 
 // Channel operations
 json_spirit::Value cmd_subscribe(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);

@@ -73,7 +73,7 @@ void SmtpTls::send(bool verifycert, bool verbose) const
 
     payload_text = new const char*[payload.size() + 1];
     int i = 0;
-    for (auto& line: payload) { payload_text[i] = payload[i++].c_str(); }
+    for (auto& line: payload) { payload_text[i++] = line.c_str(); }
     payload_text[payload.size()] = NULL;
 
     struct upload_status upload_ctx;

@@ -22,7 +22,8 @@ LIBS = \
     -lboost_program_options$(BOOST_SUFFIX) \
     -lcrypto \
     -lodb-$(DB) \
-    -lodb
+    -lodb \
+    -lcurl
 
 ifndef DISABLE_TLS
     LIBS += -lssl
@@ -31,7 +32,8 @@ endif
 OBJS = \
     obj/jsonobjects.o \
     obj/commands.o \
-    obj/channels.o
+    obj/channels.o \
+    obj/smtp.o
 
 all: build/coinsocketd$(EXE_EXT)
 
@@ -45,6 +47,9 @@ obj/commands.o: src/commands.cpp src/commands.h src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 obj/channels.o: src/channels.cpp src/channels.h
+	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
+
+obj/smtp.o: src/smtp.cpp src/smtp.h
 	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
 
 install:

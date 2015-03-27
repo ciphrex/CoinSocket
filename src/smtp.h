@@ -14,9 +14,11 @@
 class SmtpTls
 {
 public:
+    SmtpTls() { }
     SmtpTls(const std::string& username, const std::string& password, const std::string& url) :
         username_(username), password_(password), url_(url) { }
 
+    void set(const std::string& username, const std::string& password, const std::string& url) { username_ = username; password_ = password; url_ = url; }
     void setSubject(const std::string& subject) { subject_ = subject; }
     void setBody(const std::string& body) { body_ = body; }
     void setFrom(const std::string& from) { from_ = from; }

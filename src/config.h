@@ -55,6 +55,7 @@ public:
     const std::string&              getConnectKey() const { return m_connectKey; }
     const std::string&              getTlsCertificateFile() const { return m_tlsCertificateFile; }
     const std::vector<std::string>& getEmailAlerts() const { return m_emailAlerts; }
+    bool                            getSendEmailAlerts() const { return m_emailAlerts.size() > 0; }
     const std::string&              getSmtpUser() const { return m_smtpUser; }
     const std::string&              getSmtpPassword() const { return m_smtpPassword; }
     const std::string&              getSmtpUrl() const { return m_smtpUrl; }

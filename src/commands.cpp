@@ -50,6 +50,10 @@ static CoinQ::CoinParams g_coinParams;
 void setCoinParams(const CoinQ::CoinParams& coinParams) { g_coinParams = coinParams; }
 const CoinQ::CoinParams& getCoinParams() { return g_coinParams; }
 
+static SmtpTls g_smtpTls;
+void setSmtpTls(const string& username, const string& password, const string& url) { g_smtpTls.set(username, password, url); }
+SmtpTls& getSmtpTls() { return g_smtpTls; }
+
 // Channel operations
 Value cmd_subscribe(Server& server, websocketpp::connection_hdl hdl, SynchedVault& /*synchedVault*/, const Array& params)
 {
