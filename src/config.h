@@ -55,6 +55,9 @@ public:
     const std::string&              getConnectKey() const { return m_connectKey; }
     const std::string&              getTlsCertificateFile() const { return m_tlsCertificateFile; }
     const std::vector<std::string>& getEmailAlerts() const { return m_emailAlerts; }
+    const std::string&              getSmtpUser() const { return m_smtpUser; }
+    const std::string&              getSmtpPassword() const { return m_smtpPassword; }
+    const std::string&              getSmtpUrl() const { return m_smtpUrl; }
     const CoinQ::CoinParams&        getCoinParams() const { return m_networkSelector.getCoinParams(); }
 
     bool                        help() const { return m_bHelp; }
@@ -81,6 +84,9 @@ private:
     std::string m_connectKey;
     std::string m_tlsCertificateFile;
     std::vector<std::string> m_emailAlerts;
+    std::string m_smtpUser;
+    std::string m_smtpPassword;
+    std::string m_smtpUrl;
 
     bool        m_bHelp;
     std::string m_helpOptions;
@@ -109,6 +115,9 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("connectkey", po::value<std::string>(&m_connectKey), "key to be supplied when connecting")
         ("tlscertfile", po::value<std::string>(&m_tlsCertificateFile), "TLS certificate file")
         ("emailalerts", po::value<std::vector<std::string>>(&m_emailAlerts), "email addresses for recipients of alerts")
+        ("smtpuser", po::value<std::string>(&m_smtpUser), "smtp user for sending email alerts")
+        ("smtppasswd", po::value<std::string>(&m_smtpPassword), "smtp password for sending email alerts")
+        ("smtpurl", po::value<std::string>(&m_smtpUrl), "smtp url for sending email alerts")
     ;
 
     po::variables_map vm;
