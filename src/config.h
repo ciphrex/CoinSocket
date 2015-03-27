@@ -153,6 +153,14 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         po::notify(vm);     
     }
 
+    // TODO: validate email parameters
+    if (vm.count("emailalerts"))
+    {
+        if (!vm.count("smtpuser")) throw CoinSocket::ConfigMissingSmtpUserException();
+        if (!vm.count("smtppasswd")) throw CoinSocket::ConfigMissingSmtpPasswordException();
+        if (!vm.count("smtpurl")) throw CoinSocket::ConfigMissingSmtpUrlException();
+    }
+
     if (!vm.count("dbname")) throw CoinSocket::ConfigMissingDBNameException(); 
     if (!vm.count("network")) throw CoinSocket::ConfigMissingNetworkException();
     std::transform(m_networkName.begin(), m_networkName.end(), m_networkName.begin(), ::tolower);

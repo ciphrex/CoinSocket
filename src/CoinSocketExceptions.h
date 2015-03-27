@@ -23,7 +23,10 @@ enum ErrorCodes
     // Config errors - these errors result from invalid program options
     CONFIG_MISSING_NETWORK = 1101,
     CONFIG_MISSING_DBNAME,
-    CONFIG_INVALID_DATA_DIR_EXCEPTION,
+    CONFIG_INVALID_DATA_DIR,
+    CONFIG_MISSING_SMTP_USER,
+    CONFIG_MISSING_SMTP_PASSWORD,
+    CONFIG_MISSING_SMTP_URL,
 
     // Command  errors - these errors imply an error in a submitted command
     COMMAND_INVALID_METHOD = 1201,
@@ -79,7 +82,25 @@ public:
 class ConfigInvalidDataDirException : public ConfigException
 {
 public:
-    explicit ConfigInvalidDataDirException() : ConfigException("Invalid data dir.", CONFIG_INVALID_DATA_DIR_EXCEPTION) { }
+    explicit ConfigInvalidDataDirException() : ConfigException("Invalid data dir.", CONFIG_INVALID_DATA_DIR) { }
+};
+
+class ConfigMissingSmtpUserException : public ConfigException
+{
+public:
+    explicit ConfigMissingSmtpUserException() : ConfigException("No smtpuser specified.", CONFIG_MISSING_SMTP_USER) { }
+};
+
+class ConfigMissingSmtpPasswordException : public ConfigException
+{
+public:
+    explicit ConfigMissingSmtpPasswordException() : ConfigException("No smtppasswd specified.", CONFIG_MISSING_SMTP_PASSWORD) { }
+};
+
+class ConfigMissingSmtpUrlException : public ConfigException
+{
+public:
+    explicit ConfigMissingSmtpUrlException() : ConfigException("No smtpurl specified.", CONFIG_MISSING_SMTP_URL) { }
 };
 
 // COMMAND EXCEPTIONS
