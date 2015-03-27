@@ -19,6 +19,7 @@ public:
         username_(username), password_(password), url_(url) { }
 
     void set(const std::string& username, const std::string& password, const std::string& url) { username_ = username; password_ = password; url_ = url; }
+    bool isSet() const { return (!username_.empty() && !password_.empty() && !url_.empty()); }
     void setSubject(const std::string& subject) { subject_ = subject; }
     void setBody(const std::string& body) { body_ = body; }
     void setFrom(const std::string& from) { from_ = from; }
