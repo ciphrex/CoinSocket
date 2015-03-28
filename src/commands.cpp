@@ -644,7 +644,30 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
     uint32_t version = i < params.size() ? (uint32_t)params[i++].get_uint64() : 1;
     uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : 0;
 
-    std::shared_ptr<Tx> tx = vault->createTx(username, account, version, locktime, txouts, fee, 1, true);
+    std::shared_ptr<Tx> tx;
+    try
+    {
+        tx = vault->createTx(username, account, version, locktime, txouts, fee, 1, true);
+    }
+    catch (const AccountInsufficientFundsException& e)
+    {
+        if (g_smtpTls.isSet())
+        {
+            try
+            {
+                g_smtpTls.setSubject("Insufficient funds");
+                string body("An insufficient funds error has occured for account ");
+                body += e.account_name() + ".";
+                g_smtpTls.setBody(body);
+            }
+            catch (const exception& e)
+            {
+                LOGGER(error) << "Error occured sending alert email: " << e.what() << endl;
+            }
+        }
+
+        throw;
+    }
 
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
