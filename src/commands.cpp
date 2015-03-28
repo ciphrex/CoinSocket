@@ -657,9 +657,13 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
             {
                 LOGGER(trace) << "Sending insufficient funds email alert." << endl;
                 g_smtpTls.setSubject("Insufficient funds");
-                string body("An insufficient funds error has occured for account ");
-                body += e.account_name() + ".";
-                g_smtpTls.setBody(body);
+                std::stringstream body;
+                body << "An insufficient funds error has occured.\r\n\r\n"
+                     << "username:  " << e.username() << "\r\n"
+                     << "account:   " << e.account_name() << "\r\n"
+                     << "requested: " << e.requested() << "\r\n"
+                     << "available: " << e.available() << "\r\n";
+                g_smtpTls.setBody(body.str());
                 g_smtpTls.send();
             }
             catch (const exception& e)
