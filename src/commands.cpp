@@ -655,6 +655,7 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
         {
             try
             {
+                LOGGER(trace) << "Sending insufficient funds email alert." << endl;
                 g_smtpTls.setSubject("Insufficient funds");
                 string body("An insufficient funds error has occured for account ");
                 body += e.account_name() + ".";
