@@ -660,6 +660,7 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
                 string body("An insufficient funds error has occured for account ");
                 body += e.account_name() + ".";
                 g_smtpTls.setBody(body);
+                g_smtpTls.send();
             }
             catch (const exception& e)
             {
