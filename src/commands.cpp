@@ -609,6 +609,50 @@ Value cmd_newtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
     return txObj;
 }
 
+Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() < 5)
+        throw CommandInvalidParametersException();
+
+    Vault* vault = synchedVault.getVault();
+
+    std::string username = params[0].get_str();
+    std::string account = params[1].get_str();
+
+    // Get outputs
+    size_t i = 2;
+    txouts_t txouts;
+    do
+    {
+        if (params[i].type() != str_type || params[i+1].type() != str_type || params[i+2].type() != int_type)
+            throw CommandInvalidParametersException();
+
+	std::string sending_label = params[i++].get_str();
+        std::string address = params[i++].get_str();
+        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+            throw DataFormatInvalidAddressException();
+
+        uint64_t value = params[i++].get_uint64();
+        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+        std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
+	txout->sending_label(sending_label);
+        txouts.push_back(txout);
+         
+    } while (i < (params.size() - 1) && (params[i].type() == str_type));
+
+    uint64_t fee = i < params.size() ? params[i++].get_uint64() : 0;
+    uint32_t version = i < params.size() ? (uint32_t)params[i++].get_uint64() : 1;
+    uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : 0;
+
+    std::shared_ptr<Tx> tx = vault->createTx(username, account, version, locktime, txouts, fee, 1, true);
+
+    Value txObj;
+    if (!read_string(tx->toJson(true, true), txObj))
+        throw InternalTxJsonInvalidException(); 
+
+    return txObj;
+}
+
 Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 5)
@@ -645,51 +689,6 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
     uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : 0;
 
     std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
-
-    Value txObj;
-    if (!read_string(tx->toJson(true, true), txObj))
-        throw InternalTxJsonInvalidException(); 
-
-    return txObj;
-}
-
-// TODO: replace the above implementation with this one.
-Value cmd_newlabeledtx2(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
-{
-    if (params.size() < 5)
-        throw CommandInvalidParametersException();
-
-    Vault* vault = synchedVault.getVault();
-
-    std::string username = params[0].get_str();
-    std::string account = params[1].get_str();
-
-    // Get outputs
-    size_t i = 2;
-    txouts_t txouts;
-    do
-    {
-        if (params[i].type() != str_type || params[i+1].type() != str_type || params[i+2].type() != int_type)
-            throw CommandInvalidParametersException();
-
-	std::string sending_label = params[i++].get_str();
-        std::string address = params[i++].get_str();
-        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
-            throw DataFormatInvalidAddressException();
-
-        uint64_t value = params[i++].get_uint64();
-        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
-        std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
-	txout->sending_label(sending_label);
-        txouts.push_back(txout);
-         
-    } while (i < (params.size() - 1) && (params[i].type() == str_type));
-
-    uint64_t fee = i < params.size() ? params[i++].get_uint64() : 0;
-    uint32_t version = i < params.size() ? (uint32_t)params[i++].get_uint64() : 1;
-    uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : 0;
-
-    std::shared_ptr<Tx> tx = vault->createTx(username, account, version, locktime, txouts, fee, 1, true);
 
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
@@ -1050,8 +1049,8 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("getserializedtx", Command(&cmd_getserializedtx)));
     command_map.insert(cmd_pair("getserializedunsignedtxs", Command(&cmd_getserializedunsignedtxs)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
+    command_map.insert(cmd_pair("createtx", Command(&cmd_createtx)));
     command_map.insert(cmd_pair("newlabeledtx", Command(&cmd_newlabeledtx)));
-    command_map.insert(cmd_pair("newlabeledtx2", Command(&cmd_newlabeledtx2)));
     command_map.insert(cmd_pair("getsigningrequest", Command(&cmd_getsigningrequest)));
     command_map.insert(cmd_pair("signtx", Command(&cmd_signtx)));
     command_map.insert(cmd_pair("insertrawtx", Command(&cmd_insertrawtx)));

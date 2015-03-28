@@ -86,6 +86,7 @@ json_spirit::Value cmd_gettx(WebSocket::Server& server, websocketpp::connection_
 json_spirit::Value cmd_getserializedtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getserializedunsignedtxs(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_newtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_createtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_newlabeledtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getsigningrequest(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_signtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
