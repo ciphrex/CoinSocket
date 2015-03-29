@@ -38,6 +38,7 @@ public:
 
     void init(int argc, char* argv[]);
 
+    const std::string&              getInstanceName() const { return m_instanceName; }
     const std::string&              getDataDir() const { return m_dataDir; }
     const std::string&              getConfigFile() const { return m_configFile; }
     const std::string&              getNetworkName() const { return m_networkName; }
@@ -68,6 +69,7 @@ public:
 private:
     CoinQ::NetworkSelector m_networkSelector;
 
+    std::string m_instanceName;
     std::string m_dataSubDir;
     std::string m_dataDir;
     std::string m_configFile;
@@ -101,6 +103,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     po::options_description options("Options");
     options.add_options()
         ("help", "display help message")
+        ("instancename", po::value<std::string>(&m_instanceName), "name of the server instance")
         ("datadir", po::value<std::string>(&m_dataSubDir), "data directory")
         ("config", po::value<std::string>(&m_configFile), "name of the configuration file")
         ("network", po::value<std::string>(&m_networkName), "name of the p2p network")
@@ -156,6 +159,8 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         config.close();
         po::notify(vm);     
     }
+
+    if (!vm.count("instancename"))  { m_instanceName = m_dataSubDir; }
 
     // TODO: validate email parameters
     if (vm.count("emailalerts"))

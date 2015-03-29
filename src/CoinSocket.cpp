@@ -501,7 +501,10 @@ int main(int argc, char* argv[])
             try
             {
                 smtpTls.setSubject("CoinSocket instance started");
-                smtpTls.setBody("CoinSocket instance has started.");
+                stringstream body;
+                body << "Instance name: " << config.getInstanceName();;
+                LOGGER(debug) << "Body: " << body.str() << endl;
+                smtpTls.setBody(body.str());
                 smtpTls.send();
             }
             catch (const exception& e)
@@ -520,7 +523,9 @@ int main(int argc, char* argv[])
             try
             {
                 smtpTls.setSubject("CoinSocket instance shutdown");
-                smtpTls.setBody("CoinSocket instance is shutting down.");
+                stringstream body;
+                body << "Instance name: " << config.getInstanceName();
+                smtpTls.setBody(body.str());
                 smtpTls.send();
             }
             catch (const exception& e)
