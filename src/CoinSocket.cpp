@@ -46,6 +46,10 @@ command_map_t g_command_map;
 
 bool g_bShutdown = false;
 
+CoinSocketConfig m_config;
+void initConfig(int argc, char* argv[]) { m_config.init(argc, argv); }
+CoinSocketConfig& getConfig() { return m_config; }
+
 std::string g_connectKey;
 
 // Callbacks
@@ -149,14 +153,70 @@ void requestCallback(Server& server, SynchedVault& synchedVault, const Server::c
     server.send(req.first, response);
 }
 
+void trySendStartedAlert()
+{
+    CoinSocketConfig& config = getConfig();
+    SmtpTls& smtpTls = getSmtpTls();
+    if (smtpTls.isSet())
+    {
+        cout << "Sending instance started email alert..." << endl;
+        LOGGER(info) << "Sending instance started email alert..." << endl;
+        try
+        {
+            stringstream subject;
+            subject << "CoinSocket: " << config.getInstanceName() << " started";
+            smtpTls.setSubject(subject.str());
+            stringstream body;
+            body << "Instance name: " << config.getInstanceName();
+            LOGGER(debug) << "Body: " << body.str() << endl;
+            smtpTls.setBody(body.str());
+            smtpTls.send();
+        }
+        catch (const exception& e)
+        {
+            cerr << "Error sending email: " << e.what() << endl;
+            LOGGER(error) << "Error sending email: " << e.what() << endl;
+        }
+    }
+}
+
+void trySendStoppedAlert(const std::string& errmsg = std::string())
+{
+    CoinSocketConfig& config = getConfig();
+    SmtpTls& smtpTls = getSmtpTls();
+    if (smtpTls.isSet())
+    {
+        cout << "Sending instance shutdown email alert..." << endl;
+        LOGGER(info) << "Sending instance shutdown email alert..." << endl;
+        try
+        {
+            stringstream subject;
+            subject << "CoinSocket: " << config.getInstanceName() << " stopped";
+            smtpTls.setSubject(subject.str());
+            stringstream body;
+            body << "Instance name: " << config.getInstanceName() << "\r\n";
+            if (!errmsg.empty())
+            {
+                body << "Error: " << errmsg << "\r\n";
+            }
+            smtpTls.setBody(body.str());
+            smtpTls.send();
+        }
+        catch (const exception& e)
+        {
+            cerr << "Error sending email: " << e.what() << endl;
+            LOGGER(error) << "Error sending email: " << e.what() << endl;
+        }
+    }
+}
+
 // Main program
 int main(int argc, char* argv[])
 {
-    CoinSocketConfig config;
 
     try
     {
-        config.init(argc, argv);
+        initConfig(argc, argv);
     }
     catch (const std::exception& e)
     {
@@ -164,6 +224,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    CoinSocketConfig& config = getConfig();
     if (config.help())
     {
         cout << config.getHelpOptions() << endl;
@@ -493,47 +554,9 @@ int main(int argc, char* argv[])
             synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
         }
 
-        SmtpTls& smtpTls = getSmtpTls();
-        if (smtpTls.isSet())
-        {
-            cout << "Sending instance started email alert..." << endl;
-            LOGGER(info) << "Sending instance started email alert..." << endl;
-            try
-            {
-                smtpTls.setSubject("CoinSocket instance started");
-                stringstream body;
-                body << "Instance name: " << config.getInstanceName();;
-                LOGGER(debug) << "Body: " << body.str() << endl;
-                smtpTls.setBody(body.str());
-                smtpTls.send();
-            }
-            catch (const exception& e)
-            {
-                cerr << "Error sending email: " << e.what() << endl;
-                LOGGER(error) << "Error sending email: " << e.what() << endl;
-            }
-        }
+        trySendStartedAlert();
 
         while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
-
-        if (smtpTls.isSet())
-        {
-            cout << "Sending instance shutdown email alert..." << endl;
-            LOGGER(info) << "Sending instance shutdown email alert..." << endl;
-            try
-            {
-                smtpTls.setSubject("CoinSocket instance shutdown");
-                stringstream body;
-                body << "Instance name: " << config.getInstanceName();
-                smtpTls.setBody(body.str());
-                smtpTls.send();
-            }
-            catch (const exception& e)
-            {
-                cerr << "Error sending email: " << e.what() << endl;
-                LOGGER(error) << "Error sending email: " << e.what() << endl;
-            }
-        }
 
         cout << "Stopping vault sync..." << flush;
         LOGGER(info) << "Stopping vault sync..." << endl;
@@ -552,6 +575,8 @@ int main(int argc, char* argv[])
         cerr << "Error: " << e.what() << endl;
         LOGGER(error) << e.what() << endl;
 
+        trySendStoppedAlert(e.what());
+
         cout << "exiting." << endl << endl;
         LOGGER(info) << "exiting." << endl << endl;
 
@@ -562,11 +587,15 @@ int main(int argc, char* argv[])
         cerr << "Error: " << e.what() << endl;
         LOGGER(error) << e.what() << endl;
 
+        trySendStoppedAlert(e.what());
+
         cout << "exiting." << endl << endl;
         LOGGER(info) << "exiting." << endl << endl;
 
         return -1;
     }
+
+    trySendStoppedAlert();
 
     cout << "exiting." << endl << endl;
     LOGGER(info) << "exiting." << endl << endl;
