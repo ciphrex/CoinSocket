@@ -13,7 +13,7 @@
 
 #include <CoinQ/CoinQ_coinparams.h>
 
-#include "smtp.h"
+#include <SimpleSmtp/smtp.h>
 
 #include <string>
 #include <map>

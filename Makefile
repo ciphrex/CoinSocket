@@ -7,6 +7,7 @@ ifndef DISABLE_TLS
 endif
 
 LIBS = \
+    -lSimpleSmtp \
     -lWebSocketServer \
     -lJsonRpc \
     -lCoinDB \
@@ -32,8 +33,7 @@ endif
 OBJS = \
     obj/jsonobjects.o \
     obj/commands.o \
-    obj/channels.o \
-    obj/smtp.o
+    obj/channels.o
 
 all: build/coinsocketd$(EXE_EXT)
 
@@ -47,9 +47,6 @@ obj/commands.o: src/commands.cpp src/commands.h src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 obj/channels.o: src/channels.cpp src/channels.h
-	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
-
-obj/smtp.o: src/smtp.cpp src/smtp.h
 	$(CXX) $(CXX_FLAGS) $(INCLUDE_PATH) -c $< -o $@
 
 install:
