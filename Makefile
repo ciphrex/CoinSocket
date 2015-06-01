@@ -31,6 +31,7 @@ ifndef DISABLE_TLS
 endif
 
 OBJS = \
+    obj/config.o \
     obj/jsonobjects.o \
     obj/commands.o \
     obj/channels.o
@@ -39,6 +40,9 @@ all: build/coinsocketd$(EXE_EXT)
 
 build/coinsocketd$(EXE_EXT): src/CoinSocket.cpp src/config.h $(OBJS)
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) $< $(OBJS) -o $@ $(LIBS) $(PLATFORM_LIBS)
+
+obj/config.o: src/config.cpp src/config.h
+	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 obj/jsonobjects.o: src/jsonobjects.cpp src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@

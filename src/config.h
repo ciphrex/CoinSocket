@@ -30,6 +30,12 @@ const std::string DEFAULT_CONFIG_FILE = "coinsocket.conf";
 const std::string DEFAULT_PEER_HOST = "localhost";
 const std::string DEFAULT_WEBSOCKET_PORT = "8080";
 const std::string DEFAULT_ALLOWED_IPS = "^\\[(::1|::ffff:127\\.0\\.0\\.1)\\].*";
+const uint32_t    DEFAULT_MIN_CONF = 3;
+
+class CoinSocketConfig;
+
+void initConfig(int argc, char* argv[]);
+CoinSocketConfig& getConfig();
 
 class CoinSocketConfig
 {
@@ -62,6 +68,7 @@ public:
     const std::string&              getSmtpUrl() const { return m_smtpUrl; }
     const std::string&              getSmtpFrom() const { return m_smtpFrom; }
     const CoinQ::CoinParams&        getCoinParams() const { return m_networkSelector.getCoinParams(); }
+    uint32_t                        getMinConf() const { return m_minConf; }
 
     bool                        help() const { return m_bHelp; }
     const std::string&          getHelpOptions() const { return m_helpOptions; }
@@ -92,6 +99,7 @@ private:
     std::string m_smtpPassword;
     std::string m_smtpUrl;
     std::string m_smtpFrom;
+    uint32_t    m_minConf;
 
     bool        m_bHelp;
     std::string m_helpOptions;
@@ -125,6 +133,7 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
         ("smtppasswd", po::value<std::string>(&m_smtpPassword), "smtp password for sending email alerts")
         ("smtpurl", po::value<std::string>(&m_smtpUrl), "smtp url for sending email alerts")
         ("smtpfrom", po::value<std::string>(&m_smtpFrom), "smtp from for sending email alerts")
+        ("minconf", po::value<uint32_t>(&m_minConf), "minimum number of confirmations to make transaction final")
     ;
 
     po::variables_map vm;
@@ -186,5 +195,6 @@ inline void CoinSocketConfig::init(int argc, char* argv[])
     if (!vm.count("peerport"))      { m_peerPort = m_networkSelector.getCoinParams().default_port(); }
     if (!vm.count("wsport"))        { m_webSocketPort = DEFAULT_WEBSOCKET_PORT; }
     if (!vm.count("allowedips"))    { m_allowedIps = DEFAULT_ALLOWED_IPS; }
+    if (!vm.count("minconf"))       { m_minConf = DEFAULT_MIN_CONF; }
 }
 

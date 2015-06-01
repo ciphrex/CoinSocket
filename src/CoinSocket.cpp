@@ -46,10 +46,6 @@ command_map_t g_command_map;
 
 bool g_bShutdown = false;
 
-CoinSocketConfig m_config;
-void initConfig(int argc, char* argv[]) { m_config.init(argc, argv); }
-CoinSocketConfig& getConfig() { return m_config; }
-
 std::string g_connectKey;
 
 // Callbacks
@@ -210,6 +206,147 @@ void trySendStoppedAlert(const std::string& errmsg = std::string())
     }
 }
 
+// TODO: Clean this up
+multimap<uint32_t, shared_ptr<Tx>> g_pendingTxs;
+set<bytes_t> g_pendingTxHashes;
+
+enum TxEventType { INSERTED, UPDATED, DELETED };
+void sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& synchedVault, shared_ptr<Tx>& tx)
+{
+    using namespace json_spirit;
+
+    try
+    {
+        bytes_t unsigned_hash = tx->unsigned_hash();
+        string hash = uchar_vector(tx->hash()).getHex();
+        string status = Tx::getStatusString(tx->status());
+        //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
+        uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
+        bool bFinal = (height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1);
+        if (tx->status() == Tx::CONFIRMED && !bFinal && g_pendingTxHashes.find(unsigned_hash) == g_pendingTxHashes.end())
+        {
+            g_pendingTxHashes.insert(unsigned_hash);
+            g_pendingTxs.insert(pair<uint32_t, shared_ptr<Tx>>(height, tx));
+        }
+
+        switch (type)
+        {
+        case INSERTED:
+            LOGGER(debug) << "Transaction inserted: " << hash << " Status: " << status << " Height: " << height << endl;
+            break;
+        case UPDATED:
+            LOGGER(debug) << "Transaction updated: " << hash << " Status: " << status << " Height: " << height << endl;
+            break;
+        case DELETED:
+            LOGGER(debug) << "Transaction deleted: " << hash << " Status: " << status << " Height: " << height << endl;
+            break;
+        default:
+            break;
+        }
+
+        Object txData;
+        txData.push_back(Pair("hash", hash));
+        txData.push_back(Pair("status", status));
+        //txData.push_back(Pair("confirmations", (uint64_t)confirmations));
+        txData.push_back(Pair("height", (uint64_t)height));
+
+        {
+            stringstream msg;
+            switch (type)
+            {
+            case INSERTED:
+                msg << "{\"event\":\"txinserted\", \"data\":" << write_string<Value>(txData) << "}";
+                wsServer.sendChannel("txinserted", msg.str());
+                break;
+            case UPDATED:
+                msg << "{\"event\":\"txupdated\", \"data\":" << write_string<Value>(txData) << "}";
+                wsServer.sendChannel("txupdated", msg.str());
+                break;
+            case DELETED:
+                msg << "{\"event\":\"txdeleted\", \"data\":" << write_string<Value>(txData) << "}";
+                wsServer.sendChannel("txdeleted", msg.str());
+                break;
+            default:
+                break;
+            }
+        }
+        {
+            Value txVal;
+            if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
+            Object txObj = txVal.get_obj();
+            txObj.push_back(Pair("final", bFinal));
+
+            //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
+            stringstream msg;
+            switch (type)
+            {
+            case INSERTED:
+                msg << "{\"event\":\"txinsertedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.sendChannel("txinsertedjson", msg.str());
+                break;
+            case UPDATED:
+                msg << "{\"event\":\"txupdatedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.sendChannel("txupdatedjson", msg.str());
+                break;
+            case DELETED:
+                msg << "{\"event\":\"txdeletedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.sendChannel("txdeletedjson", msg.str());
+                break;
+            default:
+                break;
+            }
+        }
+        {
+            Object rawTxData(txData);
+            rawTxData.push_back(Pair("rawtx", uchar_vector(tx->raw()).getHex()));
+            stringstream msg;
+            switch (type)
+            {
+            case INSERTED:
+                msg << "{\"event\":\"txinsertedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
+                wsServer.sendChannel("txinsertedraw", msg.str());
+                break;
+            case UPDATED:
+                msg << "{\"event\":\"txupdatedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
+                wsServer.sendChannel("txupdatedraw", msg.str());
+                break;
+            case DELETED:
+                msg << "{\"event\":\"txdeletedraw\", \"data\":" << write_string<Value>(rawTxData) << "}";
+                wsServer.sendChannel("txdeletedraw", msg.str());
+                break;
+            default:
+                break;
+            }
+        }
+        {
+            Object serializedTxData(txData);
+            serializedTxData.push_back(Pair("serializedtx", tx->toSerialized()));
+            stringstream msg;
+            switch (type)
+            {
+            case INSERTED:
+                msg << "{\"event\":\"txinsertedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
+                wsServer.sendChannel("txinsertedserialized", msg.str());
+                break;
+            case UPDATED:
+                msg << "{\"event\":\"txupdatedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
+                wsServer.sendChannel("txupdatedserialized", msg.str());
+                break;
+            case DELETED:
+                msg << "{\"event\":\"txdeletedserialized\", \"data\":" << write_string<Value>(serializedTxData) << "}";
+                wsServer.sendChannel("txdeletedserialized", msg.str());
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    catch (const exception& e)
+    {
+        LOGGER(error) << "txinserted handler error: " << e.what() << endl;
+    }
+}
+
 // Main program
 int main(int argc, char* argv[])
 {
@@ -296,12 +433,22 @@ int main(int argc, char* argv[])
             stringstream msg;
             msg << "{\"event\":\"status\", \"data\":" << syncStatusJson << "}";
             wsServer.sendChannel("status", msg.str());
+
+            uint32_t finalHeight = synchedVault.getSyncHeight() + 1 - getConfig().getMinConf();
+            auto ret = g_pendingTxs.equal_range(finalHeight);
+            for (auto it = ret.first; it != ret.second; ++it)
+            {
+                sendTxEvent(UPDATED, wsServer, synchedVault, it->second);
+                g_pendingTxHashes.erase(it->second->unsigned_hash());
+            }
+            g_pendingTxs.erase(finalHeight);
         });
         addChannel("status");
         addChannelToSet("all", "status");
 
         // TX INSERTED 
-        synchedVault.subscribeTxInserted([&](shared_ptr<Tx> tx)
+        synchedVault.subscribeTxInserted([&](shared_ptr<Tx> tx) { sendTxEvent(INSERTED, wsServer, synchedVault, tx); });
+/*
         {
             using namespace json_spirit;
 
@@ -311,6 +458,7 @@ int main(int argc, char* argv[])
                 string status = Tx::getStatusString(tx->status());
                 //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
                 uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
+                bool bFinal = (height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1);
 
                 LOGGER(debug) << "Transaction inserted: " << hash << " Status: " << status << " Height: " << height << endl;
 
@@ -329,6 +477,7 @@ int main(int argc, char* argv[])
                     Value txVal;
                     if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
                     Object txObj = txVal.get_obj();
+                    txObj.push_back(Pair("final", bFinal));
 
                     //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
                     stringstream msg;
@@ -355,6 +504,7 @@ int main(int argc, char* argv[])
                 LOGGER(error) << "txinserted handler error: " << e.what() << endl;
             }
         });
+*/
         addChannel("txinserted");
         addChannel("txinsertedjson");
         addChannel("txinsertedraw");
@@ -371,7 +521,8 @@ int main(int argc, char* argv[])
         addChannelToSet("all",          "txinsertedserialized");
 
         // TX UPDATED
-        synchedVault.subscribeTxUpdated([&](std::shared_ptr<Tx> tx)
+        synchedVault.subscribeTxUpdated([&](std::shared_ptr<Tx> tx) { sendTxEvent(UPDATED, wsServer, synchedVault, tx); });
+/*
         {
             using namespace json_spirit;
 
@@ -381,6 +532,7 @@ int main(int argc, char* argv[])
                 string status = Tx::getStatusString(tx->status());
                 //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
                 uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
+                bool bFinal = (height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1);
 
                 LOGGER(debug) << "Transaction updated: " << hash << " Status: " << status << " Height: " << height << endl;
 
@@ -399,6 +551,7 @@ int main(int argc, char* argv[])
                     Value txVal;
                     if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
                     Object txObj = txVal.get_obj();
+                    txObj.push_back(Pair("final", bFinal));
 
                     //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
                     stringstream msg;
@@ -425,6 +578,7 @@ int main(int argc, char* argv[])
                 LOGGER(error) << "txupdated handler error: " << e.what() << endl;
             }
         });
+*/
         addChannel("txupdated");
         addChannel("txupdatedjson");
         addChannel("txupdatedraw");
@@ -441,7 +595,8 @@ int main(int argc, char* argv[])
         addChannelToSet("all",          "txupdatedserialized");
 
         // TX DELETED
-        synchedVault.subscribeTxDeleted([&](std::shared_ptr<Tx> tx)
+        synchedVault.subscribeTxDeleted([&](std::shared_ptr<Tx> tx) { sendTxEvent(DELETED, wsServer, synchedVault, tx); });
+/*
         {
             using namespace json_spirit;
 
@@ -451,6 +606,7 @@ int main(int argc, char* argv[])
                 string status = Tx::getStatusString(tx->status());
                 //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
                 uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
+                bool bFinal = (height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1);
 
                 LOGGER(debug) << "Transaction deleted: " << hash << " Status: " << status << " Height: " << height << endl;
 
@@ -469,6 +625,7 @@ int main(int argc, char* argv[])
                     Value txVal;
                     if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
                     Object txObj = txVal.get_obj();
+                    txObj.push_back(Pair("final", bFinal));
 
                     //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
                     stringstream msg;
@@ -495,6 +652,7 @@ int main(int argc, char* argv[])
                 LOGGER(error) << "txdeleted handler error: " << e.what() << endl;
             }
         });
+*/
         addChannel("txdeleted");
         addChannel("txdeletedjson");
         addChannel("txdeletedraw");
