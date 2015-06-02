@@ -524,6 +524,8 @@ Value cmd_gettx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
         throw InternalTxJsonInvalidException(); 
 
     Object txObj = txVal.get_obj();
+    txObj.push_back(Pair("assettype", g_coinParams.currency_symbol()));
+
     uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
     bool bFinal = (height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1);
     txObj.push_back(Pair("final", bFinal));

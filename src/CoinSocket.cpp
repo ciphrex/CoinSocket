@@ -274,6 +274,7 @@ void sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& synchedVault,
             Value txVal;
             if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
             Object txObj = txVal.get_obj();
+            txObj.push_back(Pair("assettype", getConfig().getCoinParams().currency_symbol()));
             txObj.push_back(Pair("final", bFinal));
 
             //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
