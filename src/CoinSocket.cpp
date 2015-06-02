@@ -429,12 +429,6 @@ int main(int argc, char* argv[])
         // SYNC STATUS CHANGE
         synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status)
         {
-            string syncStatusJson = json_spirit::write_string<json_spirit::Value>(getSyncStatusObject(synchedVault));
-            LOGGER(debug) << "Status: " << syncStatusJson << endl;
-            stringstream msg;
-            msg << "{\"event\":\"status\", \"data\":" << syncStatusJson << "}";
-            wsServer.sendChannel("status", msg.str());
-
             uint32_t finalHeight = synchedVault.getSyncHeight() + 1 - getConfig().getMinConf();
             auto ret = g_pendingTxs.equal_range(finalHeight);
             for (auto it = ret.first; it != ret.second; ++it)
@@ -443,6 +437,12 @@ int main(int argc, char* argv[])
                 g_pendingTxHashes.erase(it->second->unsigned_hash());
             }
             g_pendingTxs.erase(finalHeight);
+
+            string syncStatusJson = json_spirit::write_string<json_spirit::Value>(getSyncStatusObject(synchedVault));
+            LOGGER(debug) << "Status: " << syncStatusJson << endl;
+            stringstream msg;
+            msg << "{\"event\":\"status\", \"data\":" << syncStatusJson << "}";
+            wsServer.sendChannel("status", msg.str());
         });
         addChannel("status");
         addChannelToSet("all", "status");
