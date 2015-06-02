@@ -77,9 +77,9 @@ void openCallback(Server& server, websocketpp::connection_hdl hdl)
 {
     LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " connected as " << hdl.lock().get() << "." << endl;
 
-    JsonRpc::Response res;
-    res.setResult("connected");
-    server.send(hdl, res);
+    stringstream msg;
+    msg << "{\"event\":\"connected\", \"data\":{}}";
+    server.send(hdl, msg.str());
 }
 
 void closeCallback(Server& server, websocketpp::connection_hdl hdl)
