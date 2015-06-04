@@ -40,19 +40,20 @@ static set<bytes_t> g_pendingTxHashes;
 multimap<uint32_t, shared_ptr<Tx>>& CoinSocket::getPendingTxs() { return g_pendingTxs; }
 set<bytes_t>& CoinSocket::getPendingTxHashes() { return g_pendingTxHashes; } 
 
-void CoinSocket::sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& synchedVault, shared_ptr<Tx>& tx)
+void CoinSocket::sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& synchedVault, shared_ptr<Tx>& tx, bool fakeFinal)
 {
     using namespace json_spirit;
 
     try
     {
         bytes_t unsigned_hash = tx->unsigned_hash();
+        Tx::status_t status = fakeFinal ? Tx::CONFIRMED : tx->status();
         string hash = uchar_vector(tx->hash()).getHex();
-        string status = Tx::getStatusString(tx->status());
+        string statusstr = Tx::getStatusString(status);
         //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
         uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
-        bool bFinal = (height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1);
-        if (tx->status() == Tx::CONFIRMED && !bFinal && g_pendingTxHashes.find(unsigned_hash) == g_pendingTxHashes.end())
+        bool bFinal = fakeFinal || ((height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1));
+        if (status == Tx::CONFIRMED && !bFinal && g_pendingTxHashes.find(unsigned_hash) == g_pendingTxHashes.end())
         {
             g_pendingTxHashes.insert(unsigned_hash);
             g_pendingTxs.insert(pair<uint32_t, shared_ptr<Tx>>(height, tx));
@@ -61,13 +62,13 @@ void CoinSocket::sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& s
         switch (type)
         {
         case INSERTED:
-            LOGGER(debug) << "Transaction inserted: " << hash << " Status: " << status << " Height: " << height << endl;
+            LOGGER(debug) << "Transaction inserted: " << hash << " Status: " << statusstr << " Height: " << height << endl;
             break;
         case UPDATED:
-            LOGGER(debug) << "Transaction updated: " << hash << " Status: " << status << " Height: " << height << endl;
+            LOGGER(debug) << "Transaction updated: " << hash << " Status: " << statusstr << " Height: " << height << endl;
             break;
         case DELETED:
-            LOGGER(debug) << "Transaction deleted: " << hash << " Status: " << status << " Height: " << height << endl;
+            LOGGER(debug) << "Transaction deleted: " << hash << " Status: " << statusstr << " Height: " << height << endl;
             break;
         default:
             break;
@@ -75,7 +76,7 @@ void CoinSocket::sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& s
 
         Object txData;
         txData.push_back(Pair("hash", hash));
-        txData.push_back(Pair("status", status));
+        txData.push_back(Pair("status", statusstr));
         //txData.push_back(Pair("confirmations", (uint64_t)confirmations));
         txData.push_back(Pair("height", (uint64_t)height));
 

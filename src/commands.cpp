@@ -10,6 +10,7 @@
 //
 
 #include "commands.h"
+#include "events.h"
 #include "config.h"
 #include "channels.h"
 #include "jsonobjects.h"
@@ -1047,6 +1048,33 @@ Value cmd_fakemerkleblock(WebSocket::Server& /*server*/, websocketpp::connection
     return Value("success");
 }
 
+json_spirit::Value cmd_faketx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+{
+    if (params.size() != 2 || params[0].type() != str_type || params[1].type() != int_type)
+        throw CommandInvalidParametersException();
+
+    std::string address = params[0].get_str();
+        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+            throw DataFormatInvalidAddressException();
+
+    uint64_t value = params[1].get_uint64();
+    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+    std::shared_ptr<TxOut> txout = std::make_shared<TxOut>(value, txoutscript);
+    std::shared_ptr<TxIn> txin = std::make_shared<TxIn>(bytes_t(32, 0), 0, bytes_t(), 0xffffffff);
+
+    txouts_t txouts;
+    txouts.push_back(txout);
+
+    txins_t txins;
+    txins.push_back(txin);
+
+    std::shared_ptr<Tx> tx = std::make_shared<Tx>();
+    tx->set(1, txins, txouts, 0, time(NULL), Tx::UNSIGNED);
+
+    sendTxEvent(INSERTED, server, synchedVault, tx, true);
+    return Value("success");
+}
+
 void initCommandMap(command_map_t& command_map)
 {
     command_map.clear();
@@ -1108,4 +1136,5 @@ void initCommandMap(command_map_t& command_map)
 
     // Test operations
     //command_map.insert(cmd_pair("fakemerkleblock", Command(&cmd_fakemerkleblock)));
+    command_map.insert(cmd_pair("faketx", Command(&cmd_faketx)));
 }

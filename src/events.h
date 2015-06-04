@@ -26,6 +26,6 @@ std::multimap<uint32_t, std::shared_ptr<CoinDB::Tx>>& getPendingTxs();
 std::set<bytes_t>& getPendingTxHashes();
 
 enum TxEventType { INSERTED, UPDATED, DELETED };
-void sendTxEvent(TxEventType type, WebSocket::Server& wsServer, CoinDB::SynchedVault& synchedVault, std::shared_ptr<CoinDB::Tx>& tx);
+void sendTxEvent(TxEventType type, WebSocket::Server& wsServer, CoinDB::SynchedVault& synchedVault, std::shared_ptr<CoinDB::Tx>& tx, bool fakeFinal = false);
 
 }
