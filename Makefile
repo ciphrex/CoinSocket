@@ -34,6 +34,7 @@ OBJS = \
     obj/config.o \
     obj/jsonobjects.o \
     obj/commands.o \
+    obj/events.o \
     obj/channels.o
 
 all: build/coinsocketd$(EXE_EXT)
@@ -48,6 +49,9 @@ obj/jsonobjects.o: src/jsonobjects.cpp src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 obj/commands.o: src/commands.cpp src/commands.h src/jsonobjects.h
+	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
+
+obj/events.o: src/events.cpp src/events.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 obj/channels.o: src/channels.cpp src/channels.h
