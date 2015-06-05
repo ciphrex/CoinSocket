@@ -25,8 +25,9 @@ namespace CoinSocket
 std::multimap<uint32_t, std::shared_ptr<CoinDB::Tx>>& getPendingTxs();
 std::set<bytes_t>& getPendingTxHashes();
 
-enum TxEventType { INSERTED, UPDATED, DELETED };
-void sendTxEvent(TxEventType type, WebSocket::Server& wsServer, CoinDB::SynchedVault& synchedVault, std::shared_ptr<CoinDB::Tx>& tx, bool fakeFinal = false);
+enum TxEventType { INSERTED, UPDATED, APPROVED, CANCELED, REJECTED, DELETED };
+void sendTxJsonEvent(TxEventType type, WebSocket::Server& wsServer, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, std::shared_ptr<CoinDB::Tx>& tx, bool fakeFinal = false);
+void sendTxChannelEvent(TxEventType type, WebSocket::Server& wsServer, CoinDB::SynchedVault& synchedVault, std::shared_ptr<CoinDB::Tx>& tx, bool fakeFinal = false);
 void sendStatusEvent(WebSocket::Server& wsServer, CoinDB::SynchedVault& synchedVault);
 
 }

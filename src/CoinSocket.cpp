@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
             auto ret = getPendingTxs().equal_range(finalHeight);
             for (auto it = ret.first; it != ret.second; ++it)
             {
-                sendTxEvent(UPDATED, wsServer, synchedVault, it->second);
+                sendTxChannelEvent(UPDATED, wsServer, synchedVault, it->second);
                 getPendingTxHashes().erase(it->second->unsigned_hash());
             }
             getPendingTxs().erase(finalHeight);
@@ -310,7 +310,7 @@ int main(int argc, char* argv[])
         addChannelToSet("all", "status");
 
         // TX INSERTED 
-        synchedVault.subscribeTxInserted([&](shared_ptr<Tx> tx) { sendTxEvent(INSERTED, wsServer, synchedVault, tx); });
+        synchedVault.subscribeTxInserted([&](shared_ptr<Tx> tx) { sendTxChannelEvent(INSERTED, wsServer, synchedVault, tx); });
 /*
         {
             using namespace json_spirit;
@@ -384,7 +384,7 @@ int main(int argc, char* argv[])
         addChannelToSet("all",          "txinsertedserialized");
 
         // TX UPDATED
-        synchedVault.subscribeTxUpdated([&](std::shared_ptr<Tx> tx) { sendTxEvent(UPDATED, wsServer, synchedVault, tx); });
+        synchedVault.subscribeTxUpdated([&](std::shared_ptr<Tx> tx) { sendTxChannelEvent(UPDATED, wsServer, synchedVault, tx); });
 /*
         {
             using namespace json_spirit;
@@ -458,7 +458,7 @@ int main(int argc, char* argv[])
         addChannelToSet("all",          "txupdatedserialized");
 
         // TX DELETED
-        synchedVault.subscribeTxDeleted([&](std::shared_ptr<Tx> tx) { sendTxEvent(DELETED, wsServer, synchedVault, tx); });
+        synchedVault.subscribeTxDeleted([&](std::shared_ptr<Tx> tx) { sendTxChannelEvent(DELETED, wsServer, synchedVault, tx); });
 /*
         {
             using namespace json_spirit;

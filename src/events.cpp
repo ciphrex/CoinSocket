@@ -11,8 +11,6 @@
 
 #include "events.h"
 
-//#include "jsonobjects.h"
-
 #include <CoinDB/SynchedVault.h>
 #include <WebSocketAPI/Server.h>
 
@@ -41,7 +39,91 @@ static set<bytes_t> g_pendingTxHashes;
 multimap<uint32_t, shared_ptr<Tx>>& CoinSocket::getPendingTxs() { return g_pendingTxs; }
 set<bytes_t>& CoinSocket::getPendingTxHashes() { return g_pendingTxHashes; } 
 
-void CoinSocket::sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& synchedVault, shared_ptr<Tx>& tx, bool fakeFinal)
+void CoinSocket::sendTxJsonEvent(TxEventType type, WebSocket::Server& wsServer, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, std::shared_ptr<CoinDB::Tx>& tx, bool fakeFinal)
+{
+    using namespace json_spirit;
+
+    try
+    {
+        bytes_t unsigned_hash = tx->unsigned_hash();
+        Tx::status_t status = tx->status();
+        string hash = uchar_vector(tx->hash()).getHex();
+        string statusstr = Tx::getStatusString(status);
+        //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
+        uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
+        bool bFinal = fakeFinal || ((height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1));
+
+        switch (type)
+        {
+        case INSERTED:
+            LOGGER(debug) << "Transaction inserted: " << hash << " Status: " << statusstr << " Height: " << height << endl;
+            break;
+        case UPDATED:
+            LOGGER(debug) << "Transaction updated: " << hash << " Status: " << statusstr << " Height: " << height << endl;
+            break;
+        case APPROVED:
+            LOGGER(debug) << "Transaction approved: " << hash << " Status: " << statusstr << " Height: " << height << endl;
+            break;
+        case CANCELED:
+            LOGGER(debug) << "Transaction canceled: " << hash << " Status: " << statusstr << " Height: " << height << endl;
+            break;
+        case REJECTED:
+            LOGGER(debug) << "Transaction rejected: " << hash << " Status: " << statusstr << " Height: " << height << endl;
+            break;
+        case DELETED:
+            LOGGER(debug) << "Transaction deleted: " << hash << " Status: " << statusstr << " Height: " << height << endl;
+            break;
+        default:
+            break;
+        }
+
+        {
+            Value txVal;
+            if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
+            Object txObj = txVal.get_obj();
+            txObj.push_back(Pair("assettype", getConfig().getCoinParams().currency_symbol()));
+            txObj.push_back(Pair("final", bFinal));
+
+            //txObj.push_back(Pair("confirmations", (uint64_t)confirmations));
+            stringstream msg;
+            switch (type)
+            {
+            case INSERTED:
+                msg << "{\"event\":\"txinsertedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.send(hdl, msg.str());
+                break;
+            case UPDATED:
+                msg << "{\"event\":\"txupdatedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.send(hdl, msg.str());
+                break;
+            case APPROVED:
+                msg << "{\"event\":\"txapprovedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.send(hdl, msg.str());
+                break;
+            case CANCELED:
+                msg << "{\"event\":\"txcanceledjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.send(hdl, msg.str());
+                break;
+            case REJECTED:
+                msg << "{\"event\":\"txrejectedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.send(hdl, msg.str());
+                break;
+            case DELETED:
+                msg << "{\"event\":\"txdeletedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                wsServer.send(hdl, msg.str());
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    catch (const exception& e)
+    {
+        LOGGER(error) << "sendTxJsonEvent() error: " << e.what() << endl;
+    }
+}
+
+void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedVault& synchedVault, shared_ptr<Tx>& tx, bool fakeFinal)
 {
     using namespace json_spirit;
 
@@ -175,7 +257,7 @@ void CoinSocket::sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& s
     }
     catch (const exception& e)
     {
-        LOGGER(error) << "txinserted handler error: " << e.what() << endl;
+        LOGGER(error) << "sendTxChannelEvent() error: " << e.what() << endl;
     }
 }
 
@@ -185,7 +267,7 @@ void CoinSocket::sendStatusEvent(Server& wsServer, SynchedVault& synchedVault)
     auto ret = getPendingTxs().equal_range(finalHeight);
     for (auto it = ret.first; it != ret.second; ++it)
     {
-        sendTxEvent(UPDATED, wsServer, synchedVault, it->second);
+        sendTxChannelEvent(UPDATED, wsServer, synchedVault, it->second);
         getPendingTxHashes().erase(it->second->unsigned_hash());
     }
     getPendingTxs().erase(finalHeight);

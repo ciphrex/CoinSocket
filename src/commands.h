@@ -81,6 +81,7 @@ json_spirit::Value cmd_importaccountfromfile(WebSocket::Server& server, websocke
 json_spirit::Value cmd_exportaccounttofile(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 // Tx operations
+json_spirit::Value cmd_synctxs(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_gethistory(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_gettx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getserializedtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);

@@ -457,6 +457,34 @@ Value cmd_exportaccounttofile(Server& /*server*/, websocketpp::connection_hdl /*
 }
 
 // Tx operations
+Value cmd_synctxs(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() > 1 || (params.size() == 1 && params[0].type() != int_type))
+        throw CommandInvalidParametersException();
+
+    Vault* vault = synchedVault.getVault();
+
+    uint32_t minheight = params.size() > 0 ? (uint32_t)params[0].get_uint64() : 0;
+    std::vector<TxView> txviews = vault->getTxViews(Tx::ALL, 0, -1, minheight);
+
+    txs_t txs;
+
+    std::vector<Object> txViewObjs; 
+    for (auto& txview: txviews)
+    {
+        shared_ptr<Tx> tx = vault->getTx(txview.hash);
+        txs.push_back(tx);
+    }
+
+    for (auto& tx: txs)
+    {
+        sendTxJsonEvent(UPDATED, server, hdl, synchedVault, tx);
+    }
+
+    Object result;
+    return Value("success");
+}
+
 Value cmd_gethistory(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() > 1 || (params.size() == 1 && params[0].type() != int_type))
@@ -1081,7 +1109,7 @@ Value cmd_faketx(WebSocket::Server& server, websocketpp::connection_hdl hdl, Coi
     std::shared_ptr<Tx> tx = std::make_shared<Tx>();
     tx->set(1, txins, txouts, 0, time(NULL), Tx::UNSIGNED);
 
-    sendTxEvent(INSERTED, server, synchedVault, tx, true);
+    sendTxChannelEvent(INSERTED, server, synchedVault, tx, true);
     return Value("success");
 }
 
@@ -1127,6 +1155,7 @@ void initCommandMap(command_map_t& command_map)
     //command_map.insert(cmd_pair("exportaccounttofile", Command(&cmd_exportaccounttofile)));
 
     // Tx operations
+    command_map.insert(cmd_pair("synctxs", Command(&cmd_synctxs)));
     command_map.insert(cmd_pair("gethistory", Command(&cmd_gethistory)));
     command_map.insert(cmd_pair("getunsigned", Command(&cmd_getunsigned)));
     command_map.insert(cmd_pair("gettx", Command(&cmd_gettx)));
