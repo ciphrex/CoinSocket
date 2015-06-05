@@ -287,7 +287,8 @@ int main(int argc, char* argv[])
         }
 
         // SYNC STATUS CHANGE
-        synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status)
+        synchedVault.subscribeStatusChanged([&](SynchedVault::status_t status) { sendStatusEvent(wsServer, synchedVault); });
+/*
         {
             uint32_t finalHeight = synchedVault.getSyncHeight() + 1 - getConfig().getMinConf();
             auto ret = getPendingTxs().equal_range(finalHeight);
@@ -304,6 +305,7 @@ int main(int argc, char* argv[])
             msg << "{\"event\":\"status\", \"data\":" << syncStatusJson << "}";
             wsServer.sendChannel("status", msg.str());
         });
+*/
         addChannel("status");
         addChannelToSet("all", "status");
 

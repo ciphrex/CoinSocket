@@ -19,6 +19,7 @@
 #include <logger/logger.h>
 
 #include "config.h"
+#include "jsonobjects.h"
 
 #include <string>
 #include <set>
@@ -47,7 +48,7 @@ void CoinSocket::sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& s
     try
     {
         bytes_t unsigned_hash = tx->unsigned_hash();
-        Tx::status_t status = fakeFinal ? Tx::CONFIRMED : tx->status();
+        Tx::status_t status = tx->status();
         string hash = uchar_vector(tx->hash()).getHex();
         string statusstr = Tx::getStatusString(status);
         //uint32_t confirmations = synchedVault.getVault()->getTxConfirmations(tx);
@@ -176,4 +177,22 @@ void CoinSocket::sendTxEvent(TxEventType type, Server& wsServer, SynchedVault& s
     {
         LOGGER(error) << "txinserted handler error: " << e.what() << endl;
     }
+}
+
+void CoinSocket::sendStatusEvent(Server& wsServer, SynchedVault& synchedVault)
+{
+    uint32_t finalHeight = synchedVault.getSyncHeight() + 1 - getConfig().getMinConf();
+    auto ret = getPendingTxs().equal_range(finalHeight);
+    for (auto it = ret.first; it != ret.second; ++it)
+    {
+        sendTxEvent(UPDATED, wsServer, synchedVault, it->second);
+        getPendingTxHashes().erase(it->second->unsigned_hash());
+    }
+    getPendingTxs().erase(finalHeight);
+
+    string syncStatusJson = json_spirit::write_string<json_spirit::Value>(getSyncStatusObject(synchedVault));
+    LOGGER(debug) << "Status: " << syncStatusJson << endl;
+    stringstream msg;
+    msg << "{\"event\":\"status\", \"data\":" << syncStatusJson << "}";
+    wsServer.sendChannel("status", msg.str());
 }

@@ -27,5 +27,6 @@ std::set<bytes_t>& getPendingTxHashes();
 
 enum TxEventType { INSERTED, UPDATED, DELETED };
 void sendTxEvent(TxEventType type, WebSocket::Server& wsServer, CoinDB::SynchedVault& synchedVault, std::shared_ptr<CoinDB::Tx>& tx, bool fakeFinal = false);
+void sendStatusEvent(WebSocket::Server& wsServer, CoinDB::SynchedVault& synchedVault);
 
 }
