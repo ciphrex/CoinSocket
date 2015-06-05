@@ -61,6 +61,10 @@ install:
 	-mkdir -p $(SYSROOT)/bin
 	-cp build/coinsocketd$(EXE_EXT) $(SYSROOT)/bin/
 
+install_test:
+	-mkdir -p $(SYSROOT)/bin
+	-cp build/coinsocketd$(EXE_EXT) $(SYSROOT)/bin/coinsocketd_test$(EXE_EXT)
+
 remove:
 	-rm $(SYSROOT)/bin/coinsocketd$(EXE_EXT)
 
