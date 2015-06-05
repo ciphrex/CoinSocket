@@ -109,6 +109,7 @@ json_spirit::Value cmd_clearaddresswhitelist(WebSocket::Server& server, websocke
 // Testing operations
 json_spirit::Value cmd_fakemerkleblock(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_faketx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_forcestatus(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 
 // Bitcoin Core compatibility methods
 json_spirit::Value cmd_getaccount(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);

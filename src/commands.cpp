@@ -1048,7 +1048,7 @@ Value cmd_fakemerkleblock(WebSocket::Server& /*server*/, websocketpp::connection
     return Value("success");
 }
 
-json_spirit::Value cmd_faketx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+Value cmd_faketx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
 {
     if (params.size() != 2 || params[0].type() != str_type || params[1].type() != int_type)
         throw CommandInvalidParametersException();
@@ -1057,10 +1057,20 @@ json_spirit::Value cmd_faketx(WebSocket::Server& server, websocketpp::connection
         if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
             throw DataFormatInvalidAddressException();
 
+    Vault* vault = synchedVault.getVault();
     uint64_t value = params[1].get_uint64();
     bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
     std::shared_ptr<TxOut> txout = std::make_shared<TxOut>(value, txoutscript);
     std::shared_ptr<TxIn> txin = std::make_shared<TxIn>(bytes_t(32, 0), 0, bytes_t(), 0xffffffff);
+
+    try
+    {
+        std::shared_ptr<SigningScript> script = vault->getSigningScript(txoutscript);
+        txout->signingscript(script);
+    }
+    catch (const SigningScriptNotFoundException& /*e*/)
+    {
+    }
 
     txouts_t txouts;
     txouts.push_back(txout);
@@ -1072,6 +1082,15 @@ json_spirit::Value cmd_faketx(WebSocket::Server& server, websocketpp::connection
     tx->set(1, txins, txouts, 0, time(NULL), Tx::UNSIGNED);
 
     sendTxEvent(INSERTED, server, synchedVault, tx, true);
+    return Value("success");
+}
+
+Value cmd_forcestatus(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
+{
+    if (params.size() != 0)
+        throw CommandInvalidParametersException();
+
+    sendStatusEvent(server, synchedVault);
     return Value("success");
 }
 
@@ -1137,4 +1156,5 @@ void initCommandMap(command_map_t& command_map)
     // Test operations
     //command_map.insert(cmd_pair("fakemerkleblock", Command(&cmd_fakemerkleblock)));
     command_map.insert(cmd_pair("faketx", Command(&cmd_faketx)));
+    command_map.insert(cmd_pair("forcestatus", Command(&cmd_forcestatus)));
 }
