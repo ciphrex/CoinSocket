@@ -10,16 +10,20 @@
 //
 
 #include "jsonobjects.h"
+#include "coinparams.h"
+#include "txproposal.h"
+
 #include <CoinQ/CoinQ_script.h>
 #include <CoinDB/Schema.h>
 #include <CoinDB/SigningRequest.h>
 #include <CoinDB/SynchedVault.h>
 #include <stdutils/uchar_vector.h>
 
+using namespace CoinSocket;
 using namespace CoinDB;
 using namespace json_spirit;
 
-Object getSyncStatusObject(const SynchedVault& synchedVault)
+Object CoinSocket::getSyncStatusObject(const SynchedVault& synchedVault)
 {
     Object result;
     result.push_back(Pair("status", SynchedVault::getStatusString(synchedVault.getStatus())));
@@ -30,51 +34,51 @@ Object getSyncStatusObject(const SynchedVault& synchedVault)
     return result;
 }
 
-Object getBlockHeaderObject(BlockHeader* header)
+Object CoinSocket::getBlockHeaderObject(const BlockHeader& header)
 {
     Object result;
-    result.push_back(Pair("hash", uchar_vector(header->hash()).getHex()));
-    result.push_back(Pair("height", (uint64_t)header->height()));
-    result.push_back(Pair("version", (uint64_t)header->version()));
-    result.push_back(Pair("prevhash", uchar_vector(header->prevhash()).getHex()));
-    result.push_back(Pair("merkleroot", uchar_vector(header->merkleroot()).getHex()));
-    result.push_back(Pair("timestamp", (uint64_t)header->timestamp()));
-    result.push_back(Pair("bits", (uint64_t)header->bits()));
-    result.push_back(Pair("nonce", (uint64_t)header->nonce()));
+    result.push_back(Pair("hash", uchar_vector(header.hash()).getHex()));
+    result.push_back(Pair("height", (uint64_t)header.height()));
+    result.push_back(Pair("version", (uint64_t)header.version()));
+    result.push_back(Pair("prevhash", uchar_vector(header.prevhash()).getHex()));
+    result.push_back(Pair("merkleroot", uchar_vector(header.merkleroot()).getHex()));
+    result.push_back(Pair("timestamp", (uint64_t)header.timestamp()));
+    result.push_back(Pair("bits", (uint64_t)header.bits()));
+    result.push_back(Pair("nonce", (uint64_t)header.nonce()));
     return result;
 }
 
-Object getKeychainObject(Keychain* keychain)
+Object CoinSocket::getKeychainObject(const Keychain& keychain)
 {
     Object result;
-    result.push_back(Pair("id", (uint64_t)keychain->id()));
-    result.push_back(Pair("name", keychain->name()));
-    result.push_back(Pair("depth", (int)keychain->depth()));
-    result.push_back(Pair("parentfp", (uint64_t)keychain->parent_fp()));
-    result.push_back(Pair("childnum", (uint64_t)keychain->child_num()));
-    result.push_back(Pair("pubkey", uchar_vector(keychain->pubkey()).getHex()));
-    result.push_back(Pair("hash", uchar_vector(keychain->hash()).getHex()));
+    result.push_back(Pair("id", (uint64_t)keychain.id()));
+    result.push_back(Pair("name", keychain.name()));
+    result.push_back(Pair("depth", (int)keychain.depth()));
+    result.push_back(Pair("parentfp", (uint64_t)keychain.parent_fp()));
+    result.push_back(Pair("childnum", (uint64_t)keychain.child_num()));
+    result.push_back(Pair("pubkey", uchar_vector(keychain.pubkey()).getHex()));
+    result.push_back(Pair("hash", uchar_vector(keychain.hash()).getHex()));
     return result;
 }
 
-Object getUserObject(CoinDB::User* user, const unsigned char base58Versions[])
+Object CoinSocket::getUserObject(const CoinDB::User& user)
 {
     Object result;
-    result.push_back(Pair("id", (uint64_t)user->id()));
-    result.push_back(Pair("username", user->username()));
-    result.push_back(Pair("txoutscript_whitelist_enabled", user->isTxOutScriptWhitelistEnabled()));
+    result.push_back(Pair("id", (uint64_t)user.id()));
+    result.push_back(Pair("username", user.username()));
+    result.push_back(Pair("txoutscript_whitelist_enabled", user.isTxOutScriptWhitelistEnabled()));
 
-    std::set<bytes_t> scripts = user->txoutscript_whitelist();
+    std::set<bytes_t> scripts = user.txoutscript_whitelist();
     std::vector<std::string> addresses;
     for (auto& script: scripts)
     {
-        addresses.push_back(CoinQ::Script::getAddressForTxOutScript(script, base58Versions));
+        addresses.push_back(CoinQ::Script::getAddressForTxOutScript(script, getCoinParams().address_versions()));
     }
     result.push_back(Pair("addresses", Array(addresses.begin(), addresses.end())));
     return result;
 }
 
-Object getAccountInfoObject(const AccountInfo& accountInfo)
+Object CoinSocket::getAccountInfoObject(const AccountInfo& accountInfo)
 {
     Object result;
     result.push_back(Pair("id", (uint64_t)accountInfo.id()));
@@ -87,7 +91,7 @@ Object getAccountInfoObject(const AccountInfo& accountInfo)
     return result;
 }
 
-Object getTxViewObject(const TxView& txview)
+Object CoinSocket::getTxViewObject(const TxView& txview)
 {
     bytes_t hash = txview.status == CoinDB::Tx::UNSIGNED
         ? txview.unsigned_hash : txview.hash;
@@ -103,7 +107,7 @@ Object getTxViewObject(const TxView& txview)
     return result;
 }
 
-Object getSigningRequestObject(const SigningRequest& req)
+Object CoinSocket::getSigningRequestObject(const SigningRequest& req)
 {
     std::vector<std::string> keychain_names;
     std::vector<std::string> keychain_hashes;
@@ -121,5 +125,27 @@ Object getSigningRequestObject(const SigningRequest& req)
     result.push_back(Pair("keychains", Array(keychain_names.begin(), keychain_names.end())));
     result.push_back(Pair("keychainhashes", Array(keychain_hashes.begin(), keychain_hashes.end())));
     result.push_back(Pair("rawtx", rawtx));
+    return result;
+}
+
+Object CoinSocket::getTxProposalObject(const CoinSocket::TxProposal& txProposal)
+{
+    Object result;
+    result.push_back(Pair("proposalid", uchar_vector(txProposal.hash()).getHex()));
+    result.push_back(Pair("username", txProposal.username()));
+    result.push_back(Pair("account", txProposal.account()));
+
+    std::vector<Object> txoutObjs;
+    for (auto& txout: txProposal.txouts())
+    {
+        Object txoutObj;
+        txoutObj.push_back(Pair("address", CoinQ::Script::getAddressForTxOutScript(txout->script(), getCoinParams().address_versions())));
+        txoutObj.push_back(Pair("amount", txout->value()));
+        txoutObjs.push_back(txoutObj);
+    }
+
+    result.push_back(Pair("txouts", Array(txoutObjs.begin(), txoutObjs.end())));
+    result.push_back(Pair("fee", txProposal.fee()));
+    result.push_back(Pair("timestamp", txProposal.timestamp()));
     return result;
 }

@@ -23,6 +23,8 @@
 #include <logger/logger.h>
 
 #include "config.h"
+#include "coinparams.h"
+#include "alerts.h"
 #include "commands.h"
 #include "events.h"
 

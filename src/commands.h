@@ -46,12 +46,6 @@ typedef std::map<std::string, Command>  command_map_t;
 void setDocumentDir(const std::string& documentDir);
 const std::string& getDocumentDir();
 
-void setCoinParams(const CoinQ::CoinParams& coinParams);
-const CoinQ::CoinParams& getCoinParams();
-
-void setSmtpTls(const std::string& username, const std::string& password, const std::string& url);
-SmtpTls& getSmtpTls();
-
 // Channel operations
 json_spirit::Value cmd_subscribe(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_unsubscribe(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
@@ -86,6 +80,7 @@ json_spirit::Value cmd_gethistory(WebSocket::Server& server, websocketpp::connec
 json_spirit::Value cmd_gettx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getserializedtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_getserializedunsignedtxs(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
+json_spirit::Value cmd_proposetx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_newtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_createtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);
 json_spirit::Value cmd_newlabeledtx(WebSocket::Server& server, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params);

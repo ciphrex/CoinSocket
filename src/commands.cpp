@@ -10,8 +10,11 @@
 //
 
 #include "commands.h"
+#include "alerts.h"
 #include "events.h"
+#include "txproposal.h"
 #include "config.h"
+#include "coinparams.h"
 #include "channels.h"
 #include "jsonobjects.h"
 
@@ -47,14 +50,6 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
 static string g_documentDir;
 void setDocumentDir(const string& documentDir) { g_documentDir = documentDir; }
 const string& getDocumentDir() { return g_documentDir; }
-
-static CoinQ::CoinParams g_coinParams;
-void setCoinParams(const CoinQ::CoinParams& coinParams) { g_coinParams = coinParams; }
-const CoinQ::CoinParams& getCoinParams() { return g_coinParams; }
-
-static SmtpTls g_smtpTls;
-void setSmtpTls(const string& username, const string& password, const string& url) { g_smtpTls.set(username, password, url); }
-SmtpTls& getSmtpTls() { return g_smtpTls; }
 
 // Channel operations
 Value cmd_subscribe(Server& server, websocketpp::connection_hdl hdl, SynchedVault& /*synchedVault*/, const Array& params)
@@ -181,7 +176,7 @@ Value cmd_newkeychain(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
 
     std::string keychainName = params[0].get_str();
     std::shared_ptr<Keychain> keychain = vault->newKeychain(keychainName, random_bytes(32));
-    return getKeychainObject(keychain.get());
+    return getKeychainObject(*keychain);
 }
 
 Value cmd_renamekeychain(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
@@ -206,7 +201,7 @@ Value cmd_getkeychaininfo(Server& /*server*/, websocketpp::connection_hdl /*hdl*
 
     std::string keychainName = params[0].get_str();
     std::shared_ptr<Keychain> keychain = vault->getKeychain(keychainName);
-    return getKeychainObject(keychain.get());
+    return getKeychainObject(*keychain);
 }
 
 Value cmd_getkeychains(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
@@ -367,7 +362,7 @@ Value cmd_issuescript(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
     std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label, index);
     if (synchedVault.isConnected()) { synchedVault.updateBloomFilter(); }
 
-    std::string address = CoinQ::Script::getAddressForTxOutScript(script->txoutscript(), g_coinParams.address_versions());
+    std::string address = CoinQ::Script::getAddressForTxOutScript(script->txoutscript(), getCoinParams().address_versions());
     std::string uri = "bitcoin:";
     uri += address;
     if (!label.empty()) { uri += "?label="; uri += label; }
@@ -402,7 +397,7 @@ Value cmd_issuecontactscript(Server& /*server*/, websocketpp::connection_hdl /*h
     std::shared_ptr<SigningScript> script = vault->issueSigningScript(accountName, binName, label, 0, userName);
     if (synchedVault.isConnected()) { synchedVault.updateBloomFilter(); }
 
-    std::string address = CoinQ::Script::getAddressForTxOutScript(script->txoutscript(), g_coinParams.address_versions());
+    std::string address = CoinQ::Script::getAddressForTxOutScript(script->txoutscript(), getCoinParams().address_versions());
     std::string uri = "bitcoin:";
     uri += address;
     if (!label.empty()) { uri += "?label="; uri += label; }
@@ -553,7 +548,7 @@ Value cmd_gettx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
         throw InternalTxJsonInvalidException(); 
 
     Object txObj = txVal.get_obj();
-    txObj.push_back(Pair("assettype", g_coinParams.currency_symbol()));
+    txObj.push_back(Pair("assettype", getCoinParams().currency_symbol()));
 
     uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
     bool bFinal = (height > 0) && (synchedVault.getSyncHeight() >= height + getConfig().getMinConf() - 1);
@@ -623,11 +618,11 @@ Value cmd_newtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
             throw CommandInvalidParametersException();
 
         std::string address = params[i++].get_str();
-        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+        if (!CoinQ::Script::isValidAddress(address, getCoinParams().address_versions()))
             throw DataFormatInvalidAddressException();
 
         uint64_t value = params[i++].get_uint64();
-        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, getCoinParams().address_versions());
         std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
         txouts.push_back(txout);
          
@@ -666,11 +661,11 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
 
 	std::string sending_label = params[i++].get_str();
         std::string address = params[i++].get_str();
-        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+        if (!CoinQ::Script::isValidAddress(address, getCoinParams().address_versions()))
             throw DataFormatInvalidAddressException();
 
         uint64_t value = params[i++].get_uint64();
-        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, getCoinParams().address_versions());
         std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
 	txout->sending_label(sending_label);
         txouts.push_back(txout);
@@ -688,20 +683,20 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
     }
     catch (const AccountInsufficientFundsException& e)
     {
-        if (g_smtpTls.isSet())
+        if (getSmtpTls().isSet())
         {
             try
             {
                 LOGGER(trace) << "Sending insufficient funds email alert." << endl;
-                g_smtpTls.setSubject("Insufficient funds");
+                getSmtpTls().setSubject("Insufficient funds");
                 std::stringstream body;
                 body << "An insufficient funds error has occured.\r\n\r\n"
                      << "username:  " << e.username() << "\r\n"
                      << "account:   " << e.account_name() << "\r\n"
                      << "requested: " << e.requested() << "\r\n"
                      << "available: " << e.available() << "\r\n";
-                g_smtpTls.setBody(body.str());
-                g_smtpTls.send();
+                getSmtpTls().setBody(body.str());
+                getSmtpTls().send();
             }
             catch (const exception& e)
             {
@@ -717,6 +712,43 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
         throw InternalTxJsonInvalidException(); 
 
     return txObj;
+}
+
+Value cmd_proposetx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() < 5)
+        throw CommandInvalidParametersException();
+
+    string username = params[0].get_str();
+    string account = params[1].get_str();
+
+    // Get outputs
+    size_t i = 2;
+    txouts_t txouts;
+    do
+    {
+        if (params[i].type() != str_type || params[i+1].type() != str_type || params[i+2].type() != int_type)
+            throw CommandInvalidParametersException();
+
+	string sending_label = params[i++].get_str();
+        string address = params[i++].get_str();
+        if (!CoinQ::Script::isValidAddress(address, getCoinParams().address_versions()))
+            throw DataFormatInvalidAddressException();
+
+        uint64_t value = params[i++].get_uint64();
+        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, getCoinParams().address_versions());
+        shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
+	txout->sending_label(sending_label);
+        txouts.push_back(txout);
+         
+    } while (i < (params.size() - 1) && (params[i].type() == str_type));
+
+    uint64_t fee = i < params.size() ? params[i++].get_uint64() : DEFAULT_TX_FEE;
+
+    shared_ptr<TxProposal> txProposal = make_shared<TxProposal>(username, account, txouts, fee);
+    addTxProposal(txProposal);
+
+    return getTxProposalObject(*txProposal);
 }
 
 Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
@@ -739,11 +771,11 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
 	std::string username = params[i++].get_str();
 	std::string sending_label = params[i++].get_str();
         std::string address = params[i++].get_str();
-        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+        if (!CoinQ::Script::isValidAddress(address, getCoinParams().address_versions()))
             throw DataFormatInvalidAddressException();
 
         uint64_t value = params[i++].get_uint64();
-        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+        bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, getCoinParams().address_versions());
         std::shared_ptr<TxOut> txout(new TxOut(value, txoutscript));
 	txout->sending_label(sending_label);
         txouts.push_back(txout);
@@ -973,7 +1005,7 @@ Value cmd_getblockheader(Server& /*server*/, websocketpp::connection_hdl /*hdl*/
         throw CommandInvalidParametersException();
     }
 
-    return getBlockHeaderObject(header.get());
+    return getBlockHeaderObject(*header);
 }
 
 Value cmd_getchaintip(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
@@ -986,7 +1018,7 @@ Value cmd_getchaintip(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
 //    std::shared_ptr<BlockHeader> header = vault->getBlockHeader(height);
     std::shared_ptr<BlockHeader> header = vault->getBestBlockHeader();
     if (!header) throw BlockHeaderNotFoundException();
-    return getBlockHeaderObject(header.get());
+    return getBlockHeaderObject(*header);
 }
 
 // User operations
@@ -1000,7 +1032,7 @@ Value cmd_adduser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*h
 
     Vault* vault = synchedVault.getVault();
     std::shared_ptr<User> user = vault->addUser(username, enableTxOutScriptWhitelist);
-    return getUserObject(user.get(), g_coinParams.address_versions());
+    return getUserObject(*user);
 }
 
 Value cmd_getuser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
@@ -1012,7 +1044,7 @@ Value cmd_getuser(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*h
 
     Vault* vault = synchedVault.getVault();
     std::shared_ptr<User> user = vault->getUser(username);
-    return getUserObject(user.get(), g_coinParams.address_versions());
+    return getUserObject(*user);
 }
 
 Value cmd_addaddresstowhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
@@ -1023,14 +1055,14 @@ Value cmd_addaddresstowhitelist(WebSocket::Server& /*server*/, websocketpp::conn
     std::string username = params[0].get_str();
     std::string address = params[1].get_str();
 
-    if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+    if (!CoinQ::Script::isValidAddress(address, getCoinParams().address_versions()))
         throw DataFormatInvalidAddressException();
 
-    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, getCoinParams().address_versions());
 
     Vault* vault = synchedVault.getVault();
     std::shared_ptr<User> user = vault->addTxOutScriptToWhitelist(username, txoutscript);
-    return getUserObject(user.get(), g_coinParams.address_versions());
+    return getUserObject(*user);
 }
 
 Value cmd_removeaddressfromwhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
@@ -1041,14 +1073,14 @@ Value cmd_removeaddressfromwhitelist(WebSocket::Server& /*server*/, websocketpp:
     std::string username = params[0].get_str();
     std::string address = params[1].get_str();
 
-    if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+    if (!CoinQ::Script::isValidAddress(address, getCoinParams().address_versions()))
         throw DataFormatInvalidAddressException();
 
-    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, getCoinParams().address_versions());
 
     Vault* vault = synchedVault.getVault();
     std::shared_ptr<User> user = vault->removeTxOutScriptFromWhitelist(username, txoutscript);
-    return getUserObject(user.get(), g_coinParams.address_versions());
+    return getUserObject(*user);
 }
 
 Value cmd_clearaddresswhitelist(WebSocket::Server& /*server*/, websocketpp::connection_hdl /*hdl*/, CoinDB::SynchedVault& synchedVault, const json_spirit::Array& params)
@@ -1060,7 +1092,7 @@ Value cmd_clearaddresswhitelist(WebSocket::Server& /*server*/, websocketpp::conn
 
     Vault* vault = synchedVault.getVault();
     std::shared_ptr<User> user = vault->clearTxOutScriptWhitelist(username);
-    return getUserObject(user.get(), g_coinParams.address_versions());
+    return getUserObject(*user);
 }
 
 // Testing operations
@@ -1082,12 +1114,12 @@ Value cmd_faketx(WebSocket::Server& server, websocketpp::connection_hdl hdl, Coi
         throw CommandInvalidParametersException();
 
     std::string address = params[0].get_str();
-        if (!CoinQ::Script::isValidAddress(address, g_coinParams.address_versions()))
+        if (!CoinQ::Script::isValidAddress(address, getCoinParams().address_versions()))
             throw DataFormatInvalidAddressException();
 
     Vault* vault = synchedVault.getVault();
     uint64_t value = params[1].get_uint64();
-    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, g_coinParams.address_versions());
+    bytes_t txoutscript = CoinQ::Script::getTxOutScriptForAddress(address, getCoinParams().address_versions());
     std::shared_ptr<TxOut> txout = std::make_shared<TxOut>(value, txoutscript);
     std::shared_ptr<TxIn> txin = std::make_shared<TxIn>(bytes_t(32, 0), 0, bytes_t(), 0xffffffff);
 

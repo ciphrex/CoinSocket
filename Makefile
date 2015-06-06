@@ -32,9 +32,12 @@ endif
 
 OBJS = \
     obj/config.o \
+    obj/coinparams.o \
+    obj/alerts.o \
     obj/jsonobjects.o \
     obj/commands.o \
     obj/events.o \
+    obj/txproposal.o \
     obj/channels.o
 
 all: build/coinsocketd$(EXE_EXT)
@@ -45,6 +48,12 @@ build/coinsocketd$(EXE_EXT): src/CoinSocket.cpp src/config.h $(OBJS)
 obj/config.o: src/config.cpp src/config.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
+obj/coinparams.o: src/coinparams.cpp src/coinparams.h
+	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
+
+obj/alerts.o: src/alerts.cpp src/alerts.h
+	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
+
 obj/jsonobjects.o: src/jsonobjects.cpp src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
@@ -52,6 +61,9 @@ obj/commands.o: src/commands.cpp src/commands.h src/jsonobjects.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 obj/events.o: src/events.cpp src/events.h
+	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
+
+obj/txproposal.o: src/txproposal.cpp src/txproposal.h
 	$(CXX) $(CXX_FLAGS) $(ODB_DB) $(INCLUDE_PATH) -c $< -o $@
 
 obj/channels.o: src/channels.cpp src/channels.h
@@ -69,7 +81,4 @@ remove:
 	-rm $(SYSROOT)/bin/coinsocketd$(EXE_EXT)
 
 clean:
-	-rm -f build/coinsocketd$(EXE_EXT)
-
-clean-all:
 	-rm -f build/coinsocketd$(EXE_EXT) obj/*.o
