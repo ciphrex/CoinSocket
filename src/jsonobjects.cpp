@@ -139,6 +139,7 @@ Object CoinSocket::getTxProposalObject(const CoinSocket::TxProposal& txProposal)
     for (auto& txout: txProposal.txouts())
     {
         Object txoutObj;
+        txoutObj.push_back(Pair("sending_label", txout->sending_label()));
         txoutObj.push_back(Pair("address", CoinQ::Script::getAddressForTxOutScript(txout->script(), getCoinParams().address_versions())));
         txoutObj.push_back(Pair("amount", txout->value()));
         txoutObjs.push_back(txoutObj);

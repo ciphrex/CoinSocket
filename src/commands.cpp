@@ -1193,6 +1193,7 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("gettx", Command(&cmd_gettx)));
     command_map.insert(cmd_pair("getserializedtx", Command(&cmd_getserializedtx)));
     command_map.insert(cmd_pair("getserializedunsignedtxs", Command(&cmd_getserializedunsignedtxs)));
+    command_map.insert(cmd_pair("proposetx", Command(&cmd_proposetx)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
     command_map.insert(cmd_pair("createtx", Command(&cmd_createtx)));
     command_map.insert(cmd_pair("newlabeledtx", Command(&cmd_newlabeledtx)));
