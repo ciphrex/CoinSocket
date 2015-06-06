@@ -27,6 +27,8 @@
 #include <WebSocketAPI/Server.h>
 #include <CoinDB/SynchedVault.h>
 
+#include <mutex>
+
 using namespace CoinSocket;
 using namespace WebSocket;
 using namespace json_spirit;
@@ -46,6 +48,9 @@ std::string getAddressFromScript(const bytes_t& script, const unsigned char base
     else
         return "N/A";
 }
+
+// Globals
+mutex g_txSubmissionMutex;
 
 static string g_documentDir;
 void setDocumentDir(const string& documentDir) { g_documentDir = documentDir; }
@@ -778,11 +783,18 @@ Value cmd_submittxproposal(Server& server, websocketpp::connection_hdl hdl, Sync
     if (params.size() != 1 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
 
-    uchar_vector hash(params[0].get_str());
-    shared_ptr<TxProposal> txProposal = getTxProposal(hash);
-
     Vault* vault = synchedVault.getVault();
-    shared_ptr<Tx> tx = vault->createTx(txProposal->account(), DEFAULT_TX_VERSION, DEFAULT_TX_LOCKTIME, txProposal->txouts(), txProposal->fee(), 1, true);
+
+    shared_ptr<TxProposal> txProposal;
+    shared_ptr<Tx> tx;
+    uchar_vector hash(params[0].get_str());
+
+    {
+        lock_guard<mutex> lock(g_txSubmissionMutex);
+        txProposal = getTxProposal(hash);
+        tx = vault->createTx(txProposal->account(), DEFAULT_TX_VERSION, DEFAULT_TX_LOCKTIME, txProposal->txouts(), txProposal->fee(), 1, true);
+        eraseTxProposal(hash);
+    }
 
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
