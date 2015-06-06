@@ -11,6 +11,10 @@
 
 #include "txproposal.h"
 
+#include <stdutils/uchar_vector.h>
+
+#include <CoinCore/hash.h>
+
 #include <mutex>
 
 using namespace CoinSocket;
@@ -21,7 +25,55 @@ static txproposals_t g_txProposals;
 
 void TxProposal::setHash() const
 {
-    hash_ = bytes_t(32, 1);
+    // TODO: Better serialization resistant to malleability
+    uchar_vector serialized;
+    uint64_t v;
+
+    for (auto c: username_)     { serialized.push_back((unsigned char)c); }
+    serialized.push_back(0x00);
+
+    for (auto c: account_)      { serialized.push_back((unsigned char)c); }
+    serialized.push_back(0x00);
+
+    for (auto& txout: txouts_)
+    {
+        for (auto c: txout->sending_label()) { serialized.push_back((unsigned char)c); }
+        serialized.push_back(0x00);
+
+        serialized += txout->script();
+
+        v = txout->value();
+        serialized.push_back((unsigned char)((v >> 56) & 0xff));
+        serialized.push_back((unsigned char)((v >> 48) & 0xff));
+        serialized.push_back((unsigned char)((v >> 40) & 0xff));
+        serialized.push_back((unsigned char)((v >> 32) & 0xff));
+        serialized.push_back((unsigned char)((v >> 24) & 0xff));
+        serialized.push_back((unsigned char)((v >> 16) & 0xff));
+        serialized.push_back((unsigned char)((v >> 8) & 0xff));
+        serialized.push_back((unsigned char)(v & 0xff));
+    }
+
+    v = fee_;
+    serialized.push_back((unsigned char)((v >> 56) & 0xff));
+    serialized.push_back((unsigned char)((v >> 48) & 0xff));
+    serialized.push_back((unsigned char)((v >> 40) & 0xff));
+    serialized.push_back((unsigned char)((v >> 32) & 0xff));
+    serialized.push_back((unsigned char)((v >> 24) & 0xff));
+    serialized.push_back((unsigned char)((v >> 16) & 0xff));
+    serialized.push_back((unsigned char)((v >> 8) & 0xff));
+    serialized.push_back((unsigned char)(v & 0xff));
+
+    v = timestamp_;
+    serialized.push_back((unsigned char)((v >> 56) & 0xff));
+    serialized.push_back((unsigned char)((v >> 48) & 0xff));
+    serialized.push_back((unsigned char)((v >> 40) & 0xff));
+    serialized.push_back((unsigned char)((v >> 32) & 0xff));
+    serialized.push_back((unsigned char)((v >> 24) & 0xff));
+    serialized.push_back((unsigned char)((v >> 16) & 0xff));
+    serialized.push_back((unsigned char)((v >> 8) & 0xff));
+    serialized.push_back((unsigned char)(v & 0xff));
+        
+    hash_ = sha256_2(serialized);
 }
 
 void CoinSocket::addTxProposal(std::shared_ptr<TxProposal> txProposal)

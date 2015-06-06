@@ -23,6 +23,8 @@ namespace CoinSocket
 
 // TODO: Real fee calculation heuristics for different coins.
 const uint64_t DEFAULT_TX_FEE = 20000;
+const uint32_t DEFAULT_TX_VERSION = 1;
+const uint32_t DEFAULT_TX_LOCKTIME = 0;
 
 class TxProposal
 {

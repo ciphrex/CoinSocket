@@ -716,7 +716,7 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
 
 Value cmd_proposetx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
-    if (params.size() < 5)
+    if (params.size() < 5 || params.size() > 6 || params[0].type() != str_type || params[1].type() != str_type)
         throw CommandInvalidParametersException();
 
     string username = params[0].get_str();
@@ -751,6 +751,46 @@ Value cmd_proposetx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Syn
     return getTxProposalObject(*txProposal);
 }
 
+Value cmd_gettxproposal(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    uchar_vector hash(params[0].get_str());
+    shared_ptr<TxProposal> txProposal = getTxProposal(hash);
+
+    return getTxProposalObject(*txProposal);
+}
+
+Value cmd_canceltxproposal(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    uchar_vector hash(params[0].get_str());
+    eraseTxProposal(hash);
+
+    return Value("success");
+}
+
+Value cmd_submittxproposal(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    uchar_vector hash(params[0].get_str());
+    shared_ptr<TxProposal> txProposal = getTxProposal(hash);
+
+    Vault* vault = synchedVault.getVault();
+    shared_ptr<Tx> tx = vault->createTx(txProposal->account(), DEFAULT_TX_VERSION, DEFAULT_TX_LOCKTIME, txProposal->txouts(), txProposal->fee(), 1, true);
+
+    Value txObj;
+    if (!read_string(tx->toJson(true, true), txObj))
+        throw InternalTxJsonInvalidException(); 
+
+    return txObj;
+}
+
 Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() < 5)
@@ -783,8 +823,8 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
     } while (i < (params.size() - 1) && (params[i].type() == str_type));
 
     uint64_t fee = i < params.size() ? params[i++].get_uint64() : 0;
-    uint32_t version = i < params.size() ? (uint32_t)params[i++].get_uint64() : 1;
-    uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : 0;
+    uint32_t version = i < params.size() ? (uint32_t)params[i++].get_uint64() : DEFAULT_TX_VERSION;
+    uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : DEFAULT_TX_LOCKTIME;
 
     std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
 
@@ -1194,6 +1234,9 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("getserializedtx", Command(&cmd_getserializedtx)));
     command_map.insert(cmd_pair("getserializedunsignedtxs", Command(&cmd_getserializedunsignedtxs)));
     command_map.insert(cmd_pair("proposetx", Command(&cmd_proposetx)));
+    command_map.insert(cmd_pair("gettxproposal", Command(&cmd_gettxproposal)));
+    command_map.insert(cmd_pair("canceltxproposal", Command(&cmd_canceltxproposal)));
+    command_map.insert(cmd_pair("submittxproposal", Command(&cmd_submittxproposal)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
     command_map.insert(cmd_pair("createtx", Command(&cmd_createtx)));
     command_map.insert(cmd_pair("newlabeledtx", Command(&cmd_newlabeledtx)));
