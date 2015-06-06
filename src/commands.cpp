@@ -796,11 +796,7 @@ Value cmd_submittxproposal(Server& server, websocketpp::connection_hdl hdl, Sync
         processTxProposal(hash, tx->unsigned_hash());
     }
 
-    Value txObj;
-    if (!read_string(tx->toJson(true, true), txObj))
-        throw InternalTxJsonInvalidException(); 
-
-    return txObj;
+    return Value("success");
 }
 
 Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)

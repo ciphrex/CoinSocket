@@ -119,14 +119,13 @@ void CoinSocket::sendTxJsonEvent(TxEventType type, WebSocket::Server& wsServer, 
                 break;
             }
 
-            msg.clear();
-
             if (type == INSERTED || type == UPDATED || type == DELETED)
             {
                 shared_ptr<TxProposal> txProposal = getProcessedTxProposal(tx->unsigned_hash());
                 if (txProposal)
                 {
                     txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
+                    stringstream msg;
                     switch (type)
                     {
                     case INSERTED:
@@ -233,7 +232,7 @@ void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedV
                 if (txProposal && (status == Tx::PROPAGATED || status == Tx::CONFIRMED))
                 {
                     txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
-                    msg.clear();
+                    stringstream msg;
                     msg << "{\"event\":\"txapprovedjson\", \"data\":" << write_string<Value>(txObj) << "}";
                     wsServer.sendChannel("txapprovedjson", msg.str());
                 }
@@ -244,7 +243,7 @@ void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedV
                 if (txProposal && (status == Tx::PROPAGATED || status == Tx::CONFIRMED))
                 {
                     txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
-                    msg.clear();
+                    stringstream msg;
                     msg << "{\"event\":\"txapprovedjson\", \"data\":" << write_string<Value>(txObj) << "}";
                     wsServer.sendChannel("txapprovedjson", msg.str());
                 }
@@ -255,7 +254,7 @@ void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedV
                 if (txProposal)
                 {
                     txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
-                    msg.clear();
+                    stringstream msg;
                     msg << "{\"event\":\"txrejectedjson\", \"data\":" << write_string<Value>(txObj) << "}";
                     wsServer.sendChannel("txrejectedjson", msg.str());
                 }
