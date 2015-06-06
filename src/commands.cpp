@@ -773,7 +773,7 @@ Value cmd_canceltxproposal(Server& server, websocketpp::connection_hdl hdl, Sync
         throw CommandInvalidParametersException();
 
     uchar_vector hash(params[0].get_str());
-    eraseTxProposal(hash);
+    cancelTxProposal(hash);
 
     return Value("success");
 }
@@ -793,7 +793,7 @@ Value cmd_submittxproposal(Server& server, websocketpp::connection_hdl hdl, Sync
         lock_guard<mutex> lock(g_txSubmissionMutex);
         txProposal = getTxProposal(hash);
         tx = vault->createTx(txProposal->account(), DEFAULT_TX_VERSION, DEFAULT_TX_LOCKTIME, txProposal->txouts(), txProposal->fee(), 1, true);
-        eraseTxProposal(hash);
+        processTxProposal(hash, tx->unsigned_hash());
     }
 
     Value txObj;

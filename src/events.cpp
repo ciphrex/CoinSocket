@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "jsonobjects.h"
+#include "txproposal.h"
 
 #include <string>
 #include <set>
@@ -38,6 +39,8 @@ static set<bytes_t> g_pendingTxHashes;
 
 multimap<uint32_t, shared_ptr<Tx>>& CoinSocket::getPendingTxs() { return g_pendingTxs; }
 set<bytes_t>& CoinSocket::getPendingTxHashes() { return g_pendingTxHashes; } 
+
+// TODO: Clean up the txapprovedjson and txrejectedjson mess
 
 void CoinSocket::sendTxJsonEvent(TxEventType type, WebSocket::Server& wsServer, websocketpp::connection_hdl hdl, CoinDB::SynchedVault& synchedVault, std::shared_ptr<CoinDB::Tx>& tx, bool fakeFinal)
 {
@@ -115,6 +118,34 @@ void CoinSocket::sendTxJsonEvent(TxEventType type, WebSocket::Server& wsServer, 
             default:
                 break;
             }
+
+            msg.clear();
+
+            if (type == INSERTED || type == UPDATED || type == DELETED)
+            {
+                shared_ptr<TxProposal> txProposal = getProcessedTxProposal(tx->unsigned_hash());
+                if (txProposal)
+                {
+                    txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
+                    switch (type)
+                    {
+                    case INSERTED:
+                    case UPDATED:
+                        if (status == Tx::PROPAGATED || status == Tx::CONFIRMED)
+                        {
+                            msg << "{\"event\":\"txapprovedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                            wsServer.send(hdl, msg.str());
+                        }
+                        break;
+                    case DELETED:
+                        msg << "{\"event\":\"txrejectedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                        wsServer.send(hdl, msg.str());
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
         }
     }
     catch (const exception& e)
@@ -141,6 +172,8 @@ void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedV
             g_pendingTxHashes.insert(unsigned_hash);
             g_pendingTxs.insert(pair<uint32_t, shared_ptr<Tx>>(height, tx));
         }
+
+        shared_ptr<TxProposal> txProposal = getProcessedTxProposal(tx->unsigned_hash());
 
         switch (type)
         {
@@ -197,14 +230,35 @@ void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedV
             case INSERTED:
                 msg << "{\"event\":\"txinsertedjson\", \"data\":" << write_string<Value>(txObj) << "}";
                 wsServer.sendChannel("txinsertedjson", msg.str());
+                if (txProposal && (status == Tx::PROPAGATED || status == Tx::CONFIRMED))
+                {
+                    txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
+                    msg.clear();
+                    msg << "{\"event\":\"txapprovedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                    wsServer.sendChannel("txapprovedjson", msg.str());
+                }
                 break;
             case UPDATED:
                 msg << "{\"event\":\"txupdatedjson\", \"data\":" << write_string<Value>(txObj) << "}";
                 wsServer.sendChannel("txupdatedjson", msg.str());
+                if (txProposal && (status == Tx::PROPAGATED || status == Tx::CONFIRMED))
+                {
+                    txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
+                    msg.clear();
+                    msg << "{\"event\":\"txapprovedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                    wsServer.sendChannel("txapprovedjson", msg.str());
+                }
                 break;
             case DELETED:
                 msg << "{\"event\":\"txdeletedjson\", \"data\":" << write_string<Value>(txObj) << "}";
                 wsServer.sendChannel("txdeletedjson", msg.str());
+                if (txProposal)
+                {
+                    txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
+                    msg.clear();
+                    msg << "{\"event\":\"txrejectedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+                    wsServer.sendChannel("txrejectedjson", msg.str());
+                }
                 break;
             default:
                 break;

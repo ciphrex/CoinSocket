@@ -21,7 +21,8 @@ using namespace CoinSocket;
 using namespace std;
 
 static mutex g_mutex;
-static txproposals_t g_txProposals;
+static txproposals_t g_pendingTxProposals;
+static txproposals_t g_processedTxProposals;
 
 void TxProposal::setHash() const
 {
@@ -80,35 +81,56 @@ void CoinSocket::addTxProposal(std::shared_ptr<TxProposal> txProposal)
 {
     lock_guard<mutex> lock(g_mutex);
  
-    auto it = g_txProposals.find(txProposal->hash());
-    if (it != g_txProposals.end()) return;
+    auto it = g_pendingTxProposals.find(txProposal->hash());
+    if (it != g_pendingTxProposals.end()) return;
 
-    g_txProposals[txProposal->hash()] = txProposal;
+    g_pendingTxProposals[txProposal->hash()] = txProposal;
 }
 
 std::shared_ptr<TxProposal> CoinSocket::getTxProposal(const bytes_t& hash)
 {
     lock_guard<mutex> lock(g_mutex);
 
-    auto it = g_txProposals.find(hash);
-    if (it == g_txProposals.end()) throw runtime_error("Transaction proposal not found.");
+    auto it = g_pendingTxProposals.find(hash);
+    if (it == g_pendingTxProposals.end()) throw runtime_error("Transaction proposal not found.");
 
     return it->second;
 }
 
-void CoinSocket::eraseTxProposal(const bytes_t& hash)
+void CoinSocket::cancelTxProposal(const bytes_t& hash)
 {
     lock_guard<mutex> lock(g_mutex);
 
-    auto it = g_txProposals.find(hash);
-    if (it == g_txProposals.end()) throw runtime_error("Transaction proposal not found.");
+    auto it = g_pendingTxProposals.find(hash);
+    if (it == g_pendingTxProposals.end()) throw runtime_error("Transaction proposal not found.");
 
-    g_txProposals.erase(hash);
+    g_pendingTxProposals.erase(hash);
+}
+
+void CoinSocket::processTxProposal(const bytes_t& hash, const bytes_t& tx_unsigned_hash)
+{
+    lock_guard<mutex> lock(g_mutex);
+
+    auto it = g_pendingTxProposals.find(hash);
+    if (it == g_pendingTxProposals.end()) throw runtime_error("Transaction proposal not found.");
+
+    g_processedTxProposals[tx_unsigned_hash] = it->second;
+    g_pendingTxProposals.erase(hash);
+}
+
+std::shared_ptr<TxProposal> CoinSocket::getProcessedTxProposal(const bytes_t& tx_unsigned_hash)
+{
+    lock_guard<mutex> lock(g_mutex);
+
+    auto it = g_processedTxProposals.find(tx_unsigned_hash);
+    if (it == g_processedTxProposals.end()) return nullptr;
+
+    return it->second;
 }
 
 void CoinSocket::clearTxProposals()
 {
     lock_guard<mutex> lock(g_mutex);
 
-    g_txProposals.clear();
+    g_pendingTxProposals.clear();
 }

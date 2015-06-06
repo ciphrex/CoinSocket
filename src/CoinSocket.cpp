@@ -533,6 +533,18 @@ int main(int argc, char* argv[])
         addChannelToSet("all",          "txdeletedraw");
         addChannelToSet("all",          "txdeletedserialized");
 
+        addChannel("txapprovedjson");
+        addChannel("txcanceledjson");
+        addChannel("txrejectedjson");
+
+        addChannelToSet("txjson",       "txapprovedjson");
+        addChannelToSet("txjson",       "txcanceledjson");
+        addChannelToSet("txjson",       "txrejectedjson");
+
+        addChannelToSet("all",          "txapprovedjson");
+        addChannelToSet("all",          "txcanceledjson");
+        addChannelToSet("all",          "txrejectedjson");
+
         // MERKLE BLOCK INSERTED
         synchedVault.subscribeMerkleBlockInserted([&](std::shared_ptr<MerkleBlock> merkleblock)
         {
