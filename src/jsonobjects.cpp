@@ -174,7 +174,7 @@ Object CoinSocket::getTxObject(const CoinDB::Tx& tx, bool includeRawHex, bool in
     result.push_back(Pair("unsignedhash", uchar_vector(tx.unsigned_hash()).getHex()));
     result.push_back(Pair("status", CoinDB::Tx::getStatusString(tx.status())));
     if (tx.blockheader())   { result.push_back(Pair("height", (uint64_t)tx.blockheader()->height())); }
-    else                    { result.push_back(Pair("height", nullptr)); }
+    else                    { result.push_back(Pair("height", Value())); /* null */ }
 
     std::vector<Object> txinObjs;
     for (auto& txin: tx.txins())    { txinObjs.push_back(getTxInObject(*txin)); }
