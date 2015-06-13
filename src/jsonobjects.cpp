@@ -136,17 +136,56 @@ Object CoinSocket::getTxProposalObject(const CoinSocket::TxProposal& txProposal)
     result.push_back(Pair("account", txProposal.account()));
 
     std::vector<Object> txoutObjs;
-    for (auto& txout: txProposal.txouts())
-    {
-        Object txoutObj;
-        txoutObj.push_back(Pair("sending_label", txout->sending_label()));
-        txoutObj.push_back(Pair("address", CoinQ::Script::getAddressForTxOutScript(txout->script(), getCoinParams().address_versions())));
-        txoutObj.push_back(Pair("amount", txout->value()));
-        txoutObjs.push_back(txoutObj);
-    }
+    for (auto& txout: txProposal.txouts())  { txoutObjs.push_back(getTxOutObject(*txout)); }
 
     result.push_back(Pair("txouts", Array(txoutObjs.begin(), txoutObjs.end())));
     result.push_back(Pair("fee", txProposal.fee()));
     result.push_back(Pair("timestamp", txProposal.timestamp()));
     return result;
 }
+
+Object CoinSocket::getTxInObject(const CoinDB::TxIn& txin)
+{
+    Object result;
+    result.push_back(Pair("outhash", uchar_vector(txin.outhash()).getHex()));
+    result.push_back(Pair("outindex", (uint64_t)txin.outindex()));
+    result.push_back(Pair("script", uchar_vector(txin.script()).getHex()));
+    result.push_back(Pair("sequence", (uint64_t)txin.sequence()));
+    return result;
+}
+
+Object CoinSocket::getTxOutObject(const CoinDB::TxOut& txout)
+{
+    Object result;
+    result.push_back(Pair("address", CoinQ::Script::getAddressForTxOutScript(txout.script(), getCoinParams().address_versions())));
+    result.push_back(Pair("value", (uint64_t)txout.value()));
+    result.push_back(Pair("sending_label", txout.sending_label()));
+    result.push_back(Pair("receiving_label", txout.receiving_label()));
+    result.push_back(Pair("script", uchar_vector(txout.script()).getHex()));
+    return result;
+}
+
+Object CoinSocket::getTxObject(const CoinDB::Tx& tx, bool includeRawHex, bool includeSerialized)
+{
+    Object result;
+    result.push_back(Pair("version", (uint64_t)tx.version()));
+    result.push_back(Pair("locktime", (uint64_t)tx.locktime()));
+    result.push_back(Pair("hash", uchar_vector(tx.hash()).getHex()));
+    result.push_back(Pair("unsignedhash", uchar_vector(tx.unsigned_hash()).getHex()));
+    result.push_back(Pair("status", CoinDB::Tx::getStatusString(tx.status())));
+    if (tx.blockheader())   { result.push_back(Pair("height", (uint64_t)tx.blockheader()->height())); }
+    else                    { result.push_back(Pair("height", nullptr)); }
+
+    std::vector<Object> txinObjs;
+    for (auto& txin: tx.txins())    { txinObjs.push_back(getTxInObject(*txin)); }
+    result.push_back(Pair("txins", Array(txinObjs.begin(), txinObjs.end())));
+
+    std::vector<Object> txoutObjs;
+    for (auto& txout: tx.txouts())  { txoutObjs.push_back(getTxOutObject(*txout)); }
+    result.push_back(Pair("txouts", Array(txoutObjs.begin(), txoutObjs.end())));
+
+    if (includeRawHex)      { result.push_back(Pair("rawtx", uchar_vector(tx.raw()).getHex())); }
+    if (includeSerialized)  { result.push_back(Pair("serializedtx", tx.toSerialized())); }
+
+    return result;
+} 
