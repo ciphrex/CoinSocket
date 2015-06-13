@@ -81,9 +81,12 @@ void CoinSocket::sendTxJsonEvent(TxEventType type, WebSocket::Server& wsServer, 
         }
 
         {
+/*
             Value txVal;
             if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
             Object txObj = txVal.get_obj();
+*/
+            Object txObj = getTxObject(*tx);
             txObj.push_back(Pair("assettype", getConfig().getCoinParams().currency_symbol()));
             txObj.push_back(Pair("final", bFinal));
 
@@ -216,9 +219,12 @@ void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedV
             }
         }
         {
+/*
             Value txVal;
             if (!read_string(tx->toJson(false), txVal) || txVal.type() != obj_type) throw InternalTxJsonInvalidException();
             Object txObj = txVal.get_obj();
+*/
+            Object txObj = getTxObject(*tx);
             txObj.push_back(Pair("assettype", getConfig().getCoinParams().currency_symbol()));
             txObj.push_back(Pair("final", bFinal));
 

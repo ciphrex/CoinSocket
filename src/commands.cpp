@@ -548,11 +548,14 @@ Value cmd_gettx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
         throw CommandInvalidParametersException();
     }
 
+/*
     Value txVal;
     if (!read_string(tx->toJson(true, true), txVal))
         throw InternalTxJsonInvalidException(); 
 
     Object txObj = txVal.get_obj();
+*/
+    Object txObj = getTxObject(*tx, true, true);
     txObj.push_back(Pair("assettype", getCoinParams().currency_symbol()));
 
     uint32_t height = tx->blockheader() ? tx->blockheader()->height() : 0;
@@ -639,9 +642,12 @@ Value cmd_newtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Synched
 
     std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
 
+/*
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException(); 
+*/
+    Object txObj = getTxObject(*tx, true, true); 
 
     return txObj;
 }
@@ -712,9 +718,12 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
         throw;
     }
 
+/*
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException(); 
+*/
+    Object txObj = getTxObject(*tx, true, true);
 
     return txObj;
 }
@@ -835,10 +844,13 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
     uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : DEFAULT_TX_LOCKTIME;
 
     std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
-
+/*
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException(); 
+*/
+
+    Object txObj = getTxObject(*tx, true, true);
 
     return txObj;
 }
@@ -934,9 +946,13 @@ Value cmd_insertrawtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, S
         tx = synchedVault.sendTx(tx->id());
     }
 
+/*
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException();
+*/
+
+    Object txObj = getTxObject(*tx, true, true);
 
     return txObj;
 }
@@ -965,9 +981,14 @@ Value cmd_insertserializedtx(Server& /*server*/, websocketpp::connection_hdl /*h
         tx = synchedVault.sendTx(tx->id());
     }
 
+/*
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
         throw InternalTxJsonInvalidException();
+
+*/
+
+    Object txObj = getTxObject(*tx, true, true);
 
     return txObj;
 }
