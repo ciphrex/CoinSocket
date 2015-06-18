@@ -765,6 +765,23 @@ Value cmd_proposetx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Syn
     return getTxProposalObject(*txProposal);
 }
 
+Value cmd_listtxproposals(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 0)
+        throw CommandInvalidParametersException();
+
+    txproposals_t txProposals = getTxProposals();
+    vector<Object> txProposalObjs;
+    for (auto& txProposal: txProposals)
+    {
+        txProposalObjs.push_back(getTxProposalObject(*txProposal));
+    }
+
+    Object result;
+    result.push_back(Pair("txproposals", Array(txProposalObjs.begin(), txProposalObjs.end())));
+    return result;
+}
+
 Value cmd_gettxproposal(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
 {
     if (params.size() != 1 || params[0].type() != str_type)

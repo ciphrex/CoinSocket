@@ -52,11 +52,13 @@ private:
     void setHash() const;
 };
 
-typedef std::map<bytes_t, std::shared_ptr<TxProposal>> txproposals_t;
+typedef std::map<bytes_t, std::shared_ptr<TxProposal>> txproposal_map_t;
+typedef std::vector<std::shared_ptr<TxProposal>> txproposals_t;
 
 
 void                            addTxProposal(std::shared_ptr<TxProposal> txProposal);
 std::shared_ptr<TxProposal>     getTxProposal(const bytes_t& hash);
+txproposals_t                   getTxProposals();
 void                            cancelTxProposal(const bytes_t& hash);
 void                            clearTxProposals();
 void                            processTxProposal(const bytes_t& hash, const bytes_t& tx_unsigned_hash);

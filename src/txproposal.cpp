@@ -21,8 +21,8 @@ using namespace CoinSocket;
 using namespace std;
 
 static mutex g_mutex;
-static txproposals_t g_pendingTxProposals;
-static txproposals_t g_processedTxProposals;
+static txproposal_map_t g_pendingTxProposals;
+static txproposal_map_t g_processedTxProposals;
 
 void TxProposal::setHash() const
 {
@@ -95,6 +95,20 @@ std::shared_ptr<TxProposal> CoinSocket::getTxProposal(const bytes_t& hash)
     if (it == g_pendingTxProposals.end()) throw runtime_error("Transaction proposal not found.");
 
     return it->second;
+}
+
+txproposals_t CoinSocket::getTxProposals()
+{
+    txproposals_t txProposals;
+
+    lock_guard<mutex> lock(g_mutex);
+
+    for (auto& pair: g_pendingTxProposals)
+    {
+        txProposals.push_back(pair.second);
+    }
+
+    return txProposals;
 }
 
 void CoinSocket::cancelTxProposal(const bytes_t& hash)
