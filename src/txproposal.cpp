@@ -166,7 +166,7 @@ void CoinSocket::approveTxSubmission(const bytes_t& hash, const bytes_t& tx_unsi
 
     g_processedTxProposals[tx_unsigned_hash] = it->second;
     g_processedTxProposals[tx_unsigned_hash]->status(TxProposal::APPROVED);
-    g_pendingTxProposals.erase(hash);
+    g_submittedTxProposals.erase(hash);
 }
 
 void CoinSocket::cancelTxSubmission(const bytes_t& hash)
@@ -178,7 +178,7 @@ void CoinSocket::cancelTxSubmission(const bytes_t& hash)
 
     g_processedTxProposals[hash] = it->second;
     g_processedTxProposals[hash]->status(TxProposal::CANCELED);
-    g_pendingTxProposals.erase(hash);
+    g_submittedTxProposals.erase(hash);
 }
 
 void CoinSocket::rejectTxSubmission(const bytes_t& hash)
@@ -190,7 +190,7 @@ void CoinSocket::rejectTxSubmission(const bytes_t& hash)
 
     g_processedTxProposals[hash] = it->second;
     g_processedTxProposals[hash]->status(TxProposal::REJECTED);
-    g_pendingTxProposals.erase(hash);
+    g_submittedTxProposals.erase(hash);
 }
 
 std::shared_ptr<TxProposal> CoinSocket::getProcessedTxSubmission(const bytes_t& tx_unsigned_hash)
