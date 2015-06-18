@@ -809,20 +809,105 @@ Value cmd_submittxproposal(Server& server, websocketpp::connection_hdl hdl, Sync
     if (params.size() != 1 || params[0].type() != str_type)
         throw CommandInvalidParametersException();
 
+    shared_ptr<TxProposal> txProposal;
+    shared_ptr<Tx> tx;
+    uchar_vector hash(params[0].get_str());
+    submitTxProposal(hash);
+
+    return Value("success");
+}
+
+Value cmd_listtxsubmissions(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 0)
+        throw CommandInvalidParametersException();
+
+    txproposals_t txProposals = getTxSubmissions();
+    vector<Object> txProposalObjs;
+    for (auto& txProposal: txProposals)
+    {
+        txProposalObjs.push_back(getTxProposalObject(*txProposal));
+    }
+
+    Object result;
+    result.push_back(Pair("txsubmissions", Array(txProposalObjs.begin(), txProposalObjs.end())));
+    return result;
+}
+
+Value cmd_approvetx(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
     Vault* vault = synchedVault.getVault();
 
-    shared_ptr<TxProposal> txProposal;
+    shared_ptr<TxProposal> txSubmission;
     shared_ptr<Tx> tx;
     uchar_vector hash(params[0].get_str());
 
     {
         lock_guard<mutex> lock(g_txSubmissionMutex);
-        txProposal = getTxProposal(hash);
-        tx = vault->createTx(txProposal->account(), DEFAULT_TX_VERSION, DEFAULT_TX_LOCKTIME, txProposal->txouts(), txProposal->fee(), 1, true);
-        processTxProposal(hash, tx->unsigned_hash());
+        txSubmission = getTxSubmission(hash);
+        tx = vault->createTx(txSubmission->account(), DEFAULT_TX_VERSION, DEFAULT_TX_LOCKTIME, txSubmission->txouts(), txSubmission->fee(), 1, true);
+        approveTxSubmission(hash, tx->unsigned_hash());
     }
 
     return Value("success");
+}
+
+Value cmd_canceltx(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    shared_ptr<TxProposal> txSubmission;
+    shared_ptr<Tx> tx;
+    uchar_vector hash(params[0].get_str());
+
+    {
+        lock_guard<mutex> lock(g_txSubmissionMutex);
+        txSubmission = getTxSubmission(hash);
+        cancelTxSubmission(hash);
+        sendTxChannelEvent(server, txSubmission);
+    }
+
+    return Value("success");
+}
+
+Value cmd_rejecttx(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 1 || params[0].type() != str_type)
+        throw CommandInvalidParametersException();
+
+    shared_ptr<TxProposal> txSubmission;
+    shared_ptr<Tx> tx;
+    uchar_vector hash(params[0].get_str());
+
+    {
+        lock_guard<mutex> lock(g_txSubmissionMutex);
+        txSubmission = getTxSubmission(hash);
+        rejectTxSubmission(hash);
+        sendTxChannelEvent(server, txSubmission);
+    }
+
+    return Value("success");
+}
+
+Value cmd_listprocessedtxsubmissions(Server& server, websocketpp::connection_hdl hdl, SynchedVault& synchedVault, const Array& params)
+{
+    if (params.size() != 0)
+        throw CommandInvalidParametersException();
+
+    txproposals_t txProposals = getProcessedTxSubmissions();
+    vector<Object> txProposalObjs;
+    for (auto& txProposal: txProposals)
+    {
+        txProposalObjs.push_back(getTxProposalObject(*txProposal));
+    }
+
+    Object result;
+    result.push_back(Pair("processedtxsubmissions", Array(txProposalObjs.begin(), txProposalObjs.end())));
+    return result;
 }
 
 Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
@@ -1284,6 +1369,11 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("listtxproposals", Command(&cmd_listtxproposals)));
     command_map.insert(cmd_pair("canceltxproposal", Command(&cmd_canceltxproposal)));
     command_map.insert(cmd_pair("submittxproposal", Command(&cmd_submittxproposal)));
+    command_map.insert(cmd_pair("listtxsubmissions", Command(&cmd_listtxsubmissions)));
+    command_map.insert(cmd_pair("approvetx", Command(&cmd_approvetx)));
+    command_map.insert(cmd_pair("canceltx", Command(&cmd_canceltx)));
+    command_map.insert(cmd_pair("rejecttx", Command(&cmd_rejecttx)));
+    command_map.insert(cmd_pair("listprocessedtxsubmissions", Command(&cmd_listprocessedtxsubmissions)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
     command_map.insert(cmd_pair("createtx", Command(&cmd_createtx)));
     command_map.insert(cmd_pair("newlabeledtx", Command(&cmd_newlabeledtx)));

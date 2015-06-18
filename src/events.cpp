@@ -124,7 +124,7 @@ void CoinSocket::sendTxJsonEvent(TxEventType type, WebSocket::Server& wsServer, 
 
             if (type == INSERTED || type == UPDATED || type == DELETED)
             {
-                shared_ptr<TxProposal> txProposal = getProcessedTxProposal(tx->unsigned_hash());
+                shared_ptr<TxProposal> txProposal = getProcessedTxSubmission(tx->unsigned_hash());
                 if (txProposal)
                 {
                     txObj.push_back(Pair("proposal", getTxProposalObject(*txProposal)));
@@ -156,6 +156,34 @@ void CoinSocket::sendTxJsonEvent(TxEventType type, WebSocket::Server& wsServer, 
     }
 }
 
+void CoinSocket::sendTxChannelEvent(Server& wsServer, shared_ptr<TxProposal>& txProposal)
+{
+    using namespace json_spirit;
+
+    try
+    {
+        Object txObj = getTxProposalObject(*txProposal);
+        stringstream msg;
+        switch (txProposal->status())
+        {
+        case TxProposal::CANCELED:
+            msg << "{\"event\":\"txcanceledjson\", \"data\":" << write_string<Value>(txObj) << "}";
+            wsServer.sendChannel("txcanceledjson", msg.str());
+            break;
+        case TxProposal::REJECTED:
+            msg << "{\"event\":\"txrejectedjson\", \"data\":" << write_string<Value>(txObj) << "}";
+            wsServer.sendChannel("txrejectedjson", msg.str());
+            break;
+        default:
+            break;
+        }
+    }
+    catch (const exception& e)
+    {
+        LOGGER(error) << "sendTxChannelEvent() error: " << e.what() << endl;
+    }
+}
+
 void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedVault& synchedVault, shared_ptr<Tx>& tx, bool fakeFinal)
 {
     using namespace json_spirit;
@@ -175,7 +203,7 @@ void CoinSocket::sendTxChannelEvent(TxEventType type, Server& wsServer, SynchedV
             g_pendingTxs.insert(pair<uint32_t, shared_ptr<Tx>>(height, tx));
         }
 
-        shared_ptr<TxProposal> txProposal = getProcessedTxProposal(tx->unsigned_hash());
+        shared_ptr<TxProposal> txProposal = getProcessedTxSubmission(tx->unsigned_hash());
 
         switch (type)
         {

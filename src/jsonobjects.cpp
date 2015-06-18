@@ -130,8 +130,28 @@ Object CoinSocket::getSigningRequestObject(const SigningRequest& req)
 
 Object CoinSocket::getTxProposalObject(const CoinSocket::TxProposal& txProposal)
 {
+    std::string statusString;
+    switch (txProposal.status())
+    {
+        case TxProposal::PENDING:
+            statusString = "PENDING";
+            break;
+        case TxProposal::APPROVED:
+            statusString = "APPROVED";
+            break;
+        case TxProposal::CANCELED:
+            statusString = "CANCELED";
+            break;
+        case TxProposal::REJECTED:
+            statusString = "REJECTED";
+            break;
+        default:
+            statusString = "UNKNOWN";
+    }
+
     Object result;
     result.push_back(Pair("proposalid", uchar_vector(txProposal.hash()).getHex()));
+    result.push_back(Pair("status", statusString));
     result.push_back(Pair("username", txProposal.username()));
     result.push_back(Pair("account", txProposal.account()));
 

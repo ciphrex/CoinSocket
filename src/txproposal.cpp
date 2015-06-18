@@ -22,6 +22,7 @@ using namespace std;
 
 static mutex g_mutex;
 static txproposal_map_t g_pendingTxProposals;
+static txproposal_map_t g_submittedTxProposals;
 static txproposal_map_t g_processedTxProposals;
 
 void TxProposal::setHash() const
@@ -121,18 +122,78 @@ void CoinSocket::cancelTxProposal(const bytes_t& hash)
     g_pendingTxProposals.erase(hash);
 }
 
-void CoinSocket::processTxProposal(const bytes_t& hash, const bytes_t& tx_unsigned_hash)
+void CoinSocket::submitTxProposal(const bytes_t& hash)
 {
     lock_guard<mutex> lock(g_mutex);
 
     auto it = g_pendingTxProposals.find(hash);
     if (it == g_pendingTxProposals.end()) throw runtime_error("Transaction proposal not found.");
 
-    g_processedTxProposals[tx_unsigned_hash] = it->second;
+    g_submittedTxProposals[hash];
     g_pendingTxProposals.erase(hash);
 }
 
-std::shared_ptr<TxProposal> CoinSocket::getProcessedTxProposal(const bytes_t& tx_unsigned_hash)
+std::shared_ptr<TxProposal> CoinSocket::getTxSubmission(const bytes_t& hash)
+{
+    lock_guard<mutex> lock(g_mutex);
+
+    auto it = g_submittedTxProposals.find(hash);
+    if (it == g_submittedTxProposals.end()) throw runtime_error("Transaction submission not found.");
+
+    return it->second;
+}
+
+txproposals_t CoinSocket::getTxSubmissions()
+{
+    txproposals_t txProposals;
+
+    lock_guard<mutex> lock(g_mutex);
+
+    for (auto& pair: g_submittedTxProposals)
+    {
+        txProposals.push_back(pair.second);
+    }
+
+    return txProposals;
+}
+
+void CoinSocket::approveTxSubmission(const bytes_t& hash, const bytes_t& tx_unsigned_hash)
+{
+    lock_guard<mutex> lock(g_mutex);
+
+    auto it = g_submittedTxProposals.find(hash);
+    if (it == g_submittedTxProposals.end()) throw runtime_error("Transaction submission not found.");
+
+    g_processedTxProposals[tx_unsigned_hash] = it->second;
+    g_processedTxProposals[tx_unsigned_hash]->status(TxProposal::APPROVED);
+    g_pendingTxProposals.erase(hash);
+}
+
+void CoinSocket::cancelTxSubmission(const bytes_t& hash)
+{
+    lock_guard<mutex> lock(g_mutex);
+
+    auto it = g_submittedTxProposals.find(hash);
+    if (it == g_submittedTxProposals.end()) throw runtime_error("Transaction submission not found.");
+
+    g_processedTxProposals[hash] = it->second;
+    g_processedTxProposals[hash]->status(TxProposal::CANCELED);
+    g_pendingTxProposals.erase(hash);
+}
+
+void CoinSocket::rejectTxSubmission(const bytes_t& hash)
+{
+    lock_guard<mutex> lock(g_mutex);
+
+    auto it = g_submittedTxProposals.find(hash);
+    if (it == g_submittedTxProposals.end()) throw runtime_error("Transaction submission not found.");
+
+    g_processedTxProposals[hash] = it->second;
+    g_processedTxProposals[hash]->status(TxProposal::REJECTED);
+    g_pendingTxProposals.erase(hash);
+}
+
+std::shared_ptr<TxProposal> CoinSocket::getProcessedTxSubmission(const bytes_t& tx_unsigned_hash)
 {
     lock_guard<mutex> lock(g_mutex);
 
@@ -140,6 +201,20 @@ std::shared_ptr<TxProposal> CoinSocket::getProcessedTxProposal(const bytes_t& tx
     if (it == g_processedTxProposals.end()) return nullptr;
 
     return it->second;
+}
+
+txproposals_t CoinSocket::getProcessedTxSubmissions()
+{
+    txproposals_t txProposals;
+
+    lock_guard<mutex> lock(g_mutex);
+
+    for (auto& pair: g_processedTxProposals)
+    {
+        txProposals.push_back(pair.second);
+    }
+
+    return txProposals;
 }
 
 void CoinSocket::clearTxProposals()

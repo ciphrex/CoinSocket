@@ -29,10 +29,15 @@ const uint32_t DEFAULT_TX_LOCKTIME = 0;
 class TxProposal
 {
 public:
+    enum status_t { PENDING, APPROVED, CANCELED, REJECTED };
+
     TxProposal(const std::string& username, const std::string& account, CoinDB::txouts_t txouts, uint64_t fee = DEFAULT_TX_FEE)
-        : username_(username), account_(account), txouts_(txouts), fee_(fee) { timestamp_ = time(NULL); }
+        : username_(username), account_(account), txouts_(txouts), fee_(fee), status_(PENDING) { timestamp_ = time(NULL); }
 
     const bytes_t& hash() const { if (hash_.empty()) setHash(); return hash_; }
+
+    status_t status() const { return status_; }
+    void status(status_t status) { status_ = status; }
 
     const std::string& username() const { return username_; }
     const std::string& account() const { return account_; }
@@ -48,6 +53,7 @@ private:
     CoinDB::txouts_t txouts_;
     uint64_t fee_;
     uint64_t timestamp_;
+    status_t status_;
 
     void setHash() const;
 };
@@ -59,9 +65,15 @@ typedef std::vector<std::shared_ptr<TxProposal>> txproposals_t;
 void                            addTxProposal(std::shared_ptr<TxProposal> txProposal);
 std::shared_ptr<TxProposal>     getTxProposal(const bytes_t& hash);
 txproposals_t                   getTxProposals();
+void                            submitTxProposal(const bytes_t& hash);
 void                            cancelTxProposal(const bytes_t& hash);
 void                            clearTxProposals();
-void                            processTxProposal(const bytes_t& hash, const bytes_t& tx_unsigned_hash);
-std::shared_ptr<TxProposal>     getProcessedTxProposal(const bytes_t& tx_unsigned_hash);
+std::shared_ptr<TxProposal>     getTxSubmission(const bytes_t& hash);
+txproposals_t                   getTxSubmissions();
+void                            approveTxSubmission(const bytes_t& hash, const bytes_t& tx_unsigned_hash);
+void                            cancelTxSubmission(const bytes_t& hash);
+void                            rejectTxSubmission(const bytes_t& hash);
+std::shared_ptr<TxProposal>     getProcessedTxSubmission(const bytes_t& tx_unsigned_hash);
+txproposals_t                   getProcessedTxSubmissions();
 
 }
