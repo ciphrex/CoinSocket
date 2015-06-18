@@ -129,7 +129,7 @@ void CoinSocket::submitTxProposal(const bytes_t& hash)
     auto it = g_pendingTxProposals.find(hash);
     if (it == g_pendingTxProposals.end()) throw runtime_error("Transaction proposal not found.");
 
-    g_submittedTxProposals[hash];
+    g_submittedTxProposals[hash] = it->second;
     g_pendingTxProposals.erase(hash);
 }
 

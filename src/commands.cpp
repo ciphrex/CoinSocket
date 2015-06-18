@@ -826,7 +826,8 @@ Value cmd_listtxsubmissions(Server& server, websocketpp::connection_hdl hdl, Syn
     vector<Object> txProposalObjs;
     for (auto& txProposal: txProposals)
     {
-        txProposalObjs.push_back(getTxProposalObject(*txProposal));
+        Object obj = getTxProposalObject(*txProposal);
+        txProposalObjs.push_back(obj);
     }
 
     Object result;
