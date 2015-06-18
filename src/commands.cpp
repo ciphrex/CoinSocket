@@ -1281,6 +1281,7 @@ void initCommandMap(command_map_t& command_map)
     command_map.insert(cmd_pair("getserializedunsignedtxs", Command(&cmd_getserializedunsignedtxs)));
     command_map.insert(cmd_pair("proposetx", Command(&cmd_proposetx)));
     command_map.insert(cmd_pair("gettxproposal", Command(&cmd_gettxproposal)));
+    command_map.insert(cmd_pair("listtxproposals", Command(&cmd_listtxproposals)));
     command_map.insert(cmd_pair("canceltxproposal", Command(&cmd_canceltxproposal)));
     command_map.insert(cmd_pair("submittxproposal", Command(&cmd_submittxproposal)));
     command_map.insert(cmd_pair("newtx", Command(&cmd_newtx)));
