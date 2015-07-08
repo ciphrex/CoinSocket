@@ -253,6 +253,7 @@ int main(int argc, char* argv[])
         SynchedVault synchedVault(config.getCoinParams());
 
         cout << "Opening vault " << config.getDatabaseName() << endl;
+        LOGGER(info) << endl << endl << endl << endl;
         LOGGER(info) << "Opening vault " << config.getDatabaseName() << endl;
         synchedVault.openVault(config.getDatabaseUser(), config.getDatabasePassword(), config.getDatabaseName(), false, SCHEMA_VERSION, string(), config.getMigrate());
 
