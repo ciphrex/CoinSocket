@@ -6,6 +6,10 @@ ifndef DISABLE_TLS
     CXX_FLAGS += -DUSE_TLS=1
 endif
 
+ifdef OLD_OPEN_CALLBACK
+    CXX_FLAGS += -DOLD_OPEN_CALLBACK=1
+endif
+
 LIBS = \
     -lSimpleSmtp \
     -lWebSocketServer \

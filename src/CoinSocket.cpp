@@ -81,7 +81,11 @@ void openCallback(Server& server, websocketpp::connection_hdl hdl)
     LOGGER(info) << "Client " << server.getRemoteEndpoint(hdl) << " connected as " << hdl.lock().get() << "." << endl;
 
     stringstream msg;
+#ifdef OLD_OPEN_CALLBACK
+    msg << "{\"result\":\"connected\", \"error\":null, \"id\":null}";
+#else
     msg << "{\"event\":\"connected\", \"data\":{}}";
+#endif
     server.send(hdl, msg.str());
 }
 
