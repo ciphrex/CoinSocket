@@ -327,6 +327,23 @@
                 <input type="button" onclick="getblockheader_string()" value="Submit" />
             </div>
         </div>
+        <div>
+            <div class="opgroupheader">Events</div>
+            <div class="command">
+                <div class="accordion">
+                    <p><b>subscribe</b></p>
+                    <div><p>Subscribes to events.</p></div>
+                </div>
+                <table class="gridtable">
+                    <tr><td>string list</td><td>channels</td>
+                        <td>
+                            <input type="text" id="subscribe_channelss" class="fullwidth" />
+                        </td>
+                    </tr>
+                </table>
+                <input type="button" onclick="subscribe()" value="Submit" />
+            </div>
+        </div>
         </div>
     </div>
     <div id="outputcolumn">

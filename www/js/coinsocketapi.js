@@ -259,3 +259,19 @@ function getblockheader_string() {
     requestid++;
     sendrequest(req);
 }
+
+function subscribe() {
+    if (!ws) return;
+    var channels = document.getElementById('subscribe_channels').value;
+    var channellist = channels.split(',');
+    var params;
+    var addcomma = false;
+    for (i in channellist) {
+        if (addcomma)   { params += ', ';  }
+        else            { addcomma = true; }
+        params += '"' + channellist[i].trim() + '"';
+    }
+    var req = '{"method": "subscribe", "params": [' + params + '], "id": ' + requestid + '}';
+    requestid++;
+    sendrequest(req);
+}
