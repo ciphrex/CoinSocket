@@ -946,7 +946,36 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
     uint32_t version = i < params.size() ? (uint32_t)params[i++].get_uint64() : DEFAULT_TX_VERSION;
     uint32_t locktime = i < params.size() ? (uint32_t)params[i++].get_uint64() : DEFAULT_TX_LOCKTIME;
 
-    std::shared_ptr<Tx> tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
+    std::shared_ptr<Tx> tx;
+    try
+    {
+        tx = vault->createTx(account, version, locktime, txouts, fee, 1, true);
+    }
+    catch (const AccountInsufficientFundsException& e)
+    {
+        if (getSmtpTls().isSet())
+        {
+            try
+            {
+                LOGGER(trace) << "Sending insufficient funds email alert." << endl;
+                getSmtpTls().setSubject("Insufficient funds");
+                std::stringstream body;
+                body << "An insufficient funds error has occured.\r\n\r\n"
+                     << "username:  " << e.username() << "\r\n"
+                     << "account:   " << e.account_name() << "\r\n"
+                     << "requested: " << e.requested() << "\r\n"
+                     << "available: " << e.available() << "\r\n";
+                getSmtpTls().setBody(body.str());
+                getSmtpTls().send();
+            }
+            catch (const exception& e)
+            {
+                LOGGER(error) << "Error occured sending alert email: " << e.what() << endl;
+            }
+        }
+
+        throw;
+    }
 /*
     Value txObj;
     if (!read_string(tx->toJson(true, true), txObj))
