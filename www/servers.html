@@ -1,0 +1,38 @@
+<html>
+<head>
+<title>Add Access Key</title>
+</head>
+<body>
+<div id="serverdiv">
+    <form>
+        Server:
+        <input type="text" id="serverurl" size="50" />
+        <br />
+        Access Key:
+        <input type="password" id="accesskeyinput" size="50" />
+        <br />
+        Expiration (days):
+        <input type="text" id="expirationinput" size="10" value="1" />
+        <br />
+        <input type="button" id="setbutton" onclick="setAction();" value="Set Access Key" />
+        <input type="button" id="clearbutton" onclick="clearAction();" value="Clear Access Key" />
+    </form>
+</div>
+<script type="text/javascript" src="js/cookies.js"></script>
+<script type="text/javascript">
+
+function setAction() {
+    var serverurl = document.getElementById('serverurl');
+    var accesskeyinput = document.getElementById('accesskeyinput');
+    var expirationinput = document.getElementById('expirationinput');
+    setCookie(serverurl.value, accesskeyinput.value, parseInt(expirationinput.value));
+    window.alert('Access key set for ' + serverurl.value + '.');
+}
+
+function clearAction() {
+    var serverurl = document.getElementById('serverurl');
+    deleteCookie(serverurl.value);
+}
+</script>
+</body>
+</html>
