@@ -79,12 +79,17 @@
             <div class="command">
                 <div class="accordion">
                     <p><b>newkeychain</b></p>
-                    <div><p>Creates a new keychain and returns the keychain information.</p></div>
+                    <div><p>Creates a new keychain and returns the keychain information. The second parameter is optional and allows the setting of an arbitrary seed. The seed must be at least 128 bits long and is provided in hex.</p></div>
                 </div>
                 <table class="gridtable">
                     <tr><td>string</td><td>name</td>
                         <td>
                             <input type="text" id="newkeychain_name" class="fullwidth" />
+                        </td>
+                    </tr>
+                    <tr><td>string</td><td>seed</td>
+                        <td>
+                            <input type="text" id="newkeychain_seed" placeholder="optional" class="fullwidth" />
                         </td>
                     </tr>
                 </table>

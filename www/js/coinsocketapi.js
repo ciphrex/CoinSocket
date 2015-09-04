@@ -124,7 +124,10 @@ function getkeychaininfo() {
 function newkeychain() {
     if (!ws) return;
     var keychainname = document.getElementById('newkeychain_name').value;
-    var req = '{"method": "newkeychain", "params":["' + keychainname + '"], "id": ' + requestid + '}';
+    var seed = document.getElementById('newkeychain_seed').value;
+    var params = '"' + keychainname + '"';
+    if (seed) params += ', "' + seed + '"';
+    var req = '{"method": "newkeychain", "params":[' + params + '], "id": ' + requestid + '}';
     requestid++;
     sendrequest(req);
 }
