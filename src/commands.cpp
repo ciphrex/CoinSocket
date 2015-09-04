@@ -174,13 +174,14 @@ Value cmd_exportvaulttofile(Server& /*server*/, websocketpp::connection_hdl /*hd
 // Keychain operations
 Value cmd_newkeychain(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, SynchedVault& synchedVault, const Array& params)
 {
-    if (params.size() != 1 || params[0].type() != str_type)
+    if (params.size() < 1 || params.size() > 2 || params[0].type() != str_type || (params.size() > 1 && params[1].type() != str_type))
         throw CommandInvalidParametersException();
 
     Vault* vault = synchedVault.getVault();
 
     std::string keychainName = params[0].get_str();
-    std::shared_ptr<Keychain> keychain = vault->newKeychain(keychainName, random_bytes(32));
+    secure_bytes_t seed = params.size() > 1 ? uchar_vector(params[1].get_str()) : random_bytes(32);
+    std::shared_ptr<Keychain> keychain = vault->newKeychain(keychainName, seed);
     return getKeychainObject(*keychain);
 }
 
