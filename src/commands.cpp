@@ -703,10 +703,16 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
                 getSmtpTls().setSubject("Insufficient funds");
                 std::stringstream body;
                 body << "An insufficient funds error has occured.\r\n\r\n"
-                     << "username:  " << e.username() << "\r\n"
-                     << "account:   " << e.account_name() << "\r\n"
+                     << "username:  " << username << "\r\n"
+                     << "account:   " << account << "\r\n"
                      << "requested: " << e.requested() << "\r\n"
-                     << "available: " << e.available() << "\r\n";
+                     << "available: " << e.available() << "\r\n"
+                     << "txouts: " << "\r\n";
+                for (auto& txout: txouts)
+                {
+                    body << "    label:  " << txout->sending_label() << "\r\n"
+                         << "    amount: " << txout->value() << "\r\n\r\n";
+                }
                 getSmtpTls().setBody(body.str());
                 getSmtpTls().send();
             }
@@ -962,10 +968,16 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
                 getSmtpTls().setSubject("Insufficient funds");
                 std::stringstream body;
                 body << "An insufficient funds error has occured.\r\n\r\n"
-                     << "username:  " << e.username() << "\r\n"
-                     << "account:   " << e.account_name() << "\r\n"
+                     //<< "username:  N/A"\r\n"
+                     << "account:   " << account << "\r\n"
                      << "requested: " << e.requested() << "\r\n"
-                     << "available: " << e.available() << "\r\n";
+                     << "available: " << e.available() << "\r\n"
+                     << "txouts: " << "\r\n";
+                for (auto& txout: txouts)
+                {
+                    body << "    label:  " << txout->sending_label() << "\r\n"
+                         << "    amount: " << txout->value() << "\r\n\r\n";
+                }
                 getSmtpTls().setBody(body.str());
                 getSmtpTls().send();
             }
