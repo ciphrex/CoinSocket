@@ -710,8 +710,9 @@ Value cmd_createtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, Sync
                      << "txouts: " << "\r\n";
                 for (auto& txout: txouts)
                 {
-                    body << "    label:  " << txout->sending_label() << "\r\n"
-                         << "    amount: " << txout->value() << "\r\n\r\n";
+                    body << "    label:   " << txout->sending_label() << "\r\n"
+                         << "    address: " << CoinQ::Script::getAddressForTxOutScript(txout->script(), getCoinParams().address_versions()) << "\r\n"
+                         << "    amount:  " << txout->value() << "\r\n\r\n";
                 }
                 getSmtpTls().setBody(body.str());
                 getSmtpTls().send();
@@ -975,8 +976,9 @@ Value cmd_newlabeledtx(Server& /*server*/, websocketpp::connection_hdl /*hdl*/, 
                      << "txouts: " << "\r\n";
                 for (auto& txout: txouts)
                 {
-                    body << "    label:  " << txout->sending_label() << "\r\n"
-                         << "    amount: " << txout->value() << "\r\n\r\n";
+                    body << "    label:   " << txout->sending_label() << "\r\n"
+                         << "    address: " << CoinQ::Script::getAddressForTxOutScript(txout->script(), getCoinParams().address_versions()) << "\r\n"
+                         << "    amount:  " << txout->value() << "\r\n\r\n";
                 }
                 getSmtpTls().setBody(body.str());
                 getSmtpTls().send();
