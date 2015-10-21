@@ -48,6 +48,7 @@ using namespace std;
 command_map_t g_command_map;
 
 bool g_bShutdown = false;
+bool g_bDisconnected = false;
 
 std::string g_connectKey;
 
@@ -566,6 +567,10 @@ int main(int argc, char* argv[])
         addChannelToSet("all",          "merkleblockinserted");
 
 
+        // PEER DISCONNECTED
+        synchedVault.subscribePeerDisconnected([&]() {
+            g_bDisconnected = true;
+        });
 
 
         if (config.getSync())
@@ -596,7 +601,17 @@ int main(int argc, char* argv[])
 
         trySendStartedAlert();
 
-        while (!g_bShutdown) { std::this_thread::sleep_for(std::chrono::microseconds(200)); }
+        while (!g_bShutdown)
+        {
+            std::this_thread::sleep_for(std::chrono::microseconds(200));
+            if (g_bDisconnected)
+            {
+                g_bDisconnected = false;
+                synchedVault.stopSync();
+                std::this_thread::sleep_for(std::chrono::microseconds(5000000));
+                synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
+            }
+        }
 
         cout << "Stopping vault sync..." << flush;
         LOGGER(info) << "Stopping vault sync..." << endl;
