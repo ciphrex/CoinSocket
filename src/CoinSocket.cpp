@@ -416,21 +416,38 @@ int main(int argc, char* argv[])
 
         trySendStartedAlert();
 
+        std::thread* reconnectPeerThread = nullptr;
+
         while (!g_bShutdown)
         {
             std::this_thread::sleep_for(std::chrono::microseconds(200));
             if (g_bDisconnected)
             {
                 g_bDisconnected = false;
+                LOGGER(info) << "Peer disconnected." << endl;
                 synchedVault.stopSync();
-                std::this_thread::sleep_for(std::chrono::microseconds(5000000));
-                synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
+                if (reconnectPeerThread)
+                {
+                    reconnectPeerThread->join();
+                    delete reconnectPeerThread;
+                }
+
+                reconnectPeerThread = new std::thread([&]() {
+                    LOGGER(info) << "Attempting to reconnect in 5 seconds..." << endl;
+                    std::this_thread::sleep_for(std::chrono::microseconds(5000000));
+                    synchedVault.startSync(config.getPeerHost(), config.getPeerPort());
+                });
             }
         }
 
         cout << "Stopping vault sync..." << flush;
         LOGGER(info) << "Stopping vault sync..." << endl;
         synchedVault.stopSync();
+        if (reconnectPeerThread)
+        {
+            reconnectPeerThread->join();
+            delete reconnectPeerThread;
+        }
         cout << "done." << endl;
         LOGGER(info) << "done." << endl;
 
