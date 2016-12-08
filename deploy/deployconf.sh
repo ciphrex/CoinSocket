@@ -6,7 +6,7 @@ if (( $# != 2 )); then
 fi
 
 mkdir -p /home/coinsocket/.$1
-touch /home/coinsocket/.$1/coinsocket.log
+touch /home/coinsocket/.$1/coinsocket.conf
 
 echo "network=bitcoin" > /home/coinsocket/.$1/coinsocket.conf
 echo "peerhost=localhost" >> /home/coinsocket/.$1/coinsocket.conf
